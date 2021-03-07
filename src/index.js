@@ -12,7 +12,7 @@ async function recipe() {
     const { url, date } = titleParser(title);
     const fileName = core.getInput("fileName");
     core.exportVariable("IssueNumber", number);
-    const recipe = await getMetadata(url, body);
+    const recipe = await getMetadata(url, body, date);
     const recipes = addRecipe(fileName, recipe);
     await saveRecipe(fileName, recipes);
   } catch (error) {
@@ -20,14 +20,16 @@ async function recipe() {
   }
 }
 
-async function getMetadata(url, body) {
+async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
     const { ogTitle, ogDescription, ogSiteName } = result;
     if (error) throw new Error(result);
+    core.exportVariable("RecipeTitle", ogTitle);
+    core.exportVariable("DateCooked", date);
     return {
       url,
-      date: new Date().toISOString().slice(0, 10),
+      date,
       title: ogTitle || '',
       description: ogDescription || '',
       site: ogSiteName || '',
