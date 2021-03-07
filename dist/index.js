@@ -35294,11 +35294,11 @@ async function getMetadata(url, body, date) {
     core.exportVariable("RecipeTitle", ogTitle);
     core.exportVariable("DateCooked", date);
     return {
-      url: ogUrl,
-      date,
       title: ogTitle || '',
-      description: ogDescription || '',
       site: ogSiteName || '',
+      date,
+      description: ogDescription || '',
+      url: ogUrl,
       ...body && {notes: body}
     };
   });
