@@ -1,3 +1,4 @@
+name: Add to recipe box
 on:
   issues:
     types: opened

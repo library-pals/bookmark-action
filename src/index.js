@@ -23,12 +23,13 @@ async function recipe() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    const { ogTitle, ogDescription, ogSiteName } = result;
+    console.log('result', result);
+    const { ogUrl, ogTitle, ogDescription, ogSiteName } = result;
     if (error) throw new Error(result);
     core.exportVariable("RecipeTitle", ogTitle);
     core.exportVariable("DateCooked", date);
     return {
-      url,
+      url: ogUrl,
       date,
       title: ogTitle || '',
       description: ogDescription || '',
