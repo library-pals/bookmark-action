@@ -3,15 +3,15 @@ on:
     types: opened
 
 jobs:
-  update_library:
+  update_recipe:
     runs-on: macOS-latest
-    name: Recipe
+    name: Add recipe
     # only continue if issue has "read" label
     if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Read
+      - name: Recipe box
         uses: ./
       - name: Commit files
         run: |
