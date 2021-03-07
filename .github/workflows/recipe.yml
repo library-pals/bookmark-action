@@ -7,7 +7,7 @@ jobs:
   update_recipe:
     runs-on: macOS-latest
     name: Add recipe
-    # only continue if issue has "read" label
+    # only continue if issue has "recipe" label
     if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
       - name: Checkout

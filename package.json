@@ -1,11 +1,10 @@
 {
-  "name": "recipe-box",
+  "name": "recipe-box-action",
   "version": "1.0.0",
-  "description": "",
+  "description": "Track the recipes that you've made by updating the `_data/recipes.yml` file in your repository.",
   "main": "dist/index.js",
   "scripts": {
-    "pretest": "eslint .",
-    "test": "jest",
+    "test": "eslint .",
     "build": "ncc build src/index.js",
     "pretty-quick": "pretty-quick"
   },
