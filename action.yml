@@ -1,11 +1,11 @@
-name: Recipe box
+name: Bookmark
 author: "@katydecorah"
-description: "Save recipe URL and metadata to a YAML file."
+description: "Save website metadata to a YAML file."
 runs:
   using: "node12"
   main: dist/index.js
 
 inputs:
   fileName:
-    description: "The filename to save your recipes."
-    default: "_data/recipes.yml"
+    description: "The filename to save your bookmarks."
+    default: "_data/bookmarks.yml"

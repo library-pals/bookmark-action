@@ -1,7 +1,7 @@
 {
-  "name": "recipe-box-action",
+  "name": "bookmark-action",
   "version": "1.0.0",
-  "description": "Track the recipes that you've made by updating the `_data/recipes.yml` file in your repository.",
+  "description": "Save website metadata to a YAML file.",
   "main": "dist/index.js",
   "scripts": {
     "test": "eslint .",
@@ -27,10 +27,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/katydecorah/recipe-box.git"
+    "url": "git+https://github.com/katydecorah/bookmark-action.git"
   },
   "bugs": {
-    "url": "https://github.com/katydecorah/recipe-box/issues"
+    "url": "https://github.com/katydecorah/bookmark-action/issues"
   },
-  "homepage": "https://github.com/katydecorah/recipe-box#readme"
+  "homepage": "https://github.com/katydecorah/bookmark-action#readme"
 }
