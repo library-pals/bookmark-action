@@ -25,7 +25,7 @@ async function getMetadata(url, body, date) {
     const { error, result } = data;
     const { ogUrl, ogTitle, ogDescription, ogSiteName } = result;
     if (error) throw new Error(result);
-    core.exportVariable("PageTitle", ogTitle);
+    core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
     return {
       title: ogTitle || '',
