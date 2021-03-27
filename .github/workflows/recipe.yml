@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Recipe box
         uses: ./
-        fileName: _data/recipes.yml
+        with:
+          fileName: _data/recipes.yml
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
