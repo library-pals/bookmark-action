@@ -6,15 +6,15 @@ const ogs = require("open-graph-scraper");
 const yaml = require("js-yaml");
 const { writeFileSync, readFileSync } = require("fs");
 
-async function recipe() {
+async function bookmark() {
   try {
     const { title, number, body } = github.context.payload.issue;
     const { url, date } = titleParser(title);
     const fileName = core.getInput("fileName");
     core.exportVariable("IssueNumber", number);
-    const recipe = await getMetadata(url, body, date);
-    const recipes = addRecipe(fileName, recipe);
-    await saveRecipe(fileName, recipes);
+    const page = await getMetadata(url, body, date);
+    const bookmarks = addBookmark(fileName, page);
+    await saveBookmarks(fileName, bookmarks);
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -23,11 +23,10 @@ async function recipe() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    console.log('result', result);
     const { ogUrl, ogTitle, ogDescription, ogSiteName } = result;
     if (error) throw new Error(result);
-    core.exportVariable("RecipeTitle", ogTitle);
-    core.exportVariable("DateCooked", date);
+    core.exportVariable("PageTitle", ogTitle);
+    core.exportVariable("DateBookmarked", date);
     return {
       title: ogTitle || '',
       site: ogSiteName || '',
@@ -47,7 +46,7 @@ function titleParser(title) {
   const date = isDate(split[1])
     ? split[1]
     : new Date().toISOString().slice(0, 10);
-  core.exportVariable("DateCooked", date);
+  core.exportVariable("DateBookmarked", date);
   return {
     url,
     date,
@@ -62,15 +61,15 @@ const isUrl = url => url.startsWith('http');
 const sortByDate = (array) =>
   array.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-function addRecipe(fileName, newRecipe) {
-  return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), newRecipe])
+function addBookmark(fileName, bookmark) {
+  return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), bookmark])
 }
 
-async function saveRecipe(fileName, recipes) {
+async function saveBookmarks(fileName, bookmark) {
   try {
-    writeFileSync(fileName, yaml.dump(recipes), "utf-8");
+    writeFileSync(fileName, yaml.dump(bookmark), "utf-8");
   } catch (error) {
     core.setFailed(error.message);
   }
 }
-module.exports = recipe();
+module.exports = bookmark();
