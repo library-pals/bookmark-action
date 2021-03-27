@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "eslint .",
-    "build": "ncc build src/index.js",
+    "build": "ncc build src/index.js && node src/docs.js",
     "pretty-quick": "pretty-quick"
   },
   "author": "Katy DeCorah",

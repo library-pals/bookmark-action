@@ -1,4 +1,4 @@
-name: Add to recipe box
+name: Add recipes
 on:
   issues:
     types: opened
