@@ -35271,15 +35271,15 @@ const ogs = __webpack_require__(287);
 const yaml = __webpack_require__(414);
 const { writeFileSync, readFileSync } = __webpack_require__(747);
 
-async function recipe() {
+async function bookmark() {
   try {
     const { title, number, body } = github.context.payload.issue;
     const { url, date } = titleParser(title);
     const fileName = core.getInput("fileName");
     core.exportVariable("IssueNumber", number);
-    const recipe = await getMetadata(url, body, date);
-    const recipes = addRecipe(fileName, recipe);
-    await saveRecipe(fileName, recipes);
+    const page = await getMetadata(url, body, date);
+    const bookmarks = addBookmark(fileName, page);
+    await saveBookmarks(fileName, bookmarks);
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -35288,11 +35288,10 @@ async function recipe() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    console.log('result', result);
     const { ogUrl, ogTitle, ogDescription, ogSiteName } = result;
     if (error) throw new Error(result);
-    core.exportVariable("RecipeTitle", ogTitle);
-    core.exportVariable("DateCooked", date);
+    core.exportVariable("PageTitle", ogTitle);
+    core.exportVariable("DateBookmarked", date);
     return {
       title: ogTitle || '',
       site: ogSiteName || '',
@@ -35312,7 +35311,7 @@ function titleParser(title) {
   const date = isDate(split[1])
     ? split[1]
     : new Date().toISOString().slice(0, 10);
-  core.exportVariable("DateCooked", date);
+  core.exportVariable("DateBookmarked", date);
   return {
     url,
     date,
@@ -35327,18 +35326,18 @@ const isUrl = url => url.startsWith('http');
 const sortByDate = (array) =>
   array.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-function addRecipe(fileName, newRecipe) {
-  return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), newRecipe])
+function addBookmark(fileName, bookmark) {
+  return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), bookmark])
 }
 
-async function saveRecipe(fileName, recipes) {
+async function saveBookmarks(fileName, bookmark) {
   try {
-    writeFileSync(fileName, yaml.dump(recipes), "utf-8");
+    writeFileSync(fileName, yaml.dump(bookmark), "utf-8");
   } catch (error) {
     core.setFailed(error.message);
   }
 }
-module.exports = recipe();
+module.exports = bookmark();
 
 
 /***/ }),
@@ -38786,7 +38785,7 @@ Object.defineProperty(exports, "pseudos", { enumerable: true, get: function () {
 /* 771 */
 /***/ (function(module) {
 
-module.exports = {"name":"cheerio","version":"1.0.0-rc.5","description":"Tiny, fast, and elegant implementation of core jQuery designed specifically for the server","author":"Matt Mueller <mattmuelle@gmail.com> (mat.io)","license":"MIT","keywords":["htmlparser","jquery","selector","scraper","parser","html"],"repository":{"type":"git","url":"git://github.com/cheeriojs/cheerio.git"},"main":"./index.js","types":"types/index.d.ts","files":["index.js","types/index.d.ts","lib"],"engines":{"node":">= 0.12"},"dependencies":{"cheerio-select-tmp":"^0.1.0","dom-serializer":"~1.2.0","domhandler":"^4.0.0","entities":"~2.1.0","htmlparser2":"^6.0.0","parse5":"^6.0.0","parse5-htmlparser2-tree-adapter":"^6.0.0"},"devDependencies":{"@types/node":"^14.14.10","benchmark":"^2.1.4","coveralls":"^3.0.2","eslint":"^7.10.0","eslint-config-prettier":"^7.0.0","eslint-plugin-jsdoc":"^30.6.2","expect.js":"~0.3.1","husky":"^4.2.5","jquery":"^3.0.0","jsdoc":"^3.6.6","jsdom":"^16.2.2","lint-staged":"^10.2.2","mocha":"^8.1.1","nyc":"^15.0.1","prettier":"^2.1.1","tsd":"^0.14.0","xyz":"~4.0.0"},"scripts":{"test":"npm run lint && npm run test:mocha && npm run test:types","test:mocha":"mocha --recursive --reporter dot --parallel","test:types":"tsd","lint":"npm run lint:es && npm run lint:prettier","lint:es":"eslint --ignore-path .prettierignore .","lint:prettier":"npm run format:prettier:raw -- --check","format":"npm run format:es && npm run format:prettier","format:es":"npm run lint:es -- --fix","format:prettier":"npm run format:prettier:raw -- --write","format:prettier:raw":"prettier '**/*.{js,ts,md,json,yml}' --ignore-path .prettierignore","build:docs":"jsdoc --configure jsdoc-config.json","pre-commit":"lint-staged"},"prettier":{"singleQuote":true,"tabWidth":2},"lint-staged":{"*.js":["prettier --write","npm run test:lint -- --fix"],"*.{json,md,ts,yml}":["prettier --write"]}};
+module.exports = {"name":"cheerio","version":"1.0.0-rc.5","description":"Tiny, fast, and elegant implementation of core jQuery designed specifically for the server","author":"Matt Mueller <mattmuelle@gmail.com> (mat.io)","license":"MIT","keywords":["htmlparser","jquery","selector","scraper","parser","html"],"repository":{"type":"git","url":"git://github.com/cheeriojs/cheerio.git"},"main":"./index.js","types":"types/index.d.ts","files":["index.js","types/index.d.ts","lib"],"engines":{"node":">= 0.12"},"dependencies":{"cheerio-select-tmp":"^0.1.0","dom-serializer":"~1.2.0","domhandler":"^4.0.0","entities":"~2.1.0","htmlparser2":"^6.0.0","parse5":"^6.0.0","parse5-htmlparser2-tree-adapter":"^6.0.0"},"devDependencies":{"@types/node":"^14.14.10","benchmark":"^2.1.4","coveralls":"^3.0.2","eslint":"^7.10.0","eslint-config-prettier":"^7.0.0","eslint-plugin-jsdoc":"^30.6.2","expect.js":"~0.3.1","husky":"^4.2.5","jquery":"^3.0.0","jsdoc":"^3.6.6","jsdom":"^16.2.2","lint-staged":"^10.2.2","mocha":"^8.1.1","nyc":"^15.0.1","prettier":"^2.1.1","tsd":"^0.14.0","xyz":"~4.0.0"},"scripts":{"test":"npm run lint && npm run test:mocha && npm run test:types","test:mocha":"mocha --recursive --reporter dot --parallel","test:types":"tsd","lint":"npm run lint:es && npm run lint:prettier","lint:es":"eslint --ignore-path .prettierignore .","lint:prettier":"npm run format:prettier:raw -- --check","format":"npm run format:es && npm run format:prettier","format:es":"npm run lint:es -- --fix","format:prettier":"npm run format:prettier:raw -- --write","format:prettier:raw":"prettier '**/*.{js,ts,md,json,yml}' --ignore-path .prettierignore","build:docs":"jsdoc --configure jsdoc-config.json","pre-commit":"lint-staged"},"prettier":{"singleQuote":true,"tabWidth":2},"lint-staged":{"*.js":["prettier --write","npm run test:lint -- --fix"],"*.{json,md,ts,yml}":["prettier --write"]},"_resolved":"https://registry.npmjs.org/cheerio/-/cheerio-1.0.0-rc.5.tgz","_integrity":"sha512-yoqps/VCaZgN4pfXtenwHROTp8NG6/Hlt4Jpz2FEP0ZJQ+ZUkVDd0hAPDNKhj3nakpfPt/CNs57yEtxD1bXQiw==","_from":"cheerio@1.0.0-rc.5"};
 
 /***/ }),
 /* 772 */,
