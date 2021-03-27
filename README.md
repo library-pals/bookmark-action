@@ -1,6 +1,6 @@
 # bookmark-action
 
-This GitHub action save website metadata to a YAML file.
+This GitHub action bookmarks websites to a YAML file.
 
 Create a new issue with the URL in the title. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your YAML file in your repository, always sorting by the date you made the created the bookmark.
 

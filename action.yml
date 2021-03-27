@@ -1,6 +1,6 @@
 name: Bookmark
 author: "@katydecorah"
-description: "Save website metadata to a YAML file."
+description: "Bookmark websites to a YAML file."
 runs:
   using: "node12"
   main: dist/index.js
