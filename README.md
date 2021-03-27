@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Recipe box
+      - name: Bookmark action
         uses: katydecorah/bookmark-action@1.0.0
         with:
           fileName: _data/bookmarks.yml

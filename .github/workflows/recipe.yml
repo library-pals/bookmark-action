@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Recipe box
+      - name: Bookmark action
         uses: ./
         with:
           fileName: _data/recipes.yml
