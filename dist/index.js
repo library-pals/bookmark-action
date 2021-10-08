@@ -36086,8 +36086,9 @@ async function getMetadata(url, body, date) {
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
-    if (ogImage && ogImage.url) {
-      core.exportVariable("BookmarkImageOutput", `bookmark-${slugify(ogTitle)}.${ogImage.type}`);
+    const image = ogImage && ogImage.url ? `bookmark-${slugify(ogTitle)}.${ogImage.type}`: undefined;
+    if (image) {
+      core.exportVariable("BookmarkImageOutput", image);
       core.exportVariable("BookmarkImage", ogImage.url);
     }
     return {
@@ -36096,7 +36097,7 @@ async function getMetadata(url, body, date) {
       date,
       description: ogDescription || '',
       url: ogUrl,
-      image: (ogImage && ogImage.url) ? ogImage.url : '',
+      image: image || '',
       ...body && {notes: body}
     };
   });
