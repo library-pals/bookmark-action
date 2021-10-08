@@ -23,7 +23,7 @@ async function bookmark() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    const { ogUrl, ogTitle, ogDescription, ogSiteName } = result;
+    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogImage } = result;
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
@@ -33,6 +33,7 @@ async function getMetadata(url, body, date) {
       date,
       description: ogDescription || '',
       url: ogUrl,
+      image: (ogImage && ogImage.url) ? ogImage.url : '',
       ...body && {notes: body}
     };
   });
