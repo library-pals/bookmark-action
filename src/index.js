@@ -27,6 +27,10 @@ async function getMetadata(url, body, date) {
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
+    if (ogImage && ogImage.url) {
+      core.exportVariable("BookmarkImageOutput", `bookmark-${slugify(ogTitle)}.${ogImage.type}`);
+      core.exportVariable("BookmarkImage", ogImage.url);
+    }
     return {
       title: ogTitle || '',
       site: ogSiteName || '',
@@ -64,6 +68,16 @@ const sortByDate = (array) =>
 
 function addBookmark(fileName, bookmark) {
   return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), bookmark])
+}
+
+// Credit: https://gist.github.com/mathewbyrne/1280286
+function slugify(text) {
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')   
+    .replace(/[^\w\-]+/g, '')   
+    .replace(/\-\-+/g, '-')     
+    .replace(/^-+/, '')         
+    .replace(/-+$/, '');      
 }
 
 async function saveBookmarks(fileName, bookmark) {
