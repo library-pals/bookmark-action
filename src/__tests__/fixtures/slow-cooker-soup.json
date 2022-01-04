@@ -1,0 +1,29 @@
+{
+  "ogUrl": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
+  "ogTitle": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe",
+  "twitterTitle": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe",
+  "ogType": "article",
+  "ogSiteName": "NYT Cooking",
+  "articlePublisher": "https://www.facebook.com/nytcooking",
+  "ogDescription": "This creamy vegetarian soup is built on humble winter staples, but the addition of sour cream and chives make it feel special (Crumble a few sour-cream-and-onion chips on top to take the theme all the way.) It takes just a few minutes to throw the ingredients into the slow cooker, and the rest of the recipe almost entirely hands-off, making it very doable on a weekday If you have one, use an immersion blender to purée it to a silky smooth consistency, but a potato masher works well for a textured, chunky soup",
+  "twitterDescription": "This creamy vegetarian soup is built on humble winter staples, but the addition of sour cream and chives make it feel special (Crumble a few sour-cream-and-onion chips on top to take the theme all the way.) It takes just a few minutes to throw the ingredients into the slow cooker, and the rest of the recipe almost entirely hands-off, making it very doable on a weekday If you have one, use an immersion blender to purée it to a silky smooth consistency, but a potato masher works well for a textured, chunky soup",
+  "twitterCard": "summary_large_image",
+  "twitterSite": "@nytfood",
+  "ogImage": {
+    "url": "https://static01.nyt.com/images/2021/12/15/dining/sd-cauliflower-potato-soup/merlin_198117078_13337d14-21d0-4ccd-bda1-20f51041d636-articleLarge.jpg",
+    "width": null,
+    "height": null,
+    "type": "jpg"
+  },
+  "twitterImage": {
+    "url": "https://static01.nyt.com/images/2021/12/15/dining/sd-cauliflower-potato-soup/merlin_198117078_13337d14-21d0-4ccd-bda1-20f51041d636-articleLarge.jpg",
+    "width": null,
+    "height": null,
+    "alt": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe"
+  },
+  "ogLocale": "en-US",
+  "favicon": "/favicon.ico",
+  "charset": "utf8",
+  "requestUrl": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup?module=Recipe+of+The+Day&pgType=homepage&action=click",
+  "success": true
+}

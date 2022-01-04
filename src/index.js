@@ -5,6 +5,7 @@ const github = require("@actions/github");
 const ogs = require("open-graph-scraper");
 const yaml = require("js-yaml");
 const { writeFileSync, readFileSync } = require("fs");
+const { setImage } = require("./utils.js");
 
 async function bookmark() {
   try {
@@ -23,19 +24,11 @@ async function bookmark() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogImage, ogType } =
-      result;
+    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogType } = result;
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
-    const image =
-      ogImage && ogImage.url
-        ? `bookmark-${slugify(ogTitle)}.${ogImage.type}`
-        : undefined;
-    if (image) {
-      core.exportVariable("BookmarkImageOutput", image);
-      core.exportVariable("BookmarkImage", ogImage.url);
-    }
+    const image = setImage(result);
     return {
       title: ogTitle || "",
       site: ogSiteName || "",
@@ -73,18 +66,6 @@ const sortByDate = (array) =>
 
 function addBookmark(fileName, bookmark) {
   return sortByDate([...yaml.load(readFileSync(fileName, "utf-8")), bookmark]);
-}
-
-// Credit: https://gist.github.com/mathewbyrne/1280286
-function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
 }
 
 async function saveBookmarks(fileName, bookmark) {

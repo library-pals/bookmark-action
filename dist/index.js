@@ -31510,7 +31510,38 @@ exports.HttpClient = HttpClient;
 /* 540 */,
 /* 541 */,
 /* 542 */,
-/* 543 */,
+/* 543 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+const core = __webpack_require__(470);
+
+function setImage({ ogImage, ogTitle }) {
+  if (!ogImage || !ogImage.url || !ogTitle) return;
+  const imageType = ogImage.type ? `.${ogImage.type}` : ".jpg";
+  const image = `bookmark-${slugify(ogTitle)}${imageType}`;
+  core.exportVariable("BookmarkImageOutput", image);
+  core.exportVariable("BookmarkImage", ogImage.url);
+  return image;
+}
+
+// Credit: https://gist.github.com/mathewbyrne/1280286
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
+}
+
+module.exports = {
+  setImage,
+};
+
+
+/***/ }),
 /* 544 */,
 /* 545 */,
 /* 546 */
@@ -37221,6 +37252,7 @@ const github = __webpack_require__(469);
 const ogs = __webpack_require__(287);
 const yaml = __webpack_require__(414);
 const { writeFileSync, readFileSync } = __webpack_require__(747);
+const { setImage } = __webpack_require__(543);
 
 async function bookmark() {
   try {
@@ -37239,19 +37271,11 @@ async function bookmark() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogImage, ogType } =
-      result;
+    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogType } = result;
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
-    const image =
-      ogImage && ogImage.url
-        ? `bookmark-${slugify(ogTitle)}.${ogImage.type}`
-        : undefined;
-    if (image) {
-      core.exportVariable("BookmarkImageOutput", image);
-      core.exportVariable("BookmarkImage", ogImage.url);
-    }
+    const image = setImage(result);
     return {
       title: ogTitle || "",
       site: ogSiteName || "",
@@ -37289,18 +37313,6 @@ const sortByDate = (array) =>
 
 function addBookmark(fileName, bookmark) {
   return sortByDate([...yaml.load(readFileSync(fileName, "utf-8")), bookmark]);
-}
-
-// Credit: https://gist.github.com/mathewbyrne/1280286
-function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
 }
 
 async function saveBookmarks(fileName, bookmark) {

@@ -4,7 +4,8 @@
   "description": "Save website metadata to a YAML file.",
   "main": "dist/index.js",
   "scripts": {
-    "test": "eslint .",
+    "pretest": "eslint .",
+    "test": "jest",
     "build": "ncc build src/index.js && node src/docs.js",
     "pretty-quick": "pretty-quick",
     "prepare": "husky install"
@@ -23,6 +24,7 @@
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "husky": "^7.0.4",
+    "jest": "^27.4.5",
     "prettier": "^2.5.1",
     "pretty-quick": "^3.1.3"
   },
