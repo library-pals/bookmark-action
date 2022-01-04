@@ -1,9 +1,12 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
+  "parserOptions": {
+    "requireConfigFile": false
+  },
   "env": {
-    "node": true,
     "es6": true,
+    "node": true,
     "jest": true
   },
-  "extends": "eslint:recommended"
+  "extends": ["eslint:recommended", "prettier"]
 }

@@ -231,10 +231,22 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function rtrim(str, chars) {
-  (0, _assertString.default)(str); // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+  (0, _assertString.default)(str);
 
-  var pattern = chars ? new RegExp("[".concat(chars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "]+$"), 'g') : /(\s)+$/g;
-  return str.replace(pattern, '');
+  if (chars) {
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+    var pattern = new RegExp("[".concat(chars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "]+$"), 'g');
+    return str.replace(pattern, '');
+  } // Use a faster and more safe than regex trim method https://blog.stevenlevithan.com/archives/faster-trim-javascript
+
+
+  var strIndex = str.length - 1;
+
+  while (/\s/.test(str.charAt(strIndex))) {
+    strIndex -= 1;
+  }
+
+  return str.slice(0, strIndex + 1);
 }
 
 module.exports = exports.default;
@@ -844,9 +856,50 @@ module.exports = {
 /* 34 */,
 /* 35 */,
 /* 36 */
-/***/ (function(module) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
-module.exports = require("string_decoder");
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CancelError = exports.ParseError = void 0;
+const core_1 = __webpack_require__(946);
+/**
+An error to be thrown when server response code is 2xx, and parsing body fails.
+Includes a `response` property.
+*/
+class ParseError extends core_1.RequestError {
+    constructor(error, response) {
+        const { options } = response.request;
+        super(`${error.message} in "${options.url.toString()}"`, error, response.request);
+        this.name = 'ParseError';
+    }
+}
+exports.ParseError = ParseError;
+/**
+An error to be thrown when the request is aborted with `.cancel()`.
+*/
+class CancelError extends core_1.RequestError {
+    constructor(request) {
+        super('Promise was canceled', {}, request);
+        this.name = 'CancelError';
+    }
+    get isCanceled() {
+        return true;
+    }
+}
+exports.CancelError = CancelError;
+__exportStar(__webpack_require__(946), exports);
+
 
 /***/ }),
 /* 37 */
@@ -964,11 +1017,11 @@ class IteratedChar {
         this.done = false;
     }
     nextByte(det) {
-        if (this.nextIndex >= det.fRawLength) {
+        if (this.nextIndex >= det.rawLen) {
             this.done = true;
             return -1;
         }
-        const byteValue = det.fRawInput[this.nextIndex++] & 0x00ff;
+        const byteValue = det.rawInput[this.nextIndex++] & 0x00ff;
         return byteValue;
     }
 }
@@ -1032,7 +1085,7 @@ class mbcs {
                 confidence = Math.min(confidence, 100);
             }
         }
-        return confidence == 0 ? null : match_1.default(det, this, confidence);
+        return confidence == 0 ? null : (0, match_1.default)(det, this, confidence);
     }
     nextChar(iter, det) {
         return true;
@@ -1793,6 +1846,7 @@ module.exports = new Type('tag:yaml.org,2002:float', {
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 const validator = __webpack_require__(628);
+const got = __webpack_require__(77);
 
 /*
  * validates the url
@@ -1861,6 +1915,38 @@ exports.removeNestedUndefinedValues = (object) => {
   });
   return object;
 };
+
+/*
+ * gotClient
+ * limit the size of the content we fetch when performing the request
+ * from https://github.com/sindresorhus/got/blob/main/documentation/examples/advanced-creation.js
+ */
+exports.gotClient = got.extend({
+  handlers: [
+    (options, next) => {
+      const { downloadLimit } = options;
+      const promiseOrStream = next(options);
+
+      const destroy = (message) => {
+        if (options.isStream) {
+          promiseOrStream.destroy(new Error(message));
+          return;
+        }
+        promiseOrStream.cancel(message);
+      };
+
+      if (typeof downloadLimit === 'number') {
+        promiseOrStream.on('downloadProgress', (progress) => {
+          if (progress.transferred > downloadLimit && progress.percent !== 1) {
+            destroy(`Exceeded the download limit of ${downloadLimit} bytes`);
+          }
+        });
+      }
+
+      return promiseOrStream;
+    },
+  ],
+});
 
 
 /***/ }),
@@ -2050,9 +2136,9 @@ class NGramParser {
         this.lookup(this.ngram);
     }
     nextByte(det) {
-        if (this.byteIndex >= det.fInputLen)
+        if (this.byteIndex >= det.inputLen)
             return -1;
-        return det.fInputBytes[this.byteIndex++] & 0xff;
+        return det.inputBytes[this.byteIndex++] & 0xff;
     }
     parse(det, spaceCh) {
         let b, ignoreSpace = false;
@@ -2083,6 +2169,7 @@ const isFlatNgrams = (val) => Array.isArray(val) && isFinite(val[0]);
 class sbcs {
     constructor() {
         this.spaceChar = 0x20;
+        this.nGramLang = undefined;
     }
     ngrams() {
         return [];
@@ -2093,28 +2180,28 @@ class sbcs {
     name(input) {
         return 'sbcs';
     }
+    language() {
+        return this.nGramLang;
+    }
     match(det) {
+        this.nGramLang = undefined;
         const ngrams = this.ngrams();
         if (isFlatNgrams(ngrams)) {
             const parser = new NGramParser(ngrams, this.byteMap());
             const confidence = parser.parse(det, this.spaceChar);
-            return confidence <= 0 ? null : match_1.default(det, this, confidence);
+            return confidence <= 0 ? null : (0, match_1.default)(det, this, confidence);
         }
-        let bestConfidenceSoFar = -1;
-        let lang;
+        let bestConfidence = -1;
         for (let i = ngrams.length - 1; i >= 0; i--) {
             const ngl = ngrams[i];
             const parser = new NGramParser(ngl.fNGrams, this.byteMap());
             const confidence = parser.parse(det, this.spaceChar);
-            if (confidence > bestConfidenceSoFar) {
-                bestConfidenceSoFar = confidence;
-                lang = ngl.fLang;
+            if (confidence > bestConfidence) {
+                bestConfidence = confidence;
+                this.nGramLang = ngl.fLang;
             }
         }
-        const name = this.name(det);
-        return bestConfidenceSoFar <= 0
-            ? null
-            : match_1.default(det, this, bestConfidenceSoFar, name, lang);
+        return bestConfidence <= 0 ? null : (0, match_1.default)(det, this, bestConfidence);
     }
 }
 class ISO_8859_1 extends sbcs {
@@ -3043,7 +3130,7 @@ class ISO_8859_1 extends sbcs {
         ];
     }
     name(input) {
-        return input && input.fC1Bytes ? 'windows-1252' : 'ISO-8859-1';
+        return input && input.c1Bytes ? 'windows-1252' : 'ISO-8859-1';
     }
 }
 exports.ISO_8859_1 = ISO_8859_1;
@@ -3577,7 +3664,7 @@ class ISO_8859_2 extends sbcs {
         ];
     }
     name(det) {
-        return det && det.fC1Bytes ? 'windows-1250' : 'ISO-8859-2';
+        return det && det.c1Bytes ? 'windows-1250' : 'ISO-8859-2';
     }
 }
 exports.ISO_8859_2 = ISO_8859_2;
@@ -4585,7 +4672,7 @@ class ISO_8859_7 extends sbcs {
         ];
     }
     name(det) {
-        return det && det.fC1Bytes ? 'windows-1253' : 'ISO-8859-7';
+        return det && det.c1Bytes ? 'windows-1253' : 'ISO-8859-7';
     }
     language() {
         return 'el';
@@ -4990,7 +5077,7 @@ class ISO_8859_8 extends sbcs {
         ];
     }
     name(det) {
-        return det && det.fC1Bytes ? 'windows-1255' : 'ISO-8859-8';
+        return det && det.c1Bytes ? 'windows-1255' : 'ISO-8859-8';
     }
     language() {
         return 'he';
@@ -5327,7 +5414,7 @@ class ISO_8859_9 extends sbcs {
         ];
     }
     name(det) {
-        return det && det.fC1Bytes ? 'windows-1254' : 'ISO-8859-9';
+        return det && det.c1Bytes ? 'windows-1254' : 'ISO-8859-9';
     }
     language() {
         return 'tr';
@@ -9766,11 +9853,11 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // from https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-var validISO31661Alpha2CountriesCodes = ['AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'];
+var validISO31661Alpha2CountriesCodes = new Set(['AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW']);
 
 function isISO31661Alpha2(str) {
   (0, _assertString.default)(str);
-  return validISO31661Alpha2CountriesCodes.indexOf(str.toUpperCase()) >= 0;
+  return validISO31661Alpha2CountriesCodes.has(str.toUpperCase());
 }
 
 var CountryCodes = validISO31661Alpha2CountriesCodes;
@@ -10695,16 +10782,14 @@ exports.default = isISO31661Alpha3;
 
 var _assertString = _interopRequireDefault(__webpack_require__(57));
 
-var _includes = _interopRequireDefault(__webpack_require__(532));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // from https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3
-var validISO31661Alpha3CountriesCodes = ['AFG', 'ALA', 'ALB', 'DZA', 'ASM', 'AND', 'AGO', 'AIA', 'ATA', 'ATG', 'ARG', 'ARM', 'ABW', 'AUS', 'AUT', 'AZE', 'BHS', 'BHR', 'BGD', 'BRB', 'BLR', 'BEL', 'BLZ', 'BEN', 'BMU', 'BTN', 'BOL', 'BES', 'BIH', 'BWA', 'BVT', 'BRA', 'IOT', 'BRN', 'BGR', 'BFA', 'BDI', 'KHM', 'CMR', 'CAN', 'CPV', 'CYM', 'CAF', 'TCD', 'CHL', 'CHN', 'CXR', 'CCK', 'COL', 'COM', 'COG', 'COD', 'COK', 'CRI', 'CIV', 'HRV', 'CUB', 'CUW', 'CYP', 'CZE', 'DNK', 'DJI', 'DMA', 'DOM', 'ECU', 'EGY', 'SLV', 'GNQ', 'ERI', 'EST', 'ETH', 'FLK', 'FRO', 'FJI', 'FIN', 'FRA', 'GUF', 'PYF', 'ATF', 'GAB', 'GMB', 'GEO', 'DEU', 'GHA', 'GIB', 'GRC', 'GRL', 'GRD', 'GLP', 'GUM', 'GTM', 'GGY', 'GIN', 'GNB', 'GUY', 'HTI', 'HMD', 'VAT', 'HND', 'HKG', 'HUN', 'ISL', 'IND', 'IDN', 'IRN', 'IRQ', 'IRL', 'IMN', 'ISR', 'ITA', 'JAM', 'JPN', 'JEY', 'JOR', 'KAZ', 'KEN', 'KIR', 'PRK', 'KOR', 'KWT', 'KGZ', 'LAO', 'LVA', 'LBN', 'LSO', 'LBR', 'LBY', 'LIE', 'LTU', 'LUX', 'MAC', 'MKD', 'MDG', 'MWI', 'MYS', 'MDV', 'MLI', 'MLT', 'MHL', 'MTQ', 'MRT', 'MUS', 'MYT', 'MEX', 'FSM', 'MDA', 'MCO', 'MNG', 'MNE', 'MSR', 'MAR', 'MOZ', 'MMR', 'NAM', 'NRU', 'NPL', 'NLD', 'NCL', 'NZL', 'NIC', 'NER', 'NGA', 'NIU', 'NFK', 'MNP', 'NOR', 'OMN', 'PAK', 'PLW', 'PSE', 'PAN', 'PNG', 'PRY', 'PER', 'PHL', 'PCN', 'POL', 'PRT', 'PRI', 'QAT', 'REU', 'ROU', 'RUS', 'RWA', 'BLM', 'SHN', 'KNA', 'LCA', 'MAF', 'SPM', 'VCT', 'WSM', 'SMR', 'STP', 'SAU', 'SEN', 'SRB', 'SYC', 'SLE', 'SGP', 'SXM', 'SVK', 'SVN', 'SLB', 'SOM', 'ZAF', 'SGS', 'SSD', 'ESP', 'LKA', 'SDN', 'SUR', 'SJM', 'SWZ', 'SWE', 'CHE', 'SYR', 'TWN', 'TJK', 'TZA', 'THA', 'TLS', 'TGO', 'TKL', 'TON', 'TTO', 'TUN', 'TUR', 'TKM', 'TCA', 'TUV', 'UGA', 'UKR', 'ARE', 'GBR', 'USA', 'UMI', 'URY', 'UZB', 'VUT', 'VEN', 'VNM', 'VGB', 'VIR', 'WLF', 'ESH', 'YEM', 'ZMB', 'ZWE'];
+var validISO31661Alpha3CountriesCodes = new Set(['AFG', 'ALA', 'ALB', 'DZA', 'ASM', 'AND', 'AGO', 'AIA', 'ATA', 'ATG', 'ARG', 'ARM', 'ABW', 'AUS', 'AUT', 'AZE', 'BHS', 'BHR', 'BGD', 'BRB', 'BLR', 'BEL', 'BLZ', 'BEN', 'BMU', 'BTN', 'BOL', 'BES', 'BIH', 'BWA', 'BVT', 'BRA', 'IOT', 'BRN', 'BGR', 'BFA', 'BDI', 'KHM', 'CMR', 'CAN', 'CPV', 'CYM', 'CAF', 'TCD', 'CHL', 'CHN', 'CXR', 'CCK', 'COL', 'COM', 'COG', 'COD', 'COK', 'CRI', 'CIV', 'HRV', 'CUB', 'CUW', 'CYP', 'CZE', 'DNK', 'DJI', 'DMA', 'DOM', 'ECU', 'EGY', 'SLV', 'GNQ', 'ERI', 'EST', 'ETH', 'FLK', 'FRO', 'FJI', 'FIN', 'FRA', 'GUF', 'PYF', 'ATF', 'GAB', 'GMB', 'GEO', 'DEU', 'GHA', 'GIB', 'GRC', 'GRL', 'GRD', 'GLP', 'GUM', 'GTM', 'GGY', 'GIN', 'GNB', 'GUY', 'HTI', 'HMD', 'VAT', 'HND', 'HKG', 'HUN', 'ISL', 'IND', 'IDN', 'IRN', 'IRQ', 'IRL', 'IMN', 'ISR', 'ITA', 'JAM', 'JPN', 'JEY', 'JOR', 'KAZ', 'KEN', 'KIR', 'PRK', 'KOR', 'KWT', 'KGZ', 'LAO', 'LVA', 'LBN', 'LSO', 'LBR', 'LBY', 'LIE', 'LTU', 'LUX', 'MAC', 'MKD', 'MDG', 'MWI', 'MYS', 'MDV', 'MLI', 'MLT', 'MHL', 'MTQ', 'MRT', 'MUS', 'MYT', 'MEX', 'FSM', 'MDA', 'MCO', 'MNG', 'MNE', 'MSR', 'MAR', 'MOZ', 'MMR', 'NAM', 'NRU', 'NPL', 'NLD', 'NCL', 'NZL', 'NIC', 'NER', 'NGA', 'NIU', 'NFK', 'MNP', 'NOR', 'OMN', 'PAK', 'PLW', 'PSE', 'PAN', 'PNG', 'PRY', 'PER', 'PHL', 'PCN', 'POL', 'PRT', 'PRI', 'QAT', 'REU', 'ROU', 'RUS', 'RWA', 'BLM', 'SHN', 'KNA', 'LCA', 'MAF', 'SPM', 'VCT', 'WSM', 'SMR', 'STP', 'SAU', 'SEN', 'SRB', 'SYC', 'SLE', 'SGP', 'SXM', 'SVK', 'SVN', 'SLB', 'SOM', 'ZAF', 'SGS', 'SSD', 'ESP', 'LKA', 'SDN', 'SUR', 'SJM', 'SWZ', 'SWE', 'CHE', 'SYR', 'TWN', 'TJK', 'TZA', 'THA', 'TLS', 'TGO', 'TKL', 'TON', 'TTO', 'TUN', 'TUR', 'TKM', 'TCA', 'TUV', 'UGA', 'UKR', 'ARE', 'GBR', 'USA', 'UMI', 'URY', 'UZB', 'VUT', 'VEN', 'VNM', 'VGB', 'VIR', 'WLF', 'ESH', 'YEM', 'ZMB', 'ZWE']);
 
 function isISO31661Alpha3(str) {
   (0, _assertString.default)(str);
-  return (0, _includes.default)(validISO31661Alpha3CountriesCodes, str.toUpperCase());
+  return validISO31661Alpha3CountriesCodes.has(str.toUpperCase());
 }
 
 module.exports = exports.default;
@@ -10859,7 +10944,7 @@ exports.locales = locales;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const types_1 = __webpack_require__(541);
+const types_1 = __webpack_require__(36);
 const parseBody = (response, responseType, parseJson, encoding) => {
     const { rawBody } = response;
     try {
@@ -11560,11 +11645,17 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var validators = {
+  'cs-CZ': function csCZ(str) {
+    return /^(([ABCDEFHKIJKLMNPRSTUVXYZ]|[0-9])-?){5,8}$/.test(str);
+  },
   'de-DE': function deDE(str) {
     return /^((AW|UL|AK|GA|AÖ|LF|AZ|AM|AS|ZE|AN|AB|A|KG|KH|BA|EW|BZ|HY|KM|BT|HP|B|BC|BI|BO|FN|TT|ÜB|BN|AH|BS|FR|HB|ZZ|BB|BK|BÖ|OC|OK|CW|CE|C|CO|LH|CB|KW|LC|LN|DA|DI|DE|DH|SY|NÖ|DO|DD|DU|DN|D|EI|EA|EE|FI|EM|EL|EN|PF|ED|EF|ER|AU|ZP|E|ES|NT|EU|FL|FO|FT|FF|F|FS|FD|FÜ|GE|G|GI|GF|GS|ZR|GG|GP|GR|NY|ZI|GÖ|GZ|GT|HA|HH|HM|HU|WL|HZ|WR|RN|HK|HD|HN|HS|GK|HE|HF|RZ|HI|HG|HO|HX|IK|IL|IN|J|JL|KL|KA|KS|KF|KE|KI|KT|KO|KN|KR|KC|KU|K|LD|LL|LA|L|OP|LM|LI|LB|LU|LÖ|HL|LG|MD|GN|MZ|MA|ML|MR|MY|AT|DM|MC|NZ|RM|RG|MM|ME|MB|MI|FG|DL|HC|MW|RL|MK|MG|MÜ|WS|MH|M|MS|NU|NB|ND|NM|NK|NW|NR|NI|NF|DZ|EB|OZ|TG|TO|N|OA|GM|OB|CA|EH|FW|OF|OL|OE|OG|BH|LR|OS|AA|GD|OH|KY|NP|WK|PB|PA|PE|PI|PS|P|PM|PR|RA|RV|RE|R|H|SB|WN|RS|RD|RT|BM|NE|GV|RP|SU|GL|RO|GÜ|RH|EG|RW|PN|SK|MQ|RU|SZ|RI|SL|SM|SC|HR|FZ|VS|SW|SN|CR|SE|SI|SO|LP|SG|NH|SP|IZ|ST|BF|TE|HV|OD|SR|S|AC|DW|ZW|TF|TS|TR|TÜ|UM|PZ|TP|UE|UN|UH|MN|KK|VB|V|AE|PL|RC|VG|GW|PW|VR|VK|KB|WA|WT|BE|WM|WE|AP|MO|WW|FB|WZ|WI|WB|JE|WF|WO|W|WÜ|BL|Z|GC)[- ]?[A-Z]{1,2}[- ]?\d{1,4}|(AIC|FDB|ABG|SLN|SAW|KLZ|BUL|ESB|NAB|SUL|WST|ABI|AZE|BTF|KÖT|DKB|FEU|ROT|ALZ|SMÜ|WER|AUR|NOR|DÜW|BRK|HAB|TÖL|WOR|BAD|BAR|BER|BIW|EBS|KEM|MÜB|PEG|BGL|BGD|REI|WIL|BKS|BIR|WAT|BOR|BOH|BOT|BRB|BLK|HHM|NEB|NMB|WSF|LEO|HDL|WMS|WZL|BÜS|CHA|KÖZ|ROD|WÜM|CLP|NEC|COC|ZEL|COE|CUX|DAH|LDS|DEG|DEL|RSL|DLG|DGF|LAN|HEI|MED|DON|KIB|ROK|JÜL|MON|SLE|EBE|EIC|HIG|WBS|BIT|PRÜ|LIB|EMD|WIT|ERH|HÖS|ERZ|ANA|ASZ|MAB|MEK|STL|SZB|FDS|HCH|HOR|WOL|FRG|GRA|WOS|FRI|FFB|GAP|GER|BRL|CLZ|GTH|NOH|HGW|GRZ|LÖB|NOL|WSW|DUD|HMÜ|OHA|KRU|HAL|HAM|HBS|QLB|HVL|NAU|HAS|EBN|GEO|HOH|HDH|ERK|HER|WAN|HEF|ROF|HBN|ALF|HSK|USI|NAI|REH|SAN|KÜN|ÖHR|HOL|WAR|ARN|BRG|GNT|HOG|WOH|KEH|MAI|PAR|RID|ROL|KLE|GEL|KUS|KYF|ART|SDH|LDK|DIL|MAL|VIB|LER|BNA|GHA|GRM|MTL|WUR|LEV|LIF|STE|WEL|LIP|VAI|LUP|HGN|LBZ|LWL|PCH|STB|DAN|MKK|SLÜ|MSP|TBB|MGH|MTK|BIN|MSH|EIL|HET|SGH|BID|MYK|MSE|MST|MÜR|WRN|MEI|GRH|RIE|MZG|MIL|OBB|BED|FLÖ|MOL|FRW|SEE|SRB|AIB|MOS|BCH|ILL|SOB|NMS|NEA|SEF|UFF|NEW|VOH|NDH|TDO|NWM|GDB|GVM|WIS|NOM|EIN|GAN|LAU|HEB|OHV|OSL|SFB|ERB|LOS|BSK|KEL|BSB|MEL|WTL|OAL|FÜS|MOD|OHZ|OPR|BÜR|PAF|PLÖ|CAS|GLA|REG|VIT|ECK|SIM|GOA|EMS|DIZ|GOH|RÜD|SWA|NES|KÖN|MET|LRO|BÜZ|DBR|ROS|TET|HRO|ROW|BRV|HIP|PAN|GRI|SHK|EIS|SRO|SOK|LBS|SCZ|MER|QFT|SLF|SLS|HOM|SLK|ASL|BBG|SBK|SFT|SHG|MGN|MEG|ZIG|SAD|NEN|OVI|SHA|BLB|SIG|SON|SPN|FOR|GUB|SPB|IGB|WND|STD|STA|SDL|OBG|HST|BOG|SHL|PIR|FTL|SEB|SÖM|SÜW|TIR|SAB|TUT|ANG|SDT|LÜN|LSZ|MHL|VEC|VER|VIE|OVL|ANK|OVP|SBG|UEM|UER|WLG|GMN|NVP|RDG|RÜG|DAU|FKB|WAF|WAK|SLZ|WEN|SOG|APD|WUG|GUN|ESW|WIZ|WES|DIN|BRA|BÜD|WHV|HWI|GHC|WTM|WOB|WUN|MAK|SEL|OCH|HOT|WDA)[- ]?(([A-Z][- ]?\d{1,4})|([A-Z]{2}[- ]?\d{1,3})))[- ]?(E|H)?$/.test(str);
   },
   'de-LI': function deLI(str) {
     return /^FL[- ]?\d{1,5}[UZ]?$/.test(str);
+  },
+  'fi-FI': function fiFI(str) {
+    return /^(?=.{4,7})(([A-Z]{1,3}|[0-9]{1,3})[\s-]?([A-Z]{1,3}|[0-9]{1,5}))$/.test(str);
   },
   'pt-PT': function ptPT(str) {
     return /^([A-Z]{2}|[0-9]{2})[ -·]?([A-Z]{2}|[0-9]{2})[ -·]?([A-Z]{2}|[0-9]{2})$/.test(str);
@@ -11640,7 +11731,12 @@ Object.defineProperty(exports, "hasChildren", { enumerable: true, get: function 
 /***/ }),
 /* 135 */,
 /* 136 */,
-/* 137 */,
+/* 137 */
+/***/ (function(module) {
+
+module.exports = require("string_decoder");
+
+/***/ }),
 /* 138 */,
 /* 139 */,
 /* 140 */
@@ -12862,6 +12958,7 @@ var alpha = {
   'el-GR': /^[Α-ώ]+$/i,
   'es-ES': /^[A-ZÁÉÍÑÓÚÜ]+$/i,
   'fa-IR': /^[ابپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]+$/i,
+  'fi-FI': /^[A-ZÅÄÖ]+$/i,
   'fr-FR': /^[A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   'it-IT': /^[A-ZÀÉÈÌÎÓÒÙ]+$/i,
   'nb-NO': /^[A-ZÆØÅ]+$/i,
@@ -12883,7 +12980,8 @@ var alpha = {
   'ku-IQ': /^[ئابپتجچحخدرڕزژسشعغفڤقکگلڵمنوۆھەیێيطؤثآإأكضصةظذ]+$/i,
   ar: /^[ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/,
   he: /^[א-ת]+$/,
-  fa: /^['آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی']+$/i
+  fa: /^['آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی']+$/i,
+  'hi-IN': /^[\u0900-\u0961]+[\u0972-\u097F]*$/i
 };
 exports.alpha = alpha;
 var alphanumeric = {
@@ -12895,6 +12993,7 @@ var alphanumeric = {
   'de-DE': /^[0-9A-ZÄÖÜß]+$/i,
   'el-GR': /^[0-9Α-ω]+$/i,
   'es-ES': /^[0-9A-ZÁÉÍÑÓÚÜ]+$/i,
+  'fi-FI': /^[0-9A-ZÅÄÖ]+$/i,
   'fr-FR': /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   'it-IT': /^[0-9A-ZÀÉÈÌÎÓÒÙ]+$/i,
   'hu-HU': /^[0-9A-ZÁÉÍÓÖŐÚÜŰ]+$/i,
@@ -12916,7 +13015,8 @@ var alphanumeric = {
   'vi-VN': /^[0-9A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ]+$/i,
   ar: /^[٠١٢٣٤٥٦٧٨٩0-9ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/,
   he: /^[0-9א-ת]+$/,
-  fa: /^['0-9آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی۱۲۳۴۵۶۷۸۹۰']+$/i
+  fa: /^['0-9آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی۱۲۳۴۵۶۷۸۹۰']+$/i,
+  'hi-IN': /^[\u0900-\u0963]+[\u0966-\u097F]*$/i
 };
 exports.alphanumeric = alphanumeric;
 var decimal = {
@@ -12957,7 +13057,7 @@ for (var _locale2, _i2 = 0; _i2 < farsiLocales.length; _i2++) {
 
 var dotDecimal = ['ar-EG', 'ar-LB', 'ar-LY'];
 exports.dotDecimal = dotDecimal;
-var commaDecimal = ['bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-ZM', 'es-ES', 'fr-CA', 'fr-FR', 'id-ID', 'it-IT', 'ku-IQ', 'hu-HU', 'nb-NO', 'nn-NO', 'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS@latin', 'sr-RS', 'sv-SE', 'tr-TR', 'uk-UA', 'vi-VN'];
+var commaDecimal = ['bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-ZM', 'es-ES', 'fr-CA', 'fr-FR', 'id-ID', 'it-IT', 'ku-IQ', 'hi-IN', 'hu-HU', 'nb-NO', 'nn-NO', 'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS@latin', 'sr-RS', 'sv-SE', 'tr-TR', 'uk-UA', 'vi-VN'];
 exports.commaDecimal = commaDecimal;
 
 for (var _i3 = 0; _i3 < dotDecimal.length; _i3++) {
@@ -13951,6 +14051,7 @@ var patterns = {
   LT: /^LT\-\d{5}$/,
   LU: fourDigit,
   LV: /^LV\-\d{4}$/,
+  LK: fiveDigit,
   MX: fiveDigit,
   MT: /^[A-Za-z]{3}\s{0,1}\d{4}$/,
   MY: fiveDigit,
@@ -14056,7 +14157,7 @@ InternalCodec.prototype.decoder = InternalDecoder;
 //------------------------------------------------------------------------------
 
 // We use node.js internal decoder. Its signature is the same as ours.
-var StringDecoder = __webpack_require__(36).StringDecoder;
+var StringDecoder = __webpack_require__(137).StringDecoder;
 
 if (!StringDecoder.prototype.end) // Node v0.8 doesn't have this method.
     StringDecoder.prototype.end = function() {};
@@ -15190,606 +15291,22 @@ function addToken(subselects, tokens) {
 /* 187 */,
 /* 188 */,
 /* 189 */
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
+/***/ (function(__unusedmodule, exports) {
 
 "use strict";
 
-var Buffer = __webpack_require__(215).Buffer;
-
-// Multibyte codec. In this scheme, a character is represented by 1 or more bytes.
-// Our codec supports UTF-16 surrogates, extensions for GB18030 and unicode sequences.
-// To save memory and loading time, we read table files only when requested.
-
-exports._dbcs = DBCSCodec;
-
-var UNASSIGNED = -1,
-    GB18030_CODE = -2,
-    SEQ_START  = -10,
-    NODE_START = -1000,
-    UNASSIGNED_NODE = new Array(0x100),
-    DEF_CHAR = -1;
-
-for (var i = 0; i < 0x100; i++)
-    UNASSIGNED_NODE[i] = UNASSIGNED;
-
-
-// Class DBCSCodec reads and initializes mapping tables.
-function DBCSCodec(codecOptions, iconv) {
-    this.encodingName = codecOptions.encodingName;
-    if (!codecOptions)
-        throw new Error("DBCS codec is called without the data.")
-    if (!codecOptions.table)
-        throw new Error("Encoding '" + this.encodingName + "' has no data.");
-
-    // Load tables.
-    var mappingTable = codecOptions.table();
-
-
-    // Decode tables: MBCS -> Unicode.
-
-    // decodeTables is a trie, encoded as an array of arrays of integers. Internal arrays are trie nodes and all have len = 256.
-    // Trie root is decodeTables[0].
-    // Values: >=  0 -> unicode character code. can be > 0xFFFF
-    //         == UNASSIGNED -> unknown/unassigned sequence.
-    //         == GB18030_CODE -> this is the end of a GB18030 4-byte sequence.
-    //         <= NODE_START -> index of the next node in our trie to process next byte.
-    //         <= SEQ_START  -> index of the start of a character code sequence, in decodeTableSeq.
-    this.decodeTables = [];
-    this.decodeTables[0] = UNASSIGNED_NODE.slice(0); // Create root node.
-
-    // Sometimes a MBCS char corresponds to a sequence of unicode chars. We store them as arrays of integers here. 
-    this.decodeTableSeq = [];
-
-    // Actual mapping tables consist of chunks. Use them to fill up decode tables.
-    for (var i = 0; i < mappingTable.length; i++)
-        this._addDecodeChunk(mappingTable[i]);
-
-    // Load & create GB18030 tables when needed.
-    if (typeof codecOptions.gb18030 === 'function') {
-        this.gb18030 = codecOptions.gb18030(); // Load GB18030 ranges.
-
-        // Add GB18030 common decode nodes.
-        var commonThirdByteNodeIdx = this.decodeTables.length;
-        this.decodeTables.push(UNASSIGNED_NODE.slice(0));
-
-        var commonFourthByteNodeIdx = this.decodeTables.length;
-        this.decodeTables.push(UNASSIGNED_NODE.slice(0));
-
-        // Fill out the tree
-        var firstByteNode = this.decodeTables[0];
-        for (var i = 0x81; i <= 0xFE; i++) {
-            var secondByteNode = this.decodeTables[NODE_START - firstByteNode[i]];
-            for (var j = 0x30; j <= 0x39; j++) {
-                if (secondByteNode[j] === UNASSIGNED) {
-                    secondByteNode[j] = NODE_START - commonThirdByteNodeIdx;
-                } else if (secondByteNode[j] > NODE_START) {
-                    throw new Error("gb18030 decode tables conflict at byte 2");
-                }
-
-                var thirdByteNode = this.decodeTables[NODE_START - secondByteNode[j]];
-                for (var k = 0x81; k <= 0xFE; k++) {
-                    if (thirdByteNode[k] === UNASSIGNED) {
-                        thirdByteNode[k] = NODE_START - commonFourthByteNodeIdx;
-                    } else if (thirdByteNode[k] === NODE_START - commonFourthByteNodeIdx) {
-                        continue;
-                    } else if (thirdByteNode[k] > NODE_START) {
-                        throw new Error("gb18030 decode tables conflict at byte 3");
-                    }
-
-                    var fourthByteNode = this.decodeTables[NODE_START - thirdByteNode[k]];
-                    for (var l = 0x30; l <= 0x39; l++) {
-                        if (fourthByteNode[l] === UNASSIGNED)
-                            fourthByteNode[l] = GB18030_CODE;
-                    }
-                }
-            }
-        }
+Object.defineProperty(exports, "__esModule", { value: true });
+const alreadyWarned = new Set();
+exports.default = (message) => {
+    if (alreadyWarned.has(message)) {
+        return;
     }
-
-    this.defaultCharUnicode = iconv.defaultCharUnicode;
-
-    
-    // Encode tables: Unicode -> DBCS.
-
-    // `encodeTable` is array mapping from unicode char to encoded char. All its values are integers for performance.
-    // Because it can be sparse, it is represented as array of buckets by 256 chars each. Bucket can be null.
-    // Values: >=  0 -> it is a normal char. Write the value (if <=256 then 1 byte, if <=65536 then 2 bytes, etc.).
-    //         == UNASSIGNED -> no conversion found. Output a default char.
-    //         <= SEQ_START  -> it's an index in encodeTableSeq, see below. The character starts a sequence.
-    this.encodeTable = [];
-    
-    // `encodeTableSeq` is used when a sequence of unicode characters is encoded as a single code. We use a tree of
-    // objects where keys correspond to characters in sequence and leafs are the encoded dbcs values. A special DEF_CHAR key
-    // means end of sequence (needed when one sequence is a strict subsequence of another).
-    // Objects are kept separately from encodeTable to increase performance.
-    this.encodeTableSeq = [];
-
-    // Some chars can be decoded, but need not be encoded.
-    var skipEncodeChars = {};
-    if (codecOptions.encodeSkipVals)
-        for (var i = 0; i < codecOptions.encodeSkipVals.length; i++) {
-            var val = codecOptions.encodeSkipVals[i];
-            if (typeof val === 'number')
-                skipEncodeChars[val] = true;
-            else
-                for (var j = val.from; j <= val.to; j++)
-                    skipEncodeChars[j] = true;
-        }
-        
-    // Use decode trie to recursively fill out encode tables.
-    this._fillEncodeTable(0, 0, skipEncodeChars);
-
-    // Add more encoding pairs when needed.
-    if (codecOptions.encodeAdd) {
-        for (var uChar in codecOptions.encodeAdd)
-            if (Object.prototype.hasOwnProperty.call(codecOptions.encodeAdd, uChar))
-                this._setEncodeChar(uChar.charCodeAt(0), codecOptions.encodeAdd[uChar]);
-    }
-
-    this.defCharSB  = this.encodeTable[0][iconv.defaultCharSingleByte.charCodeAt(0)];
-    if (this.defCharSB === UNASSIGNED) this.defCharSB = this.encodeTable[0]['?'];
-    if (this.defCharSB === UNASSIGNED) this.defCharSB = "?".charCodeAt(0);
-}
-
-DBCSCodec.prototype.encoder = DBCSEncoder;
-DBCSCodec.prototype.decoder = DBCSDecoder;
-
-// Decoder helpers
-DBCSCodec.prototype._getDecodeTrieNode = function(addr) {
-    var bytes = [];
-    for (; addr > 0; addr >>>= 8)
-        bytes.push(addr & 0xFF);
-    if (bytes.length == 0)
-        bytes.push(0);
-
-    var node = this.decodeTables[0];
-    for (var i = bytes.length-1; i > 0; i--) { // Traverse nodes deeper into the trie.
-        var val = node[bytes[i]];
-
-        if (val == UNASSIGNED) { // Create new node.
-            node[bytes[i]] = NODE_START - this.decodeTables.length;
-            this.decodeTables.push(node = UNASSIGNED_NODE.slice(0));
-        }
-        else if (val <= NODE_START) { // Existing node.
-            node = this.decodeTables[NODE_START - val];
-        }
-        else
-            throw new Error("Overwrite byte in " + this.encodingName + ", addr: " + addr.toString(16));
-    }
-    return node;
-}
-
-
-DBCSCodec.prototype._addDecodeChunk = function(chunk) {
-    // First element of chunk is the hex mbcs code where we start.
-    var curAddr = parseInt(chunk[0], 16);
-
-    // Choose the decoding node where we'll write our chars.
-    var writeTable = this._getDecodeTrieNode(curAddr);
-    curAddr = curAddr & 0xFF;
-
-    // Write all other elements of the chunk to the table.
-    for (var k = 1; k < chunk.length; k++) {
-        var part = chunk[k];
-        if (typeof part === "string") { // String, write as-is.
-            for (var l = 0; l < part.length;) {
-                var code = part.charCodeAt(l++);
-                if (0xD800 <= code && code < 0xDC00) { // Decode surrogate
-                    var codeTrail = part.charCodeAt(l++);
-                    if (0xDC00 <= codeTrail && codeTrail < 0xE000)
-                        writeTable[curAddr++] = 0x10000 + (code - 0xD800) * 0x400 + (codeTrail - 0xDC00);
-                    else
-                        throw new Error("Incorrect surrogate pair in "  + this.encodingName + " at chunk " + chunk[0]);
-                }
-                else if (0x0FF0 < code && code <= 0x0FFF) { // Character sequence (our own encoding used)
-                    var len = 0xFFF - code + 2;
-                    var seq = [];
-                    for (var m = 0; m < len; m++)
-                        seq.push(part.charCodeAt(l++)); // Simple variation: don't support surrogates or subsequences in seq.
-
-                    writeTable[curAddr++] = SEQ_START - this.decodeTableSeq.length;
-                    this.decodeTableSeq.push(seq);
-                }
-                else
-                    writeTable[curAddr++] = code; // Basic char
-            }
-        } 
-        else if (typeof part === "number") { // Integer, meaning increasing sequence starting with prev character.
-            var charCode = writeTable[curAddr - 1] + 1;
-            for (var l = 0; l < part; l++)
-                writeTable[curAddr++] = charCode++;
-        }
-        else
-            throw new Error("Incorrect type '" + typeof part + "' given in "  + this.encodingName + " at chunk " + chunk[0]);
-    }
-    if (curAddr > 0xFF)
-        throw new Error("Incorrect chunk in "  + this.encodingName + " at addr " + chunk[0] + ": too long" + curAddr);
-}
-
-// Encoder helpers
-DBCSCodec.prototype._getEncodeBucket = function(uCode) {
-    var high = uCode >> 8; // This could be > 0xFF because of astral characters.
-    if (this.encodeTable[high] === undefined)
-        this.encodeTable[high] = UNASSIGNED_NODE.slice(0); // Create bucket on demand.
-    return this.encodeTable[high];
-}
-
-DBCSCodec.prototype._setEncodeChar = function(uCode, dbcsCode) {
-    var bucket = this._getEncodeBucket(uCode);
-    var low = uCode & 0xFF;
-    if (bucket[low] <= SEQ_START)
-        this.encodeTableSeq[SEQ_START-bucket[low]][DEF_CHAR] = dbcsCode; // There's already a sequence, set a single-char subsequence of it.
-    else if (bucket[low] == UNASSIGNED)
-        bucket[low] = dbcsCode;
-}
-
-DBCSCodec.prototype._setEncodeSequence = function(seq, dbcsCode) {
-    
-    // Get the root of character tree according to first character of the sequence.
-    var uCode = seq[0];
-    var bucket = this._getEncodeBucket(uCode);
-    var low = uCode & 0xFF;
-
-    var node;
-    if (bucket[low] <= SEQ_START) {
-        // There's already a sequence with  - use it.
-        node = this.encodeTableSeq[SEQ_START-bucket[low]];
-    }
-    else {
-        // There was no sequence object - allocate a new one.
-        node = {};
-        if (bucket[low] !== UNASSIGNED) node[DEF_CHAR] = bucket[low]; // If a char was set before - make it a single-char subsequence.
-        bucket[low] = SEQ_START - this.encodeTableSeq.length;
-        this.encodeTableSeq.push(node);
-    }
-
-    // Traverse the character tree, allocating new nodes as needed.
-    for (var j = 1; j < seq.length-1; j++) {
-        var oldVal = node[uCode];
-        if (typeof oldVal === 'object')
-            node = oldVal;
-        else {
-            node = node[uCode] = {}
-            if (oldVal !== undefined)
-                node[DEF_CHAR] = oldVal
-        }
-    }
-
-    // Set the leaf to given dbcsCode.
-    uCode = seq[seq.length-1];
-    node[uCode] = dbcsCode;
-}
-
-DBCSCodec.prototype._fillEncodeTable = function(nodeIdx, prefix, skipEncodeChars) {
-    var node = this.decodeTables[nodeIdx];
-    var hasValues = false;
-    var subNodeEmpty = {};
-    for (var i = 0; i < 0x100; i++) {
-        var uCode = node[i];
-        var mbCode = prefix + i;
-        if (skipEncodeChars[mbCode])
-            continue;
-
-        if (uCode >= 0) {
-            this._setEncodeChar(uCode, mbCode);
-            hasValues = true;
-        } else if (uCode <= NODE_START) {
-            var subNodeIdx = NODE_START - uCode;
-            if (!subNodeEmpty[subNodeIdx]) {  // Skip empty subtrees (they are too large in gb18030).
-                var newPrefix = (mbCode << 8) >>> 0;  // NOTE: '>>> 0' keeps 32-bit num positive.
-                if (this._fillEncodeTable(subNodeIdx, newPrefix, skipEncodeChars))
-                    hasValues = true;
-                else
-                    subNodeEmpty[subNodeIdx] = true;
-            }
-        } else if (uCode <= SEQ_START) {
-            this._setEncodeSequence(this.decodeTableSeq[SEQ_START - uCode], mbCode);
-            hasValues = true;
-        }
-    }
-    return hasValues;
-}
-
-
-
-// == Encoder ==================================================================
-
-function DBCSEncoder(options, codec) {
-    // Encoder state
-    this.leadSurrogate = -1;
-    this.seqObj = undefined;
-    
-    // Static data
-    this.encodeTable = codec.encodeTable;
-    this.encodeTableSeq = codec.encodeTableSeq;
-    this.defaultCharSingleByte = codec.defCharSB;
-    this.gb18030 = codec.gb18030;
-}
-
-DBCSEncoder.prototype.write = function(str) {
-    var newBuf = Buffer.alloc(str.length * (this.gb18030 ? 4 : 3)),
-        leadSurrogate = this.leadSurrogate,
-        seqObj = this.seqObj, nextChar = -1,
-        i = 0, j = 0;
-
-    while (true) {
-        // 0. Get next character.
-        if (nextChar === -1) {
-            if (i == str.length) break;
-            var uCode = str.charCodeAt(i++);
-        }
-        else {
-            var uCode = nextChar;
-            nextChar = -1;    
-        }
-
-        // 1. Handle surrogates.
-        if (0xD800 <= uCode && uCode < 0xE000) { // Char is one of surrogates.
-            if (uCode < 0xDC00) { // We've got lead surrogate.
-                if (leadSurrogate === -1) {
-                    leadSurrogate = uCode;
-                    continue;
-                } else {
-                    leadSurrogate = uCode;
-                    // Double lead surrogate found.
-                    uCode = UNASSIGNED;
-                }
-            } else { // We've got trail surrogate.
-                if (leadSurrogate !== -1) {
-                    uCode = 0x10000 + (leadSurrogate - 0xD800) * 0x400 + (uCode - 0xDC00);
-                    leadSurrogate = -1;
-                } else {
-                    // Incomplete surrogate pair - only trail surrogate found.
-                    uCode = UNASSIGNED;
-                }
-                
-            }
-        }
-        else if (leadSurrogate !== -1) {
-            // Incomplete surrogate pair - only lead surrogate found.
-            nextChar = uCode; uCode = UNASSIGNED; // Write an error, then current char.
-            leadSurrogate = -1;
-        }
-
-        // 2. Convert uCode character.
-        var dbcsCode = UNASSIGNED;
-        if (seqObj !== undefined && uCode != UNASSIGNED) { // We are in the middle of the sequence
-            var resCode = seqObj[uCode];
-            if (typeof resCode === 'object') { // Sequence continues.
-                seqObj = resCode;
-                continue;
-
-            } else if (typeof resCode == 'number') { // Sequence finished. Write it.
-                dbcsCode = resCode;
-
-            } else if (resCode == undefined) { // Current character is not part of the sequence.
-
-                // Try default character for this sequence
-                resCode = seqObj[DEF_CHAR];
-                if (resCode !== undefined) {
-                    dbcsCode = resCode; // Found. Write it.
-                    nextChar = uCode; // Current character will be written too in the next iteration.
-
-                } else {
-                    // TODO: What if we have no default? (resCode == undefined)
-                    // Then, we should write first char of the sequence as-is and try the rest recursively.
-                    // Didn't do it for now because no encoding has this situation yet.
-                    // Currently, just skip the sequence and write current char.
-                }
-            }
-            seqObj = undefined;
-        }
-        else if (uCode >= 0) {  // Regular character
-            var subtable = this.encodeTable[uCode >> 8];
-            if (subtable !== undefined)
-                dbcsCode = subtable[uCode & 0xFF];
-            
-            if (dbcsCode <= SEQ_START) { // Sequence start
-                seqObj = this.encodeTableSeq[SEQ_START-dbcsCode];
-                continue;
-            }
-
-            if (dbcsCode == UNASSIGNED && this.gb18030) {
-                // Use GB18030 algorithm to find character(s) to write.
-                var idx = findIdx(this.gb18030.uChars, uCode);
-                if (idx != -1) {
-                    var dbcsCode = this.gb18030.gbChars[idx] + (uCode - this.gb18030.uChars[idx]);
-                    newBuf[j++] = 0x81 + Math.floor(dbcsCode / 12600); dbcsCode = dbcsCode % 12600;
-                    newBuf[j++] = 0x30 + Math.floor(dbcsCode / 1260); dbcsCode = dbcsCode % 1260;
-                    newBuf[j++] = 0x81 + Math.floor(dbcsCode / 10); dbcsCode = dbcsCode % 10;
-                    newBuf[j++] = 0x30 + dbcsCode;
-                    continue;
-                }
-            }
-        }
-
-        // 3. Write dbcsCode character.
-        if (dbcsCode === UNASSIGNED)
-            dbcsCode = this.defaultCharSingleByte;
-        
-        if (dbcsCode < 0x100) {
-            newBuf[j++] = dbcsCode;
-        }
-        else if (dbcsCode < 0x10000) {
-            newBuf[j++] = dbcsCode >> 8;   // high byte
-            newBuf[j++] = dbcsCode & 0xFF; // low byte
-        }
-        else if (dbcsCode < 0x1000000) {
-            newBuf[j++] = dbcsCode >> 16;
-            newBuf[j++] = (dbcsCode >> 8) & 0xFF;
-            newBuf[j++] = dbcsCode & 0xFF;
-        } else {
-            newBuf[j++] = dbcsCode >>> 24;
-            newBuf[j++] = (dbcsCode >>> 16) & 0xFF;
-            newBuf[j++] = (dbcsCode >>> 8) & 0xFF;
-            newBuf[j++] = dbcsCode & 0xFF;
-        }
-    }
-
-    this.seqObj = seqObj;
-    this.leadSurrogate = leadSurrogate;
-    return newBuf.slice(0, j);
-}
-
-DBCSEncoder.prototype.end = function() {
-    if (this.leadSurrogate === -1 && this.seqObj === undefined)
-        return; // All clean. Most often case.
-
-    var newBuf = Buffer.alloc(10), j = 0;
-
-    if (this.seqObj) { // We're in the sequence.
-        var dbcsCode = this.seqObj[DEF_CHAR];
-        if (dbcsCode !== undefined) { // Write beginning of the sequence.
-            if (dbcsCode < 0x100) {
-                newBuf[j++] = dbcsCode;
-            }
-            else {
-                newBuf[j++] = dbcsCode >> 8;   // high byte
-                newBuf[j++] = dbcsCode & 0xFF; // low byte
-            }
-        } else {
-            // See todo above.
-        }
-        this.seqObj = undefined;
-    }
-
-    if (this.leadSurrogate !== -1) {
-        // Incomplete surrogate pair - only lead surrogate found.
-        newBuf[j++] = this.defaultCharSingleByte;
-        this.leadSurrogate = -1;
-    }
-    
-    return newBuf.slice(0, j);
-}
-
-// Export for testing
-DBCSEncoder.prototype.findIdx = findIdx;
-
-
-// == Decoder ==================================================================
-
-function DBCSDecoder(options, codec) {
-    // Decoder state
-    this.nodeIdx = 0;
-    this.prevBytes = [];
-
-    // Static data
-    this.decodeTables = codec.decodeTables;
-    this.decodeTableSeq = codec.decodeTableSeq;
-    this.defaultCharUnicode = codec.defaultCharUnicode;
-    this.gb18030 = codec.gb18030;
-}
-
-DBCSDecoder.prototype.write = function(buf) {
-    var newBuf = Buffer.alloc(buf.length*2),
-        nodeIdx = this.nodeIdx, 
-        prevBytes = this.prevBytes, prevOffset = this.prevBytes.length,
-        seqStart = -this.prevBytes.length, // idx of the start of current parsed sequence.
-        uCode;
-
-    for (var i = 0, j = 0; i < buf.length; i++) {
-        var curByte = (i >= 0) ? buf[i] : prevBytes[i + prevOffset];
-
-        // Lookup in current trie node.
-        var uCode = this.decodeTables[nodeIdx][curByte];
-
-        if (uCode >= 0) { 
-            // Normal character, just use it.
-        }
-        else if (uCode === UNASSIGNED) { // Unknown char.
-            // TODO: Callback with seq.
-            uCode = this.defaultCharUnicode.charCodeAt(0);
-            i = seqStart; // Skip one byte ('i' will be incremented by the for loop) and try to parse again.
-        }
-        else if (uCode === GB18030_CODE) {
-            if (i >= 3) {
-                var ptr = (buf[i-3]-0x81)*12600 + (buf[i-2]-0x30)*1260 + (buf[i-1]-0x81)*10 + (curByte-0x30);
-            } else {
-                var ptr = (prevBytes[i-3+prevOffset]-0x81)*12600 + 
-                          (((i-2 >= 0) ? buf[i-2] : prevBytes[i-2+prevOffset])-0x30)*1260 + 
-                          (((i-1 >= 0) ? buf[i-1] : prevBytes[i-1+prevOffset])-0x81)*10 + 
-                          (curByte-0x30);
-            }
-            var idx = findIdx(this.gb18030.gbChars, ptr);
-            uCode = this.gb18030.uChars[idx] + ptr - this.gb18030.gbChars[idx];
-        }
-        else if (uCode <= NODE_START) { // Go to next trie node.
-            nodeIdx = NODE_START - uCode;
-            continue;
-        }
-        else if (uCode <= SEQ_START) { // Output a sequence of chars.
-            var seq = this.decodeTableSeq[SEQ_START - uCode];
-            for (var k = 0; k < seq.length - 1; k++) {
-                uCode = seq[k];
-                newBuf[j++] = uCode & 0xFF;
-                newBuf[j++] = uCode >> 8;
-            }
-            uCode = seq[seq.length-1];
-        }
-        else
-            throw new Error("iconv-lite internal error: invalid decoding table value " + uCode + " at " + nodeIdx + "/" + curByte);
-
-        // Write the character to buffer, handling higher planes using surrogate pair.
-        if (uCode >= 0x10000) { 
-            uCode -= 0x10000;
-            var uCodeLead = 0xD800 | (uCode >> 10);
-            newBuf[j++] = uCodeLead & 0xFF;
-            newBuf[j++] = uCodeLead >> 8;
-
-            uCode = 0xDC00 | (uCode & 0x3FF);
-        }
-        newBuf[j++] = uCode & 0xFF;
-        newBuf[j++] = uCode >> 8;
-
-        // Reset trie node.
-        nodeIdx = 0; seqStart = i+1;
-    }
-
-    this.nodeIdx = nodeIdx;
-    this.prevBytes = (seqStart >= 0)
-        ? Array.prototype.slice.call(buf, seqStart)
-        : prevBytes.slice(seqStart + prevOffset).concat(Array.prototype.slice.call(buf));
-
-    return newBuf.slice(0, j).toString('ucs2');
-}
-
-DBCSDecoder.prototype.end = function() {
-    var ret = '';
-
-    // Try to parse all remaining chars.
-    while (this.prevBytes.length > 0) {
-        // Skip 1 character in the buffer.
-        ret += this.defaultCharUnicode;
-        var bytesArr = this.prevBytes.slice(1);
-
-        // Parse remaining as usual.
-        this.prevBytes = [];
-        this.nodeIdx = 0;
-        if (bytesArr.length > 0)
-            ret += this.write(bytesArr);
-    }
-
-    this.prevBytes = [];
-    this.nodeIdx = 0;
-    return ret;
-}
-
-// Binary search for GB18030. Returns largest i such that table[i] <= val.
-function findIdx(table, val) {
-    if (table[0] > val)
-        return -1;
-
-    var l = 0, r = table.length;
-    while (l < r-1) { // always table[l] <= val < table[r]
-        var mid = l + ((r-l+1) >> 1);
-        if (table[mid] <= val)
-            l = mid;
-        else
-            r = mid;
-    }
-    return l;
-}
-
+    alreadyWarned.add(message);
+    // @ts-expect-error Missing types.
+    process.emitWarning(`Got: ${message}`, {
+        type: 'DeprecationWarning'
+    });
+};
 
 
 /***/ }),
@@ -16821,7 +16338,7 @@ exports.parse = function (s) {
 module.exports = __webpack_require__(587).extend({
   implicit: [
     __webpack_require__(20),
-    __webpack_require__(882),
+    __webpack_require__(254),
     __webpack_require__(707),
     __webpack_require__(45)
   ]
@@ -17125,11 +16642,11 @@ class UTF_16BE {
         return 'UTF-16BE';
     }
     match(det) {
-        const input = det.fRawInput;
+        const input = det.rawInput;
         if (input.length >= 2 &&
             (input[0] & 0xff) == 0xfe &&
             (input[1] & 0xff) == 0xff) {
-            return match_1.default(det, this, 100);
+            return (0, match_1.default)(det, this, 100);
         }
         return null;
     }
@@ -17140,14 +16657,14 @@ class UTF_16LE {
         return 'UTF-16LE';
     }
     match(det) {
-        const input = det.fRawInput;
+        const input = det.rawInput;
         if (input.length >= 2 &&
             (input[0] & 0xff) == 0xff &&
             (input[1] & 0xff) == 0xfe) {
             if (input.length >= 4 && input[2] == 0x00 && input[3] == 0x00) {
                 return null;
             }
-            return match_1.default(det, this, 100);
+            return (0, match_1.default)(det, this, 100);
         }
         return null;
     }
@@ -17162,8 +16679,8 @@ class UTF_32 {
     }
     match(det) {
         let numValid = 0, numInvalid = 0, hasBOM = false, confidence = 0;
-        const limit = (det.fRawLength / 4) * 4;
-        const input = det.fRawInput;
+        const limit = (det.rawLen / 4) * 4;
+        const input = det.rawInput;
         if (limit == 0) {
             return null;
         }
@@ -17194,7 +16711,7 @@ class UTF_32 {
         else if (numValid > numInvalid * 10) {
             confidence = 25;
         }
-        return confidence == 0 ? null : match_1.default(det, this, confidence);
+        return confidence == 0 ? null : (0, match_1.default)(det, this, confidence);
     }
 }
 class UTF_32BE extends UTF_32 {
@@ -17382,7 +16899,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 
 /***/ }),
 /* 227 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
@@ -17390,21 +16907,23 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = ltrim;
+exports.default = isISO4217;
+exports.CurrencyCodes = void 0;
 
 var _assertString = _interopRequireDefault(__webpack_require__(57));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function ltrim(str, chars) {
-  (0, _assertString.default)(str); // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+// from https://en.wikipedia.org/wiki/ISO_4217
+var validISO4217CurrencyCodes = new Set(['AED', 'AFN', 'ALL', 'AMD', 'ANG', 'AOA', 'ARS', 'AUD', 'AWG', 'AZN', 'BAM', 'BBD', 'BDT', 'BGN', 'BHD', 'BIF', 'BMD', 'BND', 'BOB', 'BOV', 'BRL', 'BSD', 'BTN', 'BWP', 'BYN', 'BZD', 'CAD', 'CDF', 'CHE', 'CHF', 'CHW', 'CLF', 'CLP', 'CNY', 'COP', 'COU', 'CRC', 'CUC', 'CUP', 'CVE', 'CZK', 'DJF', 'DKK', 'DOP', 'DZD', 'EGP', 'ERN', 'ETB', 'EUR', 'FJD', 'FKP', 'GBP', 'GEL', 'GHS', 'GIP', 'GMD', 'GNF', 'GTQ', 'GYD', 'HKD', 'HNL', 'HRK', 'HTG', 'HUF', 'IDR', 'ILS', 'INR', 'IQD', 'IRR', 'ISK', 'JMD', 'JOD', 'JPY', 'KES', 'KGS', 'KHR', 'KMF', 'KPW', 'KRW', 'KWD', 'KYD', 'KZT', 'LAK', 'LBP', 'LKR', 'LRD', 'LSL', 'LYD', 'MAD', 'MDL', 'MGA', 'MKD', 'MMK', 'MNT', 'MOP', 'MRU', 'MUR', 'MVR', 'MWK', 'MXN', 'MXV', 'MYR', 'MZN', 'NAD', 'NGN', 'NIO', 'NOK', 'NPR', 'NZD', 'OMR', 'PAB', 'PEN', 'PGK', 'PHP', 'PKR', 'PLN', 'PYG', 'QAR', 'RON', 'RSD', 'RUB', 'RWF', 'SAR', 'SBD', 'SCR', 'SDG', 'SEK', 'SGD', 'SHP', 'SLL', 'SOS', 'SRD', 'SSP', 'STN', 'SVC', 'SYP', 'SZL', 'THB', 'TJS', 'TMT', 'TND', 'TOP', 'TRY', 'TTD', 'TWD', 'TZS', 'UAH', 'UGX', 'USD', 'USN', 'UYI', 'UYU', 'UYW', 'UZS', 'VES', 'VND', 'VUV', 'WST', 'XAF', 'XAG', 'XAU', 'XBA', 'XBB', 'XBC', 'XBD', 'XCD', 'XDR', 'XOF', 'XPD', 'XPF', 'XPT', 'XSU', 'XTS', 'XUA', 'XXX', 'YER', 'ZAR', 'ZMW', 'ZWL']);
 
-  var pattern = chars ? new RegExp("^[".concat(chars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "]+"), 'g') : /^\s+/g;
-  return str.replace(pattern, '');
+function isISO4217(str) {
+  (0, _assertString.default)(str);
+  return validISO4217CurrencyCodes.has(str.toUpperCase());
 }
 
-module.exports = exports.default;
-module.exports.default = exports.default;
+var CurrencyCodes = validISO4217CurrencyCodes;
+exports.CurrencyCodes = CurrencyCodes;
 
 /***/ }),
 /* 228 */,
@@ -18555,15 +18074,11 @@ function plPlCheck(tin) {
 
 
 function ptBrCheck(tin) {
-  tin = tin.replace(/[^\d]+/g, '');
-  if (tin === '') return false;
-
   if (tin.length === 11) {
     var _sum;
 
-    var ramainder;
+    var remainder;
     _sum = 0;
-    tin = tin.replace(/[^\d]+/g, '');
     if ( // Reject known invalid CPFs
     tin === '11111111111' || tin === '22222222222' || tin === '33333333333' || tin === '44444444444' || tin === '55555555555' || tin === '66666666666' || tin === '77777777777' || tin === '88888888888' || tin === '99999999999' || tin === '00000000000') return false;
 
@@ -18571,23 +18086,19 @@ function ptBrCheck(tin) {
       _sum += parseInt(tin.substring(i - 1, i), 10) * (11 - i);
     }
 
-    ramainder = _sum * 10 % 11;
-    if (ramainder === 10 || ramainder === 11) ramainder = 0;
-    if (ramainder !== parseInt(tin.substring(9, 10), 10)) return false;
+    remainder = _sum * 10 % 11;
+    if (remainder === 10) remainder = 0;
+    if (remainder !== parseInt(tin.substring(9, 10), 10)) return false;
     _sum = 0;
 
     for (var _i8 = 1; _i8 <= 10; _i8++) {
       _sum += parseInt(tin.substring(_i8 - 1, _i8), 10) * (12 - _i8);
     }
 
-    ramainder = _sum * 10 % 11;
-    if (ramainder === 10 || ramainder === 11) ramainder = 0;
-    if (ramainder !== parseInt(tin.substring(10, 11), 10)) return false;
+    remainder = _sum * 10 % 11;
+    if (remainder === 10) remainder = 0;
+    if (remainder !== parseInt(tin.substring(10, 11), 10)) return false;
     return true;
-  }
-
-  if (tin.length !== 14) {
-    return false;
   }
 
   if ( // Reject know invalid CNPJs
@@ -18896,7 +18407,7 @@ var taxIdFormat = {
   'mt-MT': /^\d{3,7}[APMGLHBZ]$|^([1-8])\1\d{7}$/i,
   'nl-NL': /^\d{9}$/,
   'pl-PL': /^\d{10,11}$/,
-  'pt-BR': /^\d{11,14}$/,
+  'pt-BR': /(?:^\d{11}$)|(?:^\d{14}$)/,
   'pt-PT': /^\d{9}$/,
   'ro-RO': /^\d{13}$/,
   'sk-SK': /^\d{6}\/{0,1}\d{3,4}$/,
@@ -19248,7 +18759,48 @@ function getReplacer(map) {
 
 
 /***/ }),
-/* 254 */,
+/* 254 */
+/***/ (function(module, __unusedexports, __webpack_require__) {
+
+"use strict";
+
+
+var Type = __webpack_require__(755);
+
+function resolveYamlBoolean(data) {
+  if (data === null) return false;
+
+  var max = data.length;
+
+  return (max === 4 && (data === 'true' || data === 'True' || data === 'TRUE')) ||
+         (max === 5 && (data === 'false' || data === 'False' || data === 'FALSE'));
+}
+
+function constructYamlBoolean(data) {
+  return data === 'true' ||
+         data === 'True' ||
+         data === 'TRUE';
+}
+
+function isBoolean(object) {
+  return Object.prototype.toString.call(object) === '[object Boolean]';
+}
+
+module.exports = new Type('tag:yaml.org,2002:bool', {
+  kind: 'scalar',
+  resolve: resolveYamlBoolean,
+  construct: constructYamlBoolean,
+  predicate: isBoolean,
+  represent: {
+    lowercase: function (object) { return object ? 'true' : 'false'; },
+    uppercase: function (object) { return object ? 'TRUE' : 'FALSE'; },
+    camelcase: function (object) { return object ? 'True' : 'False'; }
+  },
+  defaultStyle: 'lowercase'
+});
+
+
+/***/ }),
 /* 255 */,
 /* 256 */
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
@@ -19727,6 +19279,25 @@ const fallback = (ogObject, options, $) => {
     }
   }
 
+  // favicon fallback
+  if (!ogObject.favicon) {
+    if (doesElementExist('link[rel="shortcut icon"]', 'href', $)) {
+      ogObject.favicon = $('link[rel="shortcut icon"]').attr('href');
+    } else if (doesElementExist('link[rel="icon"]', 'href', $)) {
+      ogObject.favicon = $('link[rel="icon"]').attr('href');
+    } else if (doesElementExist('link[rel="mask-icon"]', 'href', $)) {
+      ogObject.favicon = $('link[rel="mask-icon"]').attr('href');
+    } else if (doesElementExist('link[rel="apple-touch-icon"]', 'href', $)) {
+      ogObject.favicon = $('link[rel="apple-touch-icon"]').attr('href');
+    } else if (doesElementExist('link[type="image/png"]', 'href', $)) {
+      ogObject.favicon = $('link[type="image/png"]').attr('href');
+    } else if (doesElementExist('link[type="image/ico"]', 'href', $)) {
+      ogObject.favicon = $('link[type="image/ico"]').attr('href');
+    } else if (doesElementExist('link[type="image/x-icon"]', 'href', $)) {
+      ogObject.favicon = $('link[type="image/x-icon"]').attr('href');
+    }
+  }
+
   return ogObject;
 };
 
@@ -19808,7 +19379,7 @@ exports.default = trim;
 
 var _rtrim = _interopRequireDefault(__webpack_require__(10));
 
-var _ltrim = _interopRequireDefault(__webpack_require__(227));
+var _ltrim = _interopRequireDefault(__webpack_require__(882));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -19910,17 +19481,18 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var uuid = {
+  1: /^[0-9A-F]{8}-[0-9A-F]{4}-1[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$/i,
+  2: /^[0-9A-F]{8}-[0-9A-F]{4}-2[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$/i,
   3: /^[0-9A-F]{8}-[0-9A-F]{4}-3[0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$/i,
   4: /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i,
   5: /^[0-9A-F]{8}-[0-9A-F]{4}-5[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i,
   all: /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i
 };
 
-function isUUID(str) {
-  var version = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'all';
+function isUUID(str, version) {
   (0, _assertString.default)(str);
-  var pattern = uuid[version];
-  return pattern && pattern.test(str);
+  var pattern = uuid[![undefined, null].includes(version) ? version : 'all'];
+  return !!pattern && pattern.test(str);
 }
 
 module.exports = exports.default;
@@ -20350,14 +19922,15 @@ exports.run = async (options, callback) => {
           errorDetails: exception,
         },
       };
-      return reject(returnError);
+      reject(returnError);
+      return;
     }
     const returnValues = {
       error: false,
       result: results.ogObject,
       response: results.response,
     };
-    return resolve(returnValues);
+    resolve(returnValues);
   });
 };
 
@@ -20381,7 +19954,7 @@ var modules = [
     __webpack_require__(877),
     __webpack_require__(762),
     __webpack_require__(28),
-    __webpack_require__(189),
+    __webpack_require__(604),
     __webpack_require__(92),
 ];
 
@@ -20862,7 +20435,8 @@ var default_email_options = {
   allow_utf8_local_part: true,
   require_tld: true,
   blacklisted_chars: '',
-  ignore_max_length: false
+  ignore_max_length: false,
+  host_blacklist: []
 };
 /* eslint-disable max-len */
 
@@ -20946,8 +20520,13 @@ function isEmail(str, options) {
 
   var parts = str.split('@');
   var domain = parts.pop();
-  var user = parts.join('@');
   var lower_domain = domain.toLowerCase();
+
+  if (options.host_blacklist.includes(lower_domain)) {
+    return false;
+  }
+
+  var user = parts.join('@');
 
   if (options.domain_specific_validation && (lower_domain === 'gmail.com' || lower_domain === 'googlemail.com')) {
     /*
@@ -20961,7 +20540,7 @@ function isEmail(str, options) {
 
     var username = user.split('+')[0]; // Dots are not included in gmail length restriction
 
-    if (!(0, _isByteLength.default)(username.replace('.', ''), {
+    if (!(0, _isByteLength.default)(username.replace(/\./g, ''), {
       min: 6,
       max: 30
     })) {
@@ -21607,10 +21186,10 @@ module.exports = Schema;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = (det, rec, confidence, name, lang) => ({
+exports.default = (ctx, rec, confidence) => ({
     confidence,
-    name: name || rec.name(det),
-    lang,
+    name: rec.name(ctx),
+    lang: rec.language ? rec.language() : undefined,
 });
 //# sourceMappingURL=match.js.map
 
@@ -22052,7 +21631,7 @@ function isBIC(str) {
   (0, _assertString.default)(str); // toUpperCase() should be removed when a new major version goes out that changes
   // the regex to [A-Z] (per the spec).
 
-  if (_isISO31661Alpha.CountryCodes.indexOf(str.slice(4, 6).toUpperCase()) < 0) {
+  if (!_isISO31661Alpha.CountryCodes.has(str.slice(4, 6).toUpperCase())) {
     return false;
   }
 
@@ -22638,30 +22217,31 @@ const recognisers = [
     new sbcs.windows_1256(),
     new sbcs.KOI8_R(),
 ];
-exports.detect = (buffer) => {
-    const matches = exports.analyse(buffer);
+const detect = (buffer) => {
+    const matches = (0, exports.analyse)(buffer);
     return matches.length > 0 ? matches[0].name : null;
 };
-exports.analyse = (buffer) => {
-    const fByteStats = [];
+exports.detect = detect;
+const analyse = (buffer) => {
+    const byteStats = [];
     for (let i = 0; i < 256; i++)
-        fByteStats[i] = 0;
+        byteStats[i] = 0;
     for (let i = buffer.length - 1; i >= 0; i--)
-        fByteStats[buffer[i] & 0x00ff]++;
-    let fC1Bytes = false;
+        byteStats[buffer[i] & 0x00ff]++;
+    let c1Bytes = false;
     for (let i = 0x80; i <= 0x9f; i += 1) {
-        if (fByteStats[i] !== 0) {
-            fC1Bytes = true;
+        if (byteStats[i] !== 0) {
+            c1Bytes = true;
             break;
         }
     }
     const context = {
-        fByteStats,
-        fC1Bytes,
-        fRawInput: buffer,
-        fRawLength: buffer.length,
-        fInputBytes: buffer,
-        fInputLen: buffer.length,
+        byteStats,
+        c1Bytes,
+        rawInput: buffer,
+        rawLen: buffer.length,
+        inputBytes: buffer,
+        inputLen: buffer.length,
     };
     const matches = recognisers
         .map((rec) => {
@@ -22675,9 +22255,10 @@ exports.analyse = (buffer) => {
     });
     return matches;
 };
-exports.detectFile = (filepath, opts = {}) => new Promise((resolve, reject) => {
+exports.analyse = analyse;
+const detectFile = (filepath, opts = {}) => new Promise((resolve, reject) => {
     let fd;
-    const fs = node_1.default();
+    const fs = (0, node_1.default)();
     const handler = (err, buffer) => {
         if (fd) {
             fs.closeSync(fd);
@@ -22686,7 +22267,7 @@ exports.detectFile = (filepath, opts = {}) => new Promise((resolve, reject) => {
             reject(err);
         }
         else {
-            resolve(exports.detect(buffer));
+            resolve((0, exports.detect)(buffer));
         }
     };
     if (opts && opts.sampleSize) {
@@ -22699,17 +22280,19 @@ exports.detectFile = (filepath, opts = {}) => new Promise((resolve, reject) => {
     }
     fs.readFile(filepath, handler);
 });
-exports.detectFileSync = (filepath, opts = {}) => {
-    const fs = node_1.default();
+exports.detectFile = detectFile;
+const detectFileSync = (filepath, opts = {}) => {
+    const fs = (0, node_1.default)();
     if (opts && opts.sampleSize) {
         const fd = fs.openSync(filepath, 'r');
         const sample = Buffer.allocUnsafe(opts.sampleSize);
         fs.readSync(fd, sample, 0, opts.sampleSize);
         fs.closeSync(fd);
-        return exports.detect(sample);
+        return (0, exports.detect)(sample);
     }
-    return exports.detect(fs.readFileSync(filepath));
+    return (0, exports.detect)(fs.readFileSync(filepath));
 };
+exports.detectFileSync = detectFileSync;
 exports.default = {
     analyse: exports.analyse,
     detect: exports.detect,
@@ -22937,6 +22520,18 @@ var _merge = _interopRequireDefault(__webpack_require__(773));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 /*
 options for isURL method
 
@@ -22959,6 +22554,8 @@ var default_url_options = {
   allow_underscores: false,
   allow_trailing_dot: false,
   allow_protocol_relative_urls: false,
+  allow_fragments: true,
+  allow_query_components: true,
   validate_length: true
 };
 var wrapped_ipv6 = /^\[([^\]]+)\](?::([0-9]+))?$/;
@@ -22993,6 +22590,14 @@ function isURL(url, options) {
   options = (0, _merge.default)(options, default_url_options);
 
   if (options.validate_length && url.length >= 2083) {
+    return false;
+  }
+
+  if (!options.allow_fragments && url.includes('#')) {
+    return false;
+  }
+
+  if (!options.allow_query_components && (url.includes('?') || url.includes('&'))) {
     return false;
   }
 
@@ -23039,13 +22644,22 @@ function isURL(url, options) {
       return false;
     }
 
-    if (split[0] === '' || split[0].substr(0, 1) === ':') {
+    if (split[0] === '') {
       return false;
     }
 
     auth = split.shift();
 
     if (auth.indexOf(':') >= 0 && auth.split(':').length > 2) {
+      return false;
+    }
+
+    var _auth$split = auth.split(':'),
+        _auth$split2 = _slicedToArray(_auth$split, 2),
+        user = _auth$split2[0],
+        password = _auth$split2[1];
+
+    if (user === '' && password === '') {
       return false;
     }
   }
@@ -23068,7 +22682,7 @@ function isURL(url, options) {
     }
   }
 
-  if (port_str !== null) {
+  if (port_str !== null && port_str.length > 0) {
     port = parseInt(port_str, 10);
 
     if (!/^[0-9]+$/.test(port_str) || port <= 0 || port > 65535) {
@@ -23078,15 +22692,15 @@ function isURL(url, options) {
     return false;
   }
 
+  if (options.host_whitelist) {
+    return checkHost(host, options.host_whitelist);
+  }
+
   if (!(0, _isIP.default)(host) && !(0, _isFQDN.default)(host, options) && (!ipv6 || !(0, _isIP.default)(ipv6, 6))) {
     return false;
   }
 
   host = host || ipv6;
-
-  if (options.host_whitelist && !checkHost(host, options.host_whitelist)) {
-    return false;
-  }
 
   if (options.host_blacklist && checkHost(host, options.host_blacklist)) {
     return false;
@@ -24758,7 +24372,7 @@ module.exports.types = {
   pairs:     __webpack_require__(928),
   set:       __webpack_require__(338),
   timestamp: __webpack_require__(244),
-  bool:      __webpack_require__(882),
+  bool:      __webpack_require__(254),
   int:       __webpack_require__(707),
   merge:     __webpack_require__(230),
   omap:      __webpack_require__(919),
@@ -31894,53 +31508,7 @@ exports.HttpClient = HttpClient;
 
 /***/ }),
 /* 540 */,
-/* 541 */
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CancelError = exports.ParseError = void 0;
-const core_1 = __webpack_require__(946);
-/**
-An error to be thrown when server response code is 2xx, and parsing body fails.
-Includes a `response` property.
-*/
-class ParseError extends core_1.RequestError {
-    constructor(error, response) {
-        const { options } = response.request;
-        super(`${error.message} in "${options.url.toString()}"`, error, response.request);
-        this.name = 'ParseError';
-    }
-}
-exports.ParseError = ParseError;
-/**
-An error to be thrown when the request is aborted with `.cancel()`.
-*/
-class CancelError extends core_1.RequestError {
-    constructor(request) {
-        super('Promise was canceled', {}, request);
-        this.name = 'CancelError';
-    }
-    get isCanceled() {
-        return true;
-    }
-}
-exports.CancelError = CancelError;
-__exportStar(__webpack_require__(946), exports);
-
-
-/***/ }),
+/* 541 */,
 /* 542 */,
 /* 543 */,
 /* 544 */,
@@ -33581,7 +33149,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = __webpack_require__(614);
 const is_1 = __webpack_require__(564);
 const PCancelable = __webpack_require__(557);
-const types_1 = __webpack_require__(541);
+const types_1 = __webpack_require__(36);
 const parse_body_1 = __webpack_require__(121);
 const core_1 = __webpack_require__(946);
 const proxy_events_1 = __webpack_require__(549);
@@ -33740,7 +33308,7 @@ function asPromise(normalizedOptions) {
     return promise;
 }
 exports.default = asPromise;
-__exportStar(__webpack_require__(541), exports);
+__exportStar(__webpack_require__(36), exports);
 
 
 /***/ }),
@@ -33782,6 +33350,7 @@ var phones = {
   'ar-LY': /^((\+?218)|0)?(9[1-6]\d{7}|[1-8]\d{7,9})$/,
   'ar-MA': /^(?:(?:\+|00)212|0)[5-7]\d{8}$/,
   'ar-OM': /^((\+|00)968)?(9[1-9])\d{6}$/,
+  'ar-PS': /^(\+?970|0)5[6|9](\d{7})$/,
   'ar-SA': /^(!?(\+?966)|0)?5\d{8}$/,
   'ar-SY': /^(!?(\+?963)|0)?9\d{8}$/,
   'ar-TN': /^(\+?216)?[2459]\d{7}$/,
@@ -33793,25 +33362,30 @@ var phones = {
   'ca-AD': /^(\+376)?[346]\d{5}$/,
   'cs-CZ': /^(\+?420)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/,
   'da-DK': /^(\+?45)?\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/,
-  'de-DE': /^(\+49)?0?[1|3]([0|5][0-45-9]\d|6([23]|0\d?)|7([0-57-9]|6\d))\d{7}$/,
+  'de-DE': /^((\+49|0)[1|3])([0|5][0-45-9]\d|6([23]|0\d?)|7([0-57-9]|6\d))\d{7,9}$/,
   'de-AT': /^(\+43|0)\d{1,4}\d{3,12}$/,
   'de-CH': /^(\+41|0)([1-9])\d{1,9}$/,
   'de-LU': /^(\+352)?((6\d1)\d{6})$/,
+  'dv-MV': /^(\+?960)?(7[2-9]|91|9[3-9])\d{7}$/,
   'el-GR': /^(\+?30|0)?(69\d{8})$/,
   'en-AU': /^(\+?61|0)4\d{8}$/,
+  'en-BM': /^(\+?1)?441(((3|7)\d{6}$)|(5[0-3][0-9]\d{4}$)|(59\d{5}))/,
   'en-GB': /^(\+?44|0)7\d{9}$/,
   'en-GG': /^(\+?44|0)1481\d{6}$/,
   'en-GH': /^(\+233|0)(20|50|24|54|27|57|26|56|23|28|55|59)\d{7}$/,
+  'en-GY': /^(\+592|0)6\d{6}$/,
   'en-HK': /^(\+?852[-\s]?)?[456789]\d{3}[-\s]?\d{4}$/,
   'en-MO': /^(\+?853[-\s]?)?[6]\d{3}[-\s]?\d{4}$/,
   'en-IE': /^(\+?353|0)8[356789]\d{7}$/,
   'en-IN': /^(\+?91|0)?[6789]\d{9}$/,
   'en-KE': /^(\+?254|0)(7|1)\d{8}$/,
+  'en-KI': /^((\+686|686)?)?( )?((6|7)(2|3|8)[0-9]{6})$/,
   'en-MT': /^(\+?356|0)?(99|79|77|21|27|22|25)[0-9]{6}$/,
   'en-MU': /^(\+?230|0)?\d{8}$/,
+  'en-NA': /^(\+?264|0)(6|8)\d{7}$/,
   'en-NG': /^(\+?234|0)?[789]\d{9}$/,
   'en-NZ': /^(\+?64|0)[28]\d{7,9}$/,
-  'en-PK': /^((\+92)|(0092))-{0,1}\d{3}-{0,1}\d{7}$|^\d{11}$|^\d{4}-\d{7}$/,
+  'en-PK': /^((00|\+)?92|0)3[0-6]\d{8}$/,
   'en-PH': /^(09|\+639)\d{9}$/,
   'en-RW': /^(\+?250|0)?[7]\d{8}$/,
   'en-SG': /^(\+65)?[3689]\d{7}$/,
@@ -33822,11 +33396,13 @@ var phones = {
   'en-ZA': /^(\+?27|0)\d{9}$/,
   'en-ZM': /^(\+?26)?09[567]\d{7}$/,
   'en-ZW': /^(\+263)[0-9]{9}$/,
+  'en-BW': /^(\+?267)?(7[1-8]{1})\d{6}$/,
   'es-AR': /^\+?549(11|[2368]\d)\d{8}$/,
   'es-BO': /^(\+?591)?(6|7)\d{7}$/,
   'es-CO': /^(\+?57)?3(0(0|1|2|4|5)|1\d|2[0-4]|5(0|1))\d{7}$/,
   'es-CL': /^(\+?56|0)[2-9]\d{1}\d{7}$/,
   'es-CR': /^(\+506)?[2-8]\d{7}$/,
+  'es-CU': /^(\+53|0053)?5\d{7}/,
   'es-DO': /^(\+?1)?8[024]9\d{7}$/,
   'es-HN': /^(\+?504)?[9|8]\d{7}$/,
   'es-EC': /^(\+?593|0)([2-7]|9[2-9])\d{7}$/,
@@ -33835,19 +33411,24 @@ var phones = {
   'es-MX': /^(\+?52)?(1|01)?\d{10,11}$/,
   'es-PA': /^(\+?507)\d{7,8}$/,
   'es-PY': /^(\+?595|0)9[9876]\d{7}$/,
+  'es-SV': /^(\+?503)?[67]\d{7}$/,
   'es-UY': /^(\+598|0)9[1-9][\d]{6}$/,
+  'es-VE': /^(\+?58)?(2|4)\d{9}$/,
   'et-EE': /^(\+?372)?\s?(5|8[1-4])\s?([0-9]\s?){6,7}$/,
   'fa-IR': /^(\+?98[\-\s]?|0)9[0-39]\d[\-\s]?\d{3}[\-\s]?\d{4}$/,
   'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5|6)?|50)\s?(\d\s?){4,8}\d$/,
   'fj-FJ': /^(\+?679)?\s?\d{3}\s?\d{4}$/,
   'fo-FO': /^(\+?298)?\s?\d{2}\s?\d{2}\s?\d{2}$/,
+  'fr-BF': /^(\+226|0)[67]\d{7}$/,
+  'fr-CM': /^(\+?237)6[0-9]{8}$/,
   'fr-FR': /^(\+?33|0)[67]\d{8}$/,
   'fr-GF': /^(\+?594|0|00594)[67]\d{8}$/,
   'fr-GP': /^(\+?590|0|00590)[67]\d{8}$/,
   'fr-MQ': /^(\+?596|0|00596)[67]\d{8}$/,
+  'fr-PF': /^(\+?689)?8[789]\d{6}$/,
   'fr-RE': /^(\+?262|0|00262)[67]\d{8}$/,
   'he-IL': /^(\+972|0)([23489]|5[012345689]|77)[1-9]\d{6}$/,
-  'hu-HU': /^(\+?36)(20|30|70)\d{7}$/,
+  'hu-HU': /^(\+?36|06)(20|30|31|50|70)\d{7}$/,
   'id-ID': /^(\+?62|0)8(1[123456789]|2[1238]|3[1238]|5[12356789]|7[78]|9[56789]|8[123456789])([\s?|\d]{5,11})$/,
   'it-IT': /^(\+?39)?\s?3\d{2} ?\d{6,7}$/,
   'it-SM': /^((\+378)|(0549)|(\+390549)|(\+3780549))?6\d{5,9}$/,
@@ -33862,7 +33443,7 @@ var phones = {
   'mz-MZ': /^(\+?258)?8[234567]\d{7}$/,
   'nb-NO': /^(\+?47)?[49]\d{7}$/,
   'ne-NP': /^(\+?977)?9[78]\d{8}$/,
-  'nl-BE': /^(\+?32|0)4?\d{8}$/,
+  'nl-BE': /^(\+?32|0)4\d{8}$/,
   'nl-NL': /^(((\+|00)?31\(0\))|((\+|00)?31)|0)6{1}\d{8}$/,
   'nn-NO': /^(\+?47)?[49]\d{7}$/,
   'pl-PL': /^(\+?48)? ?[5-8]\d ?\d{3} ?\d{2} ?\d{2}$/,
@@ -33871,19 +33452,22 @@ var phones = {
   'pt-AO': /^(\+244)\d{9}$/,
   'ro-RO': /^(\+?4?0)\s?7\d{2}(\/|\s|\.|\-)?\d{3}(\s|\.|\-)?\d{3}$/,
   'ru-RU': /^(\+?7|8)?9\d{9}$/,
-  'si-LK': /^(?:0|94|\+94)?(7(0|1|2|5|6|7|8)( |-)?\d)\d{6}$/,
+  'si-LK': /^(?:0|94|\+94)?(7(0|1|2|4|5|6|7|8)( |-)?)\d{7}$/,
   'sl-SI': /^(\+386\s?|0)(\d{1}\s?\d{3}\s?\d{2}\s?\d{2}|\d{2}\s?\d{3}\s?\d{3})$/,
   'sk-SK': /^(\+?421)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/,
   'sq-AL': /^(\+355|0)6[789]\d{6}$/,
   'sr-RS': /^(\+3816|06)[- \d]{5,9}$/,
   'sv-SE': /^(\+?46|0)[\s\-]?7[\s\-]?[02369]([\s\-]?\d){7}$/,
+  'tg-TJ': /^(\+?992)?[5][5]\d{7}$/,
   'th-TH': /^(\+66|66|0)\d{9}$/,
   'tr-TR': /^(\+?90|0)?5\d{9}$/,
+  'tk-TM': /^(\+993|993|8)\d{8}$/,
   'uk-UA': /^(\+?38|8)?0\d{9}$/,
   'uz-UZ': /^(\+?998)?(6[125-79]|7[1-69]|88|9\d)\d{7}$/,
-  'vi-VN': /^(\+?84|0)((3([2-9]))|(5([2689]))|(7([0|6-9]))|(8([1-9]))|(9([0-9])))([0-9]{7})$/,
-  'zh-CN': /^((\+|00)86)?1([3456789][0-9]|4[579]|6[67]|7[01235678]|9[012356789])[0-9]{8}$/,
-  'zh-TW': /^(\+?886\-?|0)?9\d{8}$/
+  'vi-VN': /^((\+?84)|0)((3([2-9]))|(5([25689]))|(7([0|6-9]))|(8([1-9]))|(9([0-9])))([0-9]{7})$/,
+  'zh-CN': /^((\+|00)86)?(1[3-9]|9[28])\d{9}$/,
+  'zh-TW': /^(\+?886\-?|0)?9\d{8}$/,
+  'dz-BT': /^(\+?975|0)?(17|16|77|02)\d{6}$/
 };
 /* eslint-enable max-len */
 // aliases
@@ -34836,7 +34420,610 @@ module.exports = ClientRequest;
 
 /***/ }),
 /* 603 */,
-/* 604 */,
+/* 604 */
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var Buffer = __webpack_require__(215).Buffer;
+
+// Multibyte codec. In this scheme, a character is represented by 1 or more bytes.
+// Our codec supports UTF-16 surrogates, extensions for GB18030 and unicode sequences.
+// To save memory and loading time, we read table files only when requested.
+
+exports._dbcs = DBCSCodec;
+
+var UNASSIGNED = -1,
+    GB18030_CODE = -2,
+    SEQ_START  = -10,
+    NODE_START = -1000,
+    UNASSIGNED_NODE = new Array(0x100),
+    DEF_CHAR = -1;
+
+for (var i = 0; i < 0x100; i++)
+    UNASSIGNED_NODE[i] = UNASSIGNED;
+
+
+// Class DBCSCodec reads and initializes mapping tables.
+function DBCSCodec(codecOptions, iconv) {
+    this.encodingName = codecOptions.encodingName;
+    if (!codecOptions)
+        throw new Error("DBCS codec is called without the data.")
+    if (!codecOptions.table)
+        throw new Error("Encoding '" + this.encodingName + "' has no data.");
+
+    // Load tables.
+    var mappingTable = codecOptions.table();
+
+
+    // Decode tables: MBCS -> Unicode.
+
+    // decodeTables is a trie, encoded as an array of arrays of integers. Internal arrays are trie nodes and all have len = 256.
+    // Trie root is decodeTables[0].
+    // Values: >=  0 -> unicode character code. can be > 0xFFFF
+    //         == UNASSIGNED -> unknown/unassigned sequence.
+    //         == GB18030_CODE -> this is the end of a GB18030 4-byte sequence.
+    //         <= NODE_START -> index of the next node in our trie to process next byte.
+    //         <= SEQ_START  -> index of the start of a character code sequence, in decodeTableSeq.
+    this.decodeTables = [];
+    this.decodeTables[0] = UNASSIGNED_NODE.slice(0); // Create root node.
+
+    // Sometimes a MBCS char corresponds to a sequence of unicode chars. We store them as arrays of integers here. 
+    this.decodeTableSeq = [];
+
+    // Actual mapping tables consist of chunks. Use them to fill up decode tables.
+    for (var i = 0; i < mappingTable.length; i++)
+        this._addDecodeChunk(mappingTable[i]);
+
+    // Load & create GB18030 tables when needed.
+    if (typeof codecOptions.gb18030 === 'function') {
+        this.gb18030 = codecOptions.gb18030(); // Load GB18030 ranges.
+
+        // Add GB18030 common decode nodes.
+        var commonThirdByteNodeIdx = this.decodeTables.length;
+        this.decodeTables.push(UNASSIGNED_NODE.slice(0));
+
+        var commonFourthByteNodeIdx = this.decodeTables.length;
+        this.decodeTables.push(UNASSIGNED_NODE.slice(0));
+
+        // Fill out the tree
+        var firstByteNode = this.decodeTables[0];
+        for (var i = 0x81; i <= 0xFE; i++) {
+            var secondByteNode = this.decodeTables[NODE_START - firstByteNode[i]];
+            for (var j = 0x30; j <= 0x39; j++) {
+                if (secondByteNode[j] === UNASSIGNED) {
+                    secondByteNode[j] = NODE_START - commonThirdByteNodeIdx;
+                } else if (secondByteNode[j] > NODE_START) {
+                    throw new Error("gb18030 decode tables conflict at byte 2");
+                }
+
+                var thirdByteNode = this.decodeTables[NODE_START - secondByteNode[j]];
+                for (var k = 0x81; k <= 0xFE; k++) {
+                    if (thirdByteNode[k] === UNASSIGNED) {
+                        thirdByteNode[k] = NODE_START - commonFourthByteNodeIdx;
+                    } else if (thirdByteNode[k] === NODE_START - commonFourthByteNodeIdx) {
+                        continue;
+                    } else if (thirdByteNode[k] > NODE_START) {
+                        throw new Error("gb18030 decode tables conflict at byte 3");
+                    }
+
+                    var fourthByteNode = this.decodeTables[NODE_START - thirdByteNode[k]];
+                    for (var l = 0x30; l <= 0x39; l++) {
+                        if (fourthByteNode[l] === UNASSIGNED)
+                            fourthByteNode[l] = GB18030_CODE;
+                    }
+                }
+            }
+        }
+    }
+
+    this.defaultCharUnicode = iconv.defaultCharUnicode;
+
+    
+    // Encode tables: Unicode -> DBCS.
+
+    // `encodeTable` is array mapping from unicode char to encoded char. All its values are integers for performance.
+    // Because it can be sparse, it is represented as array of buckets by 256 chars each. Bucket can be null.
+    // Values: >=  0 -> it is a normal char. Write the value (if <=256 then 1 byte, if <=65536 then 2 bytes, etc.).
+    //         == UNASSIGNED -> no conversion found. Output a default char.
+    //         <= SEQ_START  -> it's an index in encodeTableSeq, see below. The character starts a sequence.
+    this.encodeTable = [];
+    
+    // `encodeTableSeq` is used when a sequence of unicode characters is encoded as a single code. We use a tree of
+    // objects where keys correspond to characters in sequence and leafs are the encoded dbcs values. A special DEF_CHAR key
+    // means end of sequence (needed when one sequence is a strict subsequence of another).
+    // Objects are kept separately from encodeTable to increase performance.
+    this.encodeTableSeq = [];
+
+    // Some chars can be decoded, but need not be encoded.
+    var skipEncodeChars = {};
+    if (codecOptions.encodeSkipVals)
+        for (var i = 0; i < codecOptions.encodeSkipVals.length; i++) {
+            var val = codecOptions.encodeSkipVals[i];
+            if (typeof val === 'number')
+                skipEncodeChars[val] = true;
+            else
+                for (var j = val.from; j <= val.to; j++)
+                    skipEncodeChars[j] = true;
+        }
+        
+    // Use decode trie to recursively fill out encode tables.
+    this._fillEncodeTable(0, 0, skipEncodeChars);
+
+    // Add more encoding pairs when needed.
+    if (codecOptions.encodeAdd) {
+        for (var uChar in codecOptions.encodeAdd)
+            if (Object.prototype.hasOwnProperty.call(codecOptions.encodeAdd, uChar))
+                this._setEncodeChar(uChar.charCodeAt(0), codecOptions.encodeAdd[uChar]);
+    }
+
+    this.defCharSB  = this.encodeTable[0][iconv.defaultCharSingleByte.charCodeAt(0)];
+    if (this.defCharSB === UNASSIGNED) this.defCharSB = this.encodeTable[0]['?'];
+    if (this.defCharSB === UNASSIGNED) this.defCharSB = "?".charCodeAt(0);
+}
+
+DBCSCodec.prototype.encoder = DBCSEncoder;
+DBCSCodec.prototype.decoder = DBCSDecoder;
+
+// Decoder helpers
+DBCSCodec.prototype._getDecodeTrieNode = function(addr) {
+    var bytes = [];
+    for (; addr > 0; addr >>>= 8)
+        bytes.push(addr & 0xFF);
+    if (bytes.length == 0)
+        bytes.push(0);
+
+    var node = this.decodeTables[0];
+    for (var i = bytes.length-1; i > 0; i--) { // Traverse nodes deeper into the trie.
+        var val = node[bytes[i]];
+
+        if (val == UNASSIGNED) { // Create new node.
+            node[bytes[i]] = NODE_START - this.decodeTables.length;
+            this.decodeTables.push(node = UNASSIGNED_NODE.slice(0));
+        }
+        else if (val <= NODE_START) { // Existing node.
+            node = this.decodeTables[NODE_START - val];
+        }
+        else
+            throw new Error("Overwrite byte in " + this.encodingName + ", addr: " + addr.toString(16));
+    }
+    return node;
+}
+
+
+DBCSCodec.prototype._addDecodeChunk = function(chunk) {
+    // First element of chunk is the hex mbcs code where we start.
+    var curAddr = parseInt(chunk[0], 16);
+
+    // Choose the decoding node where we'll write our chars.
+    var writeTable = this._getDecodeTrieNode(curAddr);
+    curAddr = curAddr & 0xFF;
+
+    // Write all other elements of the chunk to the table.
+    for (var k = 1; k < chunk.length; k++) {
+        var part = chunk[k];
+        if (typeof part === "string") { // String, write as-is.
+            for (var l = 0; l < part.length;) {
+                var code = part.charCodeAt(l++);
+                if (0xD800 <= code && code < 0xDC00) { // Decode surrogate
+                    var codeTrail = part.charCodeAt(l++);
+                    if (0xDC00 <= codeTrail && codeTrail < 0xE000)
+                        writeTable[curAddr++] = 0x10000 + (code - 0xD800) * 0x400 + (codeTrail - 0xDC00);
+                    else
+                        throw new Error("Incorrect surrogate pair in "  + this.encodingName + " at chunk " + chunk[0]);
+                }
+                else if (0x0FF0 < code && code <= 0x0FFF) { // Character sequence (our own encoding used)
+                    var len = 0xFFF - code + 2;
+                    var seq = [];
+                    for (var m = 0; m < len; m++)
+                        seq.push(part.charCodeAt(l++)); // Simple variation: don't support surrogates or subsequences in seq.
+
+                    writeTable[curAddr++] = SEQ_START - this.decodeTableSeq.length;
+                    this.decodeTableSeq.push(seq);
+                }
+                else
+                    writeTable[curAddr++] = code; // Basic char
+            }
+        } 
+        else if (typeof part === "number") { // Integer, meaning increasing sequence starting with prev character.
+            var charCode = writeTable[curAddr - 1] + 1;
+            for (var l = 0; l < part; l++)
+                writeTable[curAddr++] = charCode++;
+        }
+        else
+            throw new Error("Incorrect type '" + typeof part + "' given in "  + this.encodingName + " at chunk " + chunk[0]);
+    }
+    if (curAddr > 0xFF)
+        throw new Error("Incorrect chunk in "  + this.encodingName + " at addr " + chunk[0] + ": too long" + curAddr);
+}
+
+// Encoder helpers
+DBCSCodec.prototype._getEncodeBucket = function(uCode) {
+    var high = uCode >> 8; // This could be > 0xFF because of astral characters.
+    if (this.encodeTable[high] === undefined)
+        this.encodeTable[high] = UNASSIGNED_NODE.slice(0); // Create bucket on demand.
+    return this.encodeTable[high];
+}
+
+DBCSCodec.prototype._setEncodeChar = function(uCode, dbcsCode) {
+    var bucket = this._getEncodeBucket(uCode);
+    var low = uCode & 0xFF;
+    if (bucket[low] <= SEQ_START)
+        this.encodeTableSeq[SEQ_START-bucket[low]][DEF_CHAR] = dbcsCode; // There's already a sequence, set a single-char subsequence of it.
+    else if (bucket[low] == UNASSIGNED)
+        bucket[low] = dbcsCode;
+}
+
+DBCSCodec.prototype._setEncodeSequence = function(seq, dbcsCode) {
+    
+    // Get the root of character tree according to first character of the sequence.
+    var uCode = seq[0];
+    var bucket = this._getEncodeBucket(uCode);
+    var low = uCode & 0xFF;
+
+    var node;
+    if (bucket[low] <= SEQ_START) {
+        // There's already a sequence with  - use it.
+        node = this.encodeTableSeq[SEQ_START-bucket[low]];
+    }
+    else {
+        // There was no sequence object - allocate a new one.
+        node = {};
+        if (bucket[low] !== UNASSIGNED) node[DEF_CHAR] = bucket[low]; // If a char was set before - make it a single-char subsequence.
+        bucket[low] = SEQ_START - this.encodeTableSeq.length;
+        this.encodeTableSeq.push(node);
+    }
+
+    // Traverse the character tree, allocating new nodes as needed.
+    for (var j = 1; j < seq.length-1; j++) {
+        var oldVal = node[uCode];
+        if (typeof oldVal === 'object')
+            node = oldVal;
+        else {
+            node = node[uCode] = {}
+            if (oldVal !== undefined)
+                node[DEF_CHAR] = oldVal
+        }
+    }
+
+    // Set the leaf to given dbcsCode.
+    uCode = seq[seq.length-1];
+    node[uCode] = dbcsCode;
+}
+
+DBCSCodec.prototype._fillEncodeTable = function(nodeIdx, prefix, skipEncodeChars) {
+    var node = this.decodeTables[nodeIdx];
+    var hasValues = false;
+    var subNodeEmpty = {};
+    for (var i = 0; i < 0x100; i++) {
+        var uCode = node[i];
+        var mbCode = prefix + i;
+        if (skipEncodeChars[mbCode])
+            continue;
+
+        if (uCode >= 0) {
+            this._setEncodeChar(uCode, mbCode);
+            hasValues = true;
+        } else if (uCode <= NODE_START) {
+            var subNodeIdx = NODE_START - uCode;
+            if (!subNodeEmpty[subNodeIdx]) {  // Skip empty subtrees (they are too large in gb18030).
+                var newPrefix = (mbCode << 8) >>> 0;  // NOTE: '>>> 0' keeps 32-bit num positive.
+                if (this._fillEncodeTable(subNodeIdx, newPrefix, skipEncodeChars))
+                    hasValues = true;
+                else
+                    subNodeEmpty[subNodeIdx] = true;
+            }
+        } else if (uCode <= SEQ_START) {
+            this._setEncodeSequence(this.decodeTableSeq[SEQ_START - uCode], mbCode);
+            hasValues = true;
+        }
+    }
+    return hasValues;
+}
+
+
+
+// == Encoder ==================================================================
+
+function DBCSEncoder(options, codec) {
+    // Encoder state
+    this.leadSurrogate = -1;
+    this.seqObj = undefined;
+    
+    // Static data
+    this.encodeTable = codec.encodeTable;
+    this.encodeTableSeq = codec.encodeTableSeq;
+    this.defaultCharSingleByte = codec.defCharSB;
+    this.gb18030 = codec.gb18030;
+}
+
+DBCSEncoder.prototype.write = function(str) {
+    var newBuf = Buffer.alloc(str.length * (this.gb18030 ? 4 : 3)),
+        leadSurrogate = this.leadSurrogate,
+        seqObj = this.seqObj, nextChar = -1,
+        i = 0, j = 0;
+
+    while (true) {
+        // 0. Get next character.
+        if (nextChar === -1) {
+            if (i == str.length) break;
+            var uCode = str.charCodeAt(i++);
+        }
+        else {
+            var uCode = nextChar;
+            nextChar = -1;    
+        }
+
+        // 1. Handle surrogates.
+        if (0xD800 <= uCode && uCode < 0xE000) { // Char is one of surrogates.
+            if (uCode < 0xDC00) { // We've got lead surrogate.
+                if (leadSurrogate === -1) {
+                    leadSurrogate = uCode;
+                    continue;
+                } else {
+                    leadSurrogate = uCode;
+                    // Double lead surrogate found.
+                    uCode = UNASSIGNED;
+                }
+            } else { // We've got trail surrogate.
+                if (leadSurrogate !== -1) {
+                    uCode = 0x10000 + (leadSurrogate - 0xD800) * 0x400 + (uCode - 0xDC00);
+                    leadSurrogate = -1;
+                } else {
+                    // Incomplete surrogate pair - only trail surrogate found.
+                    uCode = UNASSIGNED;
+                }
+                
+            }
+        }
+        else if (leadSurrogate !== -1) {
+            // Incomplete surrogate pair - only lead surrogate found.
+            nextChar = uCode; uCode = UNASSIGNED; // Write an error, then current char.
+            leadSurrogate = -1;
+        }
+
+        // 2. Convert uCode character.
+        var dbcsCode = UNASSIGNED;
+        if (seqObj !== undefined && uCode != UNASSIGNED) { // We are in the middle of the sequence
+            var resCode = seqObj[uCode];
+            if (typeof resCode === 'object') { // Sequence continues.
+                seqObj = resCode;
+                continue;
+
+            } else if (typeof resCode == 'number') { // Sequence finished. Write it.
+                dbcsCode = resCode;
+
+            } else if (resCode == undefined) { // Current character is not part of the sequence.
+
+                // Try default character for this sequence
+                resCode = seqObj[DEF_CHAR];
+                if (resCode !== undefined) {
+                    dbcsCode = resCode; // Found. Write it.
+                    nextChar = uCode; // Current character will be written too in the next iteration.
+
+                } else {
+                    // TODO: What if we have no default? (resCode == undefined)
+                    // Then, we should write first char of the sequence as-is and try the rest recursively.
+                    // Didn't do it for now because no encoding has this situation yet.
+                    // Currently, just skip the sequence and write current char.
+                }
+            }
+            seqObj = undefined;
+        }
+        else if (uCode >= 0) {  // Regular character
+            var subtable = this.encodeTable[uCode >> 8];
+            if (subtable !== undefined)
+                dbcsCode = subtable[uCode & 0xFF];
+            
+            if (dbcsCode <= SEQ_START) { // Sequence start
+                seqObj = this.encodeTableSeq[SEQ_START-dbcsCode];
+                continue;
+            }
+
+            if (dbcsCode == UNASSIGNED && this.gb18030) {
+                // Use GB18030 algorithm to find character(s) to write.
+                var idx = findIdx(this.gb18030.uChars, uCode);
+                if (idx != -1) {
+                    var dbcsCode = this.gb18030.gbChars[idx] + (uCode - this.gb18030.uChars[idx]);
+                    newBuf[j++] = 0x81 + Math.floor(dbcsCode / 12600); dbcsCode = dbcsCode % 12600;
+                    newBuf[j++] = 0x30 + Math.floor(dbcsCode / 1260); dbcsCode = dbcsCode % 1260;
+                    newBuf[j++] = 0x81 + Math.floor(dbcsCode / 10); dbcsCode = dbcsCode % 10;
+                    newBuf[j++] = 0x30 + dbcsCode;
+                    continue;
+                }
+            }
+        }
+
+        // 3. Write dbcsCode character.
+        if (dbcsCode === UNASSIGNED)
+            dbcsCode = this.defaultCharSingleByte;
+        
+        if (dbcsCode < 0x100) {
+            newBuf[j++] = dbcsCode;
+        }
+        else if (dbcsCode < 0x10000) {
+            newBuf[j++] = dbcsCode >> 8;   // high byte
+            newBuf[j++] = dbcsCode & 0xFF; // low byte
+        }
+        else if (dbcsCode < 0x1000000) {
+            newBuf[j++] = dbcsCode >> 16;
+            newBuf[j++] = (dbcsCode >> 8) & 0xFF;
+            newBuf[j++] = dbcsCode & 0xFF;
+        } else {
+            newBuf[j++] = dbcsCode >>> 24;
+            newBuf[j++] = (dbcsCode >>> 16) & 0xFF;
+            newBuf[j++] = (dbcsCode >>> 8) & 0xFF;
+            newBuf[j++] = dbcsCode & 0xFF;
+        }
+    }
+
+    this.seqObj = seqObj;
+    this.leadSurrogate = leadSurrogate;
+    return newBuf.slice(0, j);
+}
+
+DBCSEncoder.prototype.end = function() {
+    if (this.leadSurrogate === -1 && this.seqObj === undefined)
+        return; // All clean. Most often case.
+
+    var newBuf = Buffer.alloc(10), j = 0;
+
+    if (this.seqObj) { // We're in the sequence.
+        var dbcsCode = this.seqObj[DEF_CHAR];
+        if (dbcsCode !== undefined) { // Write beginning of the sequence.
+            if (dbcsCode < 0x100) {
+                newBuf[j++] = dbcsCode;
+            }
+            else {
+                newBuf[j++] = dbcsCode >> 8;   // high byte
+                newBuf[j++] = dbcsCode & 0xFF; // low byte
+            }
+        } else {
+            // See todo above.
+        }
+        this.seqObj = undefined;
+    }
+
+    if (this.leadSurrogate !== -1) {
+        // Incomplete surrogate pair - only lead surrogate found.
+        newBuf[j++] = this.defaultCharSingleByte;
+        this.leadSurrogate = -1;
+    }
+    
+    return newBuf.slice(0, j);
+}
+
+// Export for testing
+DBCSEncoder.prototype.findIdx = findIdx;
+
+
+// == Decoder ==================================================================
+
+function DBCSDecoder(options, codec) {
+    // Decoder state
+    this.nodeIdx = 0;
+    this.prevBytes = [];
+
+    // Static data
+    this.decodeTables = codec.decodeTables;
+    this.decodeTableSeq = codec.decodeTableSeq;
+    this.defaultCharUnicode = codec.defaultCharUnicode;
+    this.gb18030 = codec.gb18030;
+}
+
+DBCSDecoder.prototype.write = function(buf) {
+    var newBuf = Buffer.alloc(buf.length*2),
+        nodeIdx = this.nodeIdx, 
+        prevBytes = this.prevBytes, prevOffset = this.prevBytes.length,
+        seqStart = -this.prevBytes.length, // idx of the start of current parsed sequence.
+        uCode;
+
+    for (var i = 0, j = 0; i < buf.length; i++) {
+        var curByte = (i >= 0) ? buf[i] : prevBytes[i + prevOffset];
+
+        // Lookup in current trie node.
+        var uCode = this.decodeTables[nodeIdx][curByte];
+
+        if (uCode >= 0) { 
+            // Normal character, just use it.
+        }
+        else if (uCode === UNASSIGNED) { // Unknown char.
+            // TODO: Callback with seq.
+            uCode = this.defaultCharUnicode.charCodeAt(0);
+            i = seqStart; // Skip one byte ('i' will be incremented by the for loop) and try to parse again.
+        }
+        else if (uCode === GB18030_CODE) {
+            if (i >= 3) {
+                var ptr = (buf[i-3]-0x81)*12600 + (buf[i-2]-0x30)*1260 + (buf[i-1]-0x81)*10 + (curByte-0x30);
+            } else {
+                var ptr = (prevBytes[i-3+prevOffset]-0x81)*12600 + 
+                          (((i-2 >= 0) ? buf[i-2] : prevBytes[i-2+prevOffset])-0x30)*1260 + 
+                          (((i-1 >= 0) ? buf[i-1] : prevBytes[i-1+prevOffset])-0x81)*10 + 
+                          (curByte-0x30);
+            }
+            var idx = findIdx(this.gb18030.gbChars, ptr);
+            uCode = this.gb18030.uChars[idx] + ptr - this.gb18030.gbChars[idx];
+        }
+        else if (uCode <= NODE_START) { // Go to next trie node.
+            nodeIdx = NODE_START - uCode;
+            continue;
+        }
+        else if (uCode <= SEQ_START) { // Output a sequence of chars.
+            var seq = this.decodeTableSeq[SEQ_START - uCode];
+            for (var k = 0; k < seq.length - 1; k++) {
+                uCode = seq[k];
+                newBuf[j++] = uCode & 0xFF;
+                newBuf[j++] = uCode >> 8;
+            }
+            uCode = seq[seq.length-1];
+        }
+        else
+            throw new Error("iconv-lite internal error: invalid decoding table value " + uCode + " at " + nodeIdx + "/" + curByte);
+
+        // Write the character to buffer, handling higher planes using surrogate pair.
+        if (uCode >= 0x10000) { 
+            uCode -= 0x10000;
+            var uCodeLead = 0xD800 | (uCode >> 10);
+            newBuf[j++] = uCodeLead & 0xFF;
+            newBuf[j++] = uCodeLead >> 8;
+
+            uCode = 0xDC00 | (uCode & 0x3FF);
+        }
+        newBuf[j++] = uCode & 0xFF;
+        newBuf[j++] = uCode >> 8;
+
+        // Reset trie node.
+        nodeIdx = 0; seqStart = i+1;
+    }
+
+    this.nodeIdx = nodeIdx;
+    this.prevBytes = (seqStart >= 0)
+        ? Array.prototype.slice.call(buf, seqStart)
+        : prevBytes.slice(seqStart + prevOffset).concat(Array.prototype.slice.call(buf));
+
+    return newBuf.slice(0, j).toString('ucs2');
+}
+
+DBCSDecoder.prototype.end = function() {
+    var ret = '';
+
+    // Try to parse all remaining chars.
+    while (this.prevBytes.length > 0) {
+        // Skip 1 character in the buffer.
+        ret += this.defaultCharUnicode;
+        var bytesArr = this.prevBytes.slice(1);
+
+        // Parse remaining as usual.
+        this.prevBytes = [];
+        this.nodeIdx = 0;
+        if (bytesArr.length > 0)
+            ret += this.write(bytesArr);
+    }
+
+    this.prevBytes = [];
+    this.nodeIdx = 0;
+    return ret;
+}
+
+// Binary search for GB18030. Returns largest i such that table[i] <= val.
+function findIdx(table, val) {
+    if (table[0] > val)
+        return -1;
+
+    var l = 0, r = table.length;
+    while (l < r-1) { // always table[l] <= val < table[r]
+        var mid = l + ((r-l+1) >> 1);
+        if (table[mid] <= val)
+            l = mid;
+        else
+            r = mid;
+    }
+    return l;
+}
+
+
+
+/***/ }),
 /* 605 */
 /***/ (function(module) {
 
@@ -35386,7 +35573,7 @@ var _isHSL = _interopRequireDefault(__webpack_require__(831));
 
 var _isISRC = _interopRequireDefault(__webpack_require__(407));
 
-var _isIBAN = _interopRequireDefault(__webpack_require__(779));
+var _isIBAN = _interopRequireWildcard(__webpack_require__(779));
 
 var _isBIC = _interopRequireDefault(__webpack_require__(326));
 
@@ -35444,6 +35631,8 @@ var _isISO31661Alpha = _interopRequireDefault(__webpack_require__(71));
 
 var _isISO31661Alpha2 = _interopRequireDefault(__webpack_require__(104));
 
+var _isISO2 = _interopRequireDefault(__webpack_require__(227));
+
 var _isBase = _interopRequireDefault(__webpack_require__(940));
 
 var _isBase2 = _interopRequireDefault(__webpack_require__(5));
@@ -35460,7 +35649,7 @@ var _isLatLong = _interopRequireDefault(__webpack_require__(485));
 
 var _isPostalCode = _interopRequireWildcard(__webpack_require__(161));
 
-var _ltrim = _interopRequireDefault(__webpack_require__(227));
+var _ltrim = _interopRequireDefault(__webpack_require__(882));
 
 var _rtrim = _interopRequireDefault(__webpack_require__(10));
 
@@ -35494,7 +35683,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var version = '13.6.0';
+var version = '13.7.0';
 var validator = {
   version: version,
   toDate: _toDate.default,
@@ -35571,6 +35760,7 @@ var validator = {
   isRFC3339: _isRFC.default,
   isISO31661Alpha2: _isISO31661Alpha.default,
   isISO31661Alpha3: _isISO31661Alpha2.default,
+  isISO4217: _isISO2.default,
   isBase32: _isBase.default,
   isBase58: _isBase2.default,
   isBase64: _isBase3.default,
@@ -35594,7 +35784,8 @@ var validator = {
   isTaxID: _isTaxID.default,
   isDate: _isDate.default,
   isLicensePlate: _isLicensePlate.default,
-  isVAT: _isVAT.default
+  isVAT: _isVAT.default,
+  ibanLocales: _isIBAN.locales
 };
 var _default = validator;
 exports.default = _default;
@@ -36290,9 +36481,9 @@ class ISO_2022 {
         let hits = 0;
         let misses = 0;
         let shifts = 0;
-        let quality;
-        const text = det.fInputBytes;
-        const textLen = det.fInputLen;
+        let confidence;
+        const text = det.inputBytes;
+        const textLen = det.inputLen;
         scanInput: for (i = 0; i < textLen; i++) {
             if (text[i] == 0x1b) {
                 checkEscapes: for (escN = 0; escN < this.escapeSequences.length; escN++) {
@@ -36313,10 +36504,10 @@ class ISO_2022 {
         }
         if (hits == 0)
             return null;
-        quality = (100 * hits - 100 * misses) / (hits + misses);
+        confidence = (100 * hits - 100 * misses) / (hits + misses);
         if (hits + shifts < 5)
-            quality -= (5 - (hits + shifts)) * 10;
-        return quality <= 0 ? null : match_1.default(det, this, quality);
+            confidence -= (5 - (hits + shifts)) * 10;
+        return confidence <= 0 ? null : (0, match_1.default)(det, this, confidence);
     }
 }
 class ISO_2022_JP extends ISO_2022 {
@@ -36340,6 +36531,9 @@ class ISO_2022_JP extends ISO_2022 {
     name() {
         return 'ISO-2022-JP';
     }
+    language() {
+        return 'ja';
+    }
 }
 exports.ISO_2022_JP = ISO_2022_JP;
 class ISO_2022_KR extends ISO_2022 {
@@ -36349,6 +36543,9 @@ class ISO_2022_KR extends ISO_2022 {
     }
     name() {
         return 'ISO-2022-KR';
+    }
+    language() {
+        return 'kr';
     }
 }
 exports.ISO_2022_KR = ISO_2022_KR;
@@ -36371,6 +36568,9 @@ class ISO_2022_CN extends ISO_2022 {
     }
     name() {
         return 'ISO-2022-CN';
+    }
+    language() {
+        return 'zh';
     }
 }
 exports.ISO_2022_CN = ISO_2022_CN;
@@ -36694,7 +36894,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function unescape(str) {
   (0, _assertString.default)(str);
-  return str.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2F;/g, '/').replace(/&#x5C;/g, '\\').replace(/&#96;/g, '`');
+  return str.replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#x2F;/g, '/').replace(/&#x5C;/g, '\\').replace(/&#96;/g, '`').replace(/&amp;/g, '&'); // &amp; replacement has to be the last one to prevent
+  // bugs with intermediate strings containing escape sequences
+  // See: https://github.com/validatorjs/validator.js/issues/1827
 }
 
 module.exports = exports.default;
@@ -37133,14 +37335,14 @@ class Utf8 {
     }
     match(det) {
         let hasBOM = false, numValid = 0, numInvalid = 0, trailBytes = 0, confidence;
-        const input = det.fRawInput;
-        if (det.fRawLength >= 3 &&
+        const input = det.rawInput;
+        if (det.rawLen >= 3 &&
             (input[0] & 0xff) == 0xef &&
             (input[1] & 0xff) == 0xbb &&
             (input[2] & 0xff) == 0xbf) {
             hasBOM = true;
         }
-        for (let i = 0; i < det.fRawLength; i++) {
+        for (let i = 0; i < det.rawLen; i++) {
             const b = input[i];
             if ((b & 0x80) == 0)
                 continue;
@@ -37161,7 +37363,7 @@ class Utf8 {
             }
             for (;;) {
                 i++;
-                if (i >= det.fRawLength)
+                if (i >= det.rawLen)
                     break;
                 if ((input[i] & 0xc0) != 0x080) {
                     numInvalid++;
@@ -37188,7 +37390,7 @@ class Utf8 {
             confidence = 25;
         else
             return null;
-        return match_1.default(det, this, confidence);
+        return (0, match_1.default)(det, this, confidence);
     }
 }
 exports.default = Utf8;
@@ -37430,7 +37632,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var vatMatchers = {
   GB: /^GB((\d{3} \d{4} ([0-8][0-9]|9[0-6]))|(\d{9} \d{3})|(((GD[0-4])|(HA[5-9]))[0-9]{2}))$/,
-  IT: /^(IT)?[0-9]{11}$/
+  IT: /^(IT)?[0-9]{11}$/,
+  NL: /^(NL)?[0-9]{9}B[0-9]{2}$/
 };
 exports.vatMatchers = vatMatchers;
 
@@ -38264,9 +38467,21 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var defaultOptions = {
+  loose: false
+};
+var strictBooleans = ['true', 'false', '1', '0'];
+var looseBooleans = [].concat(strictBooleans, ['yes', 'no']);
+
 function isBoolean(str) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultOptions;
   (0, _assertString.default)(str);
-  return ['true', 'false', '1', '0'].indexOf(str) >= 0;
+
+  if (options.loose) {
+    return looseBooleans.includes(str.toLowerCase());
+  }
+
+  return strictBooleans.includes(str);
 }
 
 module.exports = exports.default;
@@ -38333,6 +38548,7 @@ const setOptionsAndReturnOpenGraphResults = async (options) => {
     headers: {},
     responseType: 'buffer',
     agent: null,
+    downloadLimit: 1000000,
     ...options,
   };
 
@@ -38367,6 +38583,8 @@ const setOptionsAndReturnOpenGraphResults = async (options) => {
       throw new Error('Page not found');
     } else if (exception && exception.message && exception.message.startsWith('Response code 5')) {
       throw new Error('Web server is returning error');
+    } else if (exception && exception.message && exception.message === 'Promise was canceled') {
+      throw new Error(`Exceeded the download limit of ${options.downloadLimit} bytes`);
     }
     if (exception instanceof Error) throw exception;
     throw new Error('Page not found');
@@ -39238,7 +39456,7 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /* eslint-disable max-len */
-var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3,6})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12,15}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11}|6[27][0-9]{14})$/;
+var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3,6})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12,15}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11}|6[27][0-9]{14}|^(81[0-9]{14,17}))$/;
 /* eslint-enable max-len */
 
 function isCreditCard(str) {
@@ -40728,7 +40946,7 @@ module.exports.default = exports.default;
 /***/ }),
 /* 778 */,
 /* 779 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
 
@@ -40737,6 +40955,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = isIBAN;
+exports.locales = void 0;
 
 var _assertString = _interopRequireDefault(__webpack_require__(57));
 
@@ -40878,8 +41097,8 @@ function isIBAN(str) {
   return hasValidIbanFormat(str) && hasValidIbanChecksum(str);
 }
 
-module.exports = exports.default;
-module.exports.default = exports.default;
+var locales = Object.keys(ibanRegexThroughCountryCode);
+exports.locales = locales;
 
 /***/ }),
 /* 780 */,
@@ -41124,7 +41343,7 @@ var default_date_options = {
 };
 
 function isValidFormat(format) {
-  return /(^(y{4}|y{2})[\/-](m{1,2})[\/-](d{1,2})$)|(^(m{1,2})[\/-](d{1,2})[\/-]((y{4}|y{2})$))|(^(d{1,2})[\/-](m{1,2})[\/-]((y{4}|y{2})$))/gi.test(format);
+  return /(^(y{4}|y{2})[.\/-](m{1,2})[.\/-](d{1,2})$)|(^(m{1,2})[.\/-](d{1,2})[.\/-]((y{4}|y{2})$))|(^(d{1,2})[.\/-](m{1,2})[.\/-]((y{4}|y{2})$))/gi.test(format);
 }
 
 function zip(date, format) {
@@ -42484,7 +42703,7 @@ var _assertString = _interopRequireDefault(__webpack_require__(57));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var magnetURI = /^magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]{32,40}&dn=.+&tr=.+$/i;
+var magnetURI = /^magnet:\?xt(?:\.1)?=urn:(?:aich|bitprint|btih|ed2k|ed2khash|kzhash|md5|sha1|tree:tiger):[a-z0-9]{32}(?:[a-z0-9]{8})?($|&)/i;
 
 function isMagnetURI(url) {
   (0, _assertString.default)(url);
@@ -42946,7 +43165,7 @@ module.exports.default = exports.default;
 
 const chardet = __webpack_require__(362);
 const iconv = __webpack_require__(841);
-const request = __webpack_require__(77);
+const { gotClient } = __webpack_require__(47);
 
 const charset = __webpack_require__(900);
 const { extractMetaTags } = __webpack_require__(741);
@@ -42959,10 +43178,14 @@ exports.requestAndResultsFormatter = async (options) => {
   const requestUrl = options.url;
   delete options.url; // setting options.url messes with got
 
-  return request.get(requestUrl, options)
+  return gotClient.get(requestUrl, options)
     .then((response) => {
       options.url = requestUrl;
       let formatBody = response.body;
+
+      if (response && response.headers && response.headers['content-type'] && !response.headers['content-type'].includes('text/html')) {
+        throw new Error('Page must return a header content-type with text/html');
+      }
 
       if (response && response.statusCode && (response.statusCode.toString().substring(0, 1) === '4' || response.statusCode.toString().substring(0, 1) === '5')) {
         throw new Error('Server has returned a 400/500 error code');
@@ -46736,45 +46959,29 @@ module.exports = require("dns");
 
 /***/ }),
 /* 882 */
-/***/ (function(module, __unusedexports, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Type = __webpack_require__(755);
-
-function resolveYamlBoolean(data) {
-  if (data === null) return false;
-
-  var max = data.length;
-
-  return (max === 4 && (data === 'true' || data === 'True' || data === 'TRUE')) ||
-         (max === 5 && (data === 'false' || data === 'False' || data === 'FALSE'));
-}
-
-function constructYamlBoolean(data) {
-  return data === 'true' ||
-         data === 'True' ||
-         data === 'TRUE';
-}
-
-function isBoolean(object) {
-  return Object.prototype.toString.call(object) === '[object Boolean]';
-}
-
-module.exports = new Type('tag:yaml.org,2002:bool', {
-  kind: 'scalar',
-  resolve: resolveYamlBoolean,
-  construct: constructYamlBoolean,
-  predicate: isBoolean,
-  represent: {
-    lowercase: function (object) { return object ? 'true' : 'false'; },
-    uppercase: function (object) { return object ? 'TRUE' : 'FALSE'; },
-    camelcase: function (object) { return object ? 'True' : 'False'; }
-  },
-  defaultStyle: 'lowercase'
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
+exports.default = ltrim;
 
+var _assertString = _interopRequireDefault(__webpack_require__(57));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ltrim(str, chars) {
+  (0, _assertString.default)(str); // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+
+  var pattern = chars ? new RegExp("^[".concat(chars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "]+"), 'g') : /^\s+/g;
+  return str.replace(pattern, '');
+}
+
+module.exports = exports.default;
+module.exports.default = exports.default;
 
 /***/ }),
 /* 883 */,
@@ -46824,8 +47031,8 @@ var passportRegexByCountryCode = {
   // CANADA
   CH: /^[A-Z]\d{7}$/,
   // SWITZERLAND
-  CN: /^[GE]\d{8}$/,
-  // CHINA [G=Ordinary, E=Electronic] followed by 8-digits
+  CN: /^G\d{8}$|^E(?![IO])[A-Z0-9]\d{7}$/,
+  // CHINA [G=Ordinary, E=Electronic] followed by 8-digits, or E followed by any UPPERCASE letter (except I and O) followed by 7 digits
   CY: /^[A-Z](\d{6}|\d{8})$/,
   // CYPRUS
   CZ: /^\d{8}$/,
@@ -46856,6 +47063,8 @@ var passportRegexByCountryCode = {
   // IRELAND
   IN: /^[A-Z]{1}-?\d{7}$/,
   // INDIA
+  ID: /^[A-C]\d{7}$/,
+  // INDONESIA
   IR: /^[A-Z]\d{8}$/,
   // IRAN
   IS: /^(A)\d{7}$/,
@@ -46882,13 +47091,13 @@ var passportRegexByCountryCode = {
   // MALAYSIA
   NL: /^[A-Z]{2}[A-Z0-9]{6}\d$/,
   // NETHERLANDS
-  PO: /^[A-Z]{2}\d{7}$/,
+  PL: /^[A-Z]{2}\d{7}$/,
   // POLAND
   PT: /^[A-Z]\d{6}$/,
   // PORTUGAL
   RO: /^\d{8,9}$/,
   // ROMANIA
-  RU: /^\d{2}\d{2}\d{6}$/,
+  RU: /^\d{9}$/,
   // RUSSIAN FEDERATION
   SE: /^\d{8}$/,
   // SWEDEN
@@ -48205,7 +48414,7 @@ exports.default = (origin, options) => {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const types_1 = __webpack_require__(541);
+const types_1 = __webpack_require__(36);
 function createRejection(error, ...beforeErrorGroups) {
     const promise = (async () => {
         if (error instanceof types_1.RequestError) {
@@ -48431,13 +48640,19 @@ var _merge = _interopRequireDefault(__webpack_require__(773));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var defaulContainsOptions = {
-  ignoreCase: false
+  ignoreCase: false,
+  minOccurrences: 1
 };
 
 function contains(str, elem, options) {
   (0, _assertString.default)(str);
   options = (0, _merge.default)(options, defaulContainsOptions);
-  return options.ignoreCase ? str.toLowerCase().indexOf((0, _toString.default)(elem).toLowerCase()) >= 0 : str.indexOf((0, _toString.default)(elem)) >= 0;
+
+  if (options.ignoreCase) {
+    return str.toLowerCase().split((0, _toString.default)(elem).toLowerCase()).length > options.minOccurrences;
+  }
+
+  return str.split((0, _toString.default)(elem)).length > options.minOccurrences;
 }
 
 module.exports = exports.default;
@@ -50225,7 +50440,7 @@ const weakable_map_1 = __webpack_require__(48);
 const get_buffer_1 = __webpack_require__(452);
 const dns_ip_version_1 = __webpack_require__(738);
 const is_response_ok_1 = __webpack_require__(929);
-const deprecation_warning_1 = __webpack_require__(994);
+const deprecation_warning_1 = __webpack_require__(189);
 const normalize_arguments_1 = __webpack_require__(992);
 const calculate_retry_delay_1 = __webpack_require__(594);
 let globalDnsCache;
@@ -51774,9 +51989,44 @@ exports.default = isIdentityCard;
 
 var _assertString = _interopRequireDefault(__webpack_require__(57));
 
+var _isInt = _interopRequireDefault(__webpack_require__(64));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var validators = {
+  PL: function PL(str) {
+    (0, _assertString.default)(str);
+    var weightOfDigits = {
+      1: 1,
+      2: 3,
+      3: 7,
+      4: 9,
+      5: 1,
+      6: 3,
+      7: 7,
+      8: 9,
+      9: 1,
+      10: 3,
+      11: 0
+    };
+
+    if (str != null && str.length === 11 && (0, _isInt.default)(str, {
+      allow_leading_zeroes: true
+    })) {
+      var digits = str.split('').slice(0, -1);
+      var sum = digits.reduce(function (acc, digit, index) {
+        return acc + Number(digit) * weightOfDigits[index + 1];
+      }, 0);
+      var modulo = sum % 10;
+      var lastDigit = Number(str.charAt(str.length - 1));
+
+      if (modulo === 0 && lastDigit === 0 || lastDigit === 10 - modulo) {
+        return true;
+      }
+    }
+
+    return false;
+  },
   ES: function ES(str) {
     (0, _assertString.default)(str);
     var DNI = /^[0-9X-Z][0-9]{7}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
@@ -51798,6 +52048,24 @@ var validators = {
       return charsValue[char];
     });
     return sanitized.endsWith(controlDigits[number % 23]);
+  },
+  FI: function FI(str) {
+    // https://dvv.fi/en/personal-identity-code#:~:text=control%20character%20for%20a-,personal,-identity%20code%20calculated
+    (0, _assertString.default)(str);
+
+    if (str.length !== 11) {
+      return false;
+    }
+
+    if (!str.match(/^\d{6}[\-A\+]\d{3}[0-9ABCDEFHJKLMNPRSTUVWXY]{1}$/)) {
+      return false;
+    }
+
+    var checkDigits = '0123456789ABCDEFHJKLMNPRSTUVWXY';
+    var idAsNumber = parseInt(str.slice(0, 6), 10) * 1000 + parseInt(str.slice(7, 10), 10);
+    var remainder = idAsNumber % 31;
+    var checkDigit = checkDigits[remainder];
+    return checkDigit === str.slice(10, 11);
   },
   IN: function IN(str) {
     var DNI = /^[1-9]\d{3}\s?\d{4}\s?\d{4}$/; // multiplication table
@@ -51850,6 +52118,23 @@ var validators = {
     var k2 = (11 - (5 * f[0] + 4 * f[1] + 3 * f[2] + 2 * f[3] + 7 * f[4] + 6 * f[5] + 5 * f[6] + 4 * f[7] + 3 * f[8] + 2 * k1) % 11) % 11;
     if (k1 !== f[9] || k2 !== f[10]) return false;
     return true;
+  },
+  TH: function TH(str) {
+    if (!str.match(/^[1-8]\d{12}$/)) return false; // validate check digit
+
+    var sum = 0;
+
+    for (var i = 0; i < 12; i++) {
+      sum += parseInt(str[i], 10) * (13 - i);
+    }
+
+    return str[12] === ((11 - sum % 11) % 10).toString();
+  },
+  LK: function LK(str) {
+    var old_nic = /^[1-9]\d{8}[vx]$/i;
+    var new_nic = /^[1-9]\d{11}$/i;
+    if (str.length === 10 && old_nic.test(str)) return true;else if (str.length === 12 && new_nic.test(str)) return true;
+    return false;
   },
   'he-IL': function heIL(str) {
     var DNI = /^\d{9}$/; // sanitize user input
@@ -52212,7 +52497,8 @@ var default_fqdn_options = {
   require_tld: true,
   allow_underscores: false,
   allow_trailing_dot: false,
-  allow_numeric_tld: false
+  allow_numeric_tld: false,
+  allow_wildcard: false
 };
 
 function isFQDN(str, options) {
@@ -52222,6 +52508,12 @@ function isFQDN(str, options) {
 
   if (options.allow_trailing_dot && str[str.length - 1] === '.') {
     str = str.substring(0, str.length - 1);
+  }
+  /* Remove the optional wildcard before checking validity */
+
+
+  if (options.allow_wildcard === true && str.indexOf('*.') === 0) {
+    str = str.substring(2);
   }
 
   var parts = str.split('.');
@@ -52233,12 +52525,12 @@ function isFQDN(str, options) {
       return false;
     }
 
-    if (!/^([a-z\u00a1-\uffff]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
+    if (!/^([a-z\u00A1-\u00A8\u00AA-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
       return false;
-    } // disallow spaces && special characers
+    } // disallow spaces
 
 
-    if (/[\s\u2002-\u200B\u202F\u205F\u3000\uFEFF\uDB40\uDC20\u00A9\uFFFD]/.test(tld)) {
+    if (/\s/.test(tld)) {
       return false;
     }
   } // reject numeric TLDs
@@ -52457,7 +52749,7 @@ var timeOffset = new RegExp("([zZ]|".concat(timeNumOffset.source, ")"));
 var partialTime = new RegExp("".concat(timeHour.source, ":").concat(timeMinute.source, ":").concat(timeSecond.source).concat(timeSecFrac.source));
 var fullDate = new RegExp("".concat(dateFullYear.source, "-").concat(dateMonth.source, "-").concat(dateMDay.source));
 var fullTime = new RegExp("".concat(partialTime.source).concat(timeOffset.source));
-var rfc3339 = new RegExp("".concat(fullDate.source, "[ tT]").concat(fullTime.source));
+var rfc3339 = new RegExp("^".concat(fullDate.source, "[ tT]").concat(fullTime.source, "$"));
 
 function isRFC3339(str) {
   (0, _assertString.default)(str);
@@ -56241,26 +56533,7 @@ module.exports = exports.default;
 module.exports.default = exports.default;
 
 /***/ }),
-/* 994 */
-/***/ (function(__unusedmodule, exports) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const alreadyWarned = new Set();
-exports.default = (message) => {
-    if (alreadyWarned.has(message)) {
-        return;
-    }
-    alreadyWarned.add(message);
-    // @ts-expect-error Missing types.
-    process.emitWarning(`Got: ${message}`, {
-        type: 'DeprecationWarning'
-    });
-};
-
-
-/***/ }),
+/* 994 */,
 /* 995 */,
 /* 996 */,
 /* 997 */

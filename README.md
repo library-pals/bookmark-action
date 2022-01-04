@@ -9,6 +9,7 @@ Create a new issue with the URL in the title. The action will then fetch the web
 Create `.github/workflows/bookmarks.yml` file using the following template:
 
 <!-- START GENERATED SETUP -->
+
 ```yml
 name: Add bookmarks
 on:
@@ -25,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@2.1.1
+        uses: katydecorah/bookmark-action@2.1.2
         with:
           fileName: _data/bookmarks.yml
       - name: Commit files
@@ -39,7 +40,6 @@ jobs:
         with:
           issue-number: "${{ env.IssueNumber }}"
           comment: "You bookmarked ${{ env.BookmarkTitle }} on ${{env.DateBookmarked}}."
-
 ```
 
 <!-- END GENERATED SETUP -->
@@ -47,10 +47,10 @@ jobs:
 ## Options
 
 <!-- START GENERATED OPTIONS -->
+
 - `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.yml`.
 
 <!-- END GENERATED OPTIONS -->
-
 
 ## Create an issue
 
@@ -67,4 +67,3 @@ https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans 2020-0
 ```
 
 If you add content to the body of the comment, the action will add it as the value of `notes`.
-
