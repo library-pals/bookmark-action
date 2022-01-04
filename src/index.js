@@ -23,27 +23,31 @@ async function bookmark() {
 async function getMetadata(url, body, date) {
   return ogs({ url }).then((data) => {
     const { error, result } = data;
-    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogImage } = result;
+    const { ogUrl, ogTitle, ogDescription, ogSiteName, ogImage, ogType } =
+      result;
     if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
-    const image = ogImage && ogImage.url ? `bookmark-${slugify(ogTitle)}.${ogImage.type}`: undefined;
+    const image =
+      ogImage && ogImage.url
+        ? `bookmark-${slugify(ogTitle)}.${ogImage.type}`
+        : undefined;
     if (image) {
       core.exportVariable("BookmarkImageOutput", image);
       core.exportVariable("BookmarkImage", ogImage.url);
     }
     return {
-      title: ogTitle || '',
-      site: ogSiteName || '',
+      title: ogTitle || "",
+      site: ogSiteName || "",
       date,
-      description: ogDescription || '',
+      description: ogDescription || "",
       url: ogUrl,
-      image: image || '',
-      ...body && {notes: body}
+      image: image || "",
+      type: ogType || "",
+      ...(body && { notes: body }),
     };
   });
 }
-
 
 function titleParser(title) {
   const split = title.split(" ");
@@ -63,22 +67,24 @@ function titleParser(title) {
 const dateFormat = (date) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
 // make sure date value is a date
 const isDate = (date) => !isNaN(Date.parse(date)) && dateFormat(date);
-const isUrl = url => url.startsWith('http');
+const isUrl = (url) => url.startsWith("http");
 const sortByDate = (array) =>
   array.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 function addBookmark(fileName, bookmark) {
-  return sortByDate([...yaml.load(readFileSync(fileName, 'utf-8')), bookmark])
+  return sortByDate([...yaml.load(readFileSync(fileName, "utf-8")), bookmark]);
 }
 
 // Credit: https://gist.github.com/mathewbyrne/1280286
 function slugify(text) {
-  return text.toString().toLowerCase()
-    .replace(/\s+/g, '-')   
-    .replace(/[^\w-]+/g, '')   
-    .replace(/--+/g, '-')     
-    .replace(/^-+/, '')         
-    .replace(/-+$/, '');      
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
 }
 
 async function saveBookmarks(fileName, bookmark) {
