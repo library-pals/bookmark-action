@@ -1,6 +1,6 @@
 {
   "name": "bookmark-action",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Save website metadata to a YAML file.",
   "main": "dist/index.js",
   "scripts": {
