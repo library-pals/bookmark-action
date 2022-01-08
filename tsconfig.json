@@ -5,5 +5,5 @@
     "strictNullChecks": true,
     "esModuleInterop": true
   },
-  "include": ["**/*.ts"]
+  "include": ["src/*.ts"]
 }
