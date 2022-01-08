@@ -20,8 +20,9 @@ async function bookmark() {
     const bookmarks = addBookmark(fileName, page);
     await saveBookmarks(fileName, bookmarks);
   } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error);
+    throw new Error(error);
   }
 }
 
-module.exports = bookmark();
+module.exports = bookmark;

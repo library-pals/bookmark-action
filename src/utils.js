@@ -4,10 +4,10 @@ const ogs = require("open-graph-scraper");
 const yaml = require("js-yaml");
 
 async function getMetadata(url, body, date) {
-  return ogs({ url }).then((data) => {
-    const { error, result } = data;
+  try {
+    const { error, result } = await ogs({ url });
+    if (error) throw error;
     const { ogUrl, ogTitle, ogDescription, ogSiteName, ogType } = result;
-    if (error) throw new Error(result);
     core.exportVariable("BookmarkTitle", ogTitle);
     core.exportVariable("DateBookmarked", date);
     const image = setImage(result);
@@ -21,7 +21,9 @@ async function getMetadata(url, body, date) {
       type: ogType || "",
       ...(body && { notes: body }),
     };
-  });
+  } catch (error) {
+    core.setFailed(error);
+  }
 }
 
 function addBookmark(fileName, bookmark) {
@@ -31,11 +33,8 @@ function addBookmark(fileName, bookmark) {
 }
 
 async function saveBookmarks(fileName, bookmark) {
-  try {
-    writeFileSync(fileName, yaml.dump(bookmark), "utf-8");
-  } catch (error) {
-    core.setFailed(error.message);
-  }
+  const json = yaml.dump(bookmark);
+  writeFileSync(fileName, json, "utf-8");
 }
 
 function setImage({ ogImage, ogTitle }) {
@@ -62,7 +61,7 @@ function slugify(text) {
 function titleParser(title) {
   const split = title.split(" ");
   const url = isUrl(split[0]) ? split[0] : undefined;
-  if (!url) core.setFailed(`${url} is not valid`);
+  if (!url) core.setFailed(`The url "${url}" is not valid`);
   const date = isDate(split[1])
     ? split[1]
     : new Date().toISOString().slice(0, 10);
