@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "pretest": "eslint .",
-    "test": "jest",
+    "test": "jest --coverage",
     "build": "ncc build src/index.ts",
     "write-docs": "node scripts/write-docs.js",
     "pretty-quick": "pretty-quick",
@@ -44,5 +44,16 @@
   "bugs": {
     "url": "https://github.com/katydecorah/bookmark-action/issues"
   },
-  "homepage": "https://github.com/katydecorah/bookmark-action#readme"
+  "homepage": "https://github.com/katydecorah/bookmark-action#readme",
+  "jest": {
+    "resetMocks": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
+  }
 }

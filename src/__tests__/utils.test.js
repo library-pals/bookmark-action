@@ -1,8 +1,16 @@
-import { setImage, getMetadata, titleParser, addBookmark } from "../utils.ts";
+import {
+  setImage,
+  getMetadata,
+  titleParser,
+  addBookmark,
+  saveBookmarks,
+} from "../utils.js";
 import pen15 from "./fixtures/pen15.json";
 import soup from "./fixtures/slow-cooker-soup.json";
-import { mockResolvedValueOnce } from "open-graph-scraper";
-import fs from "fs";
+import ogs from "open-graph-scraper";
+import fs, { writeFileSync } from "fs";
+import { dump } from "js-yaml";
+import { setFailed } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("fs");
@@ -41,6 +49,10 @@ describe("titleParser", () => {
       date: "2022-01-01",
       url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     });
+  });
+  test("missing url", () => {
+    titleParser("");
+    expect(setFailed).toHaveBeenCalledWith('The url "undefined" is not valid');
   });
 });
 
@@ -88,7 +100,7 @@ describe("addBookmark", () => {
 
 describe("getMetadata", () => {
   test("tv show", async () => {
-    mockResolvedValueOnce({ result: pen15 });
+    ogs.mockResolvedValueOnce({ result: pen15 });
     expect(
       await getMetadata({
         url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -108,7 +120,7 @@ describe("getMetadata", () => {
     `);
   });
   test("recipe, with note", async () => {
-    mockResolvedValueOnce({ result: soup });
+    ogs.mockResolvedValueOnce({ result: soup });
     expect(
       await getMetadata({
         url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
@@ -127,6 +139,88 @@ describe("getMetadata", () => {
         "url": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
       }
     `);
+  });
+  test("tv show, no image", async () => {
+    ogs.mockResolvedValueOnce({
+      result: {
+        ...pen15,
+        ogImage: undefined,
+      },
+    });
+    expect(
+      await getMetadata(
+        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        "",
+        "2022-01-01"
+      )
+    ).toMatchInlineSnapshot(`
+      Object {
+        "date": "2022-01-01",
+        "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+        "image": "",
+        "site": "Hulu",
+        "title": "PEN15",
+        "type": "tv_show",
+        "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+  });
+  test("tv show, no type", async () => {
+    ogs.mockResolvedValueOnce({
+      result: {
+        ...pen15,
+        ogType: undefined,
+      },
+    });
+    expect(
+      await getMetadata(
+        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        "",
+        "2022-01-01"
+      )
+    ).toMatchInlineSnapshot(`
+      Object {
+        "date": "2022-01-01",
+        "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+        "image": "bookmark-pen15.jpg",
+        "site": "Hulu",
+        "title": "PEN15",
+        "type": "",
+        "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+  });
+  test("tv show, no title, site, or description", async () => {
+    ogs.mockResolvedValueOnce({
+      result: {
+        ...pen15,
+        ogTitle: undefined,
+        ogSiteName: undefined,
+        ogDescription: undefined,
+      },
+    });
+    expect(
+      await getMetadata(
+        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        "",
+        "2022-01-01"
+      )
+    ).toMatchInlineSnapshot(`
+      Object {
+        "date": "2022-01-01",
+        "description": "",
+        "image": "",
+        "site": "",
+        "title": "",
+        "type": "tv_show",
+        "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+  });
+  test("throw error", async () => {
+    ogs.mockResolvedValueOnce({ error: "Error!" });
+    await getMetadata();
+    expect(setFailed).toHaveBeenCalledWith("Error!");
   });
 });
 
@@ -160,5 +254,19 @@ describe("setImage", () => {
         },
       })
     ).toBeUndefined();
+  });
+});
+
+describe("saveBookmarks", () => {
+  test("works", async () => {
+    const fileName = "my-file.yml";
+    const bookmarks = `- title: bookmark1
+- title: bookmark2`;
+    await saveBookmarks(fileName, bookmarks);
+    expect(writeFileSync).toHaveBeenCalledWith(
+      fileName,
+      dump(bookmarks),
+      "utf-8"
+    );
   });
 });
