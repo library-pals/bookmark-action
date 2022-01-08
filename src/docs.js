@@ -1,6 +1,6 @@
-const { readFileSync, writeFileSync } = require("fs");
-const { version } = require("../package.json");
-const yaml = require("js-yaml");
+import { readFileSync, writeFileSync } from "fs";
+import { version } from "../package.json";
+import { load } from "js-yaml";
 
 function writeDocs(doc, name) {
   const readme = readFileSync("./README.md", "utf-8");
@@ -26,14 +26,15 @@ let yml = readFileSync("./.github/workflows/recipe.yml", "utf8");
 writeDocs(
   `\`\`\`yml
 ${yml
-  .replace("uses: ./", `uses: katydecorah/bookmark-action@${version}`).replace(/recipe/g, "bookmark")}
+  .replace("uses: ./", `uses: katydecorah/bookmark-action@${version}`)
+  .replace(/recipe/g, "bookmark")}
 \`\`\`
 `,
   "SETUP"
 );
 
 // INPUT
-const { inputs } = yaml.load(readFileSync("./action.yml", "utf8"));
+const { inputs } = load(readFileSync("./action.yml", "utf8"));
 const docs = Object.keys(inputs)
   .map(
     (key) =>

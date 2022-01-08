@@ -1,13 +1,8 @@
-const {
-  setImage,
-  getMetadata,
-  titleParser,
-  addBookmark,
-} = require("../utils.js");
-const pen15 = require("./fixtures/pen15.json");
-const soup = require("./fixtures/slow-cooker-soup.json");
-const ogs = require("open-graph-scraper");
-const fs = require("fs");
+import { setImage, getMetadata, titleParser, addBookmark } from "../utils.ts";
+import pen15 from "./fixtures/pen15.json";
+import soup from "./fixtures/slow-cooker-soup.json";
+import { mockResolvedValueOnce } from "open-graph-scraper";
+import fs from "fs";
 
 jest.mock("open-graph-scraper");
 jest.mock("fs");
@@ -93,13 +88,13 @@ describe("addBookmark", () => {
 
 describe("getMetadata", () => {
   test("tv show", async () => {
-    ogs.mockResolvedValueOnce({ result: pen15 });
+    mockResolvedValueOnce({ result: pen15 });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -113,13 +108,13 @@ describe("getMetadata", () => {
     `);
   });
   test("recipe, with note", async () => {
-    ogs.mockResolvedValueOnce({ result: soup });
+    mockResolvedValueOnce({ result: soup });
     expect(
-      await getMetadata(
-        "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-        "Delicious!",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
+        body: "Delicious!",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
