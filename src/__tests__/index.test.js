@@ -7,12 +7,10 @@ jest.mock("@actions/core");
 jest.mock("fs");
 
 // h/t https://github.com/actions/toolkit/issues/71#issuecomment-984111601
-
 // Shallow clone original @actions/github context
 let originalContext = { ...github.context };
-
+// Restore original @actions/github context
 afterEach(() => {
-  // Restore original @actions/github context
   Object.defineProperty(github, "context", {
     value: originalContext,
   });
