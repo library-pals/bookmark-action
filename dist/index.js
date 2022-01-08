@@ -21700,7 +21700,7 @@ function main() {
             }
             const fileName = (0, core_1.getInput)("fileName");
             (0, core_1.exportVariable)("IssueNumber", number);
-            const page = yield (0, utils_js_1.getMetadata)({ url, body, date });
+            const page = (yield (0, utils_js_1.getMetadata)({ url, body, date }));
             const bookmarks = (0, utils_js_1.addBookmark)(fileName, page);
             yield (0, utils_js_1.saveBookmarks)(fileName, bookmarks);
         }
