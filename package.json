@@ -8,6 +8,7 @@
     "pretest": "eslint .",
     "test": "jest",
     "build": "ncc build src/index.ts",
+    "write-docs": "node scripts/write-docs.js",
     "pretty-quick": "pretty-quick",
     "prepare": "husky install"
   },

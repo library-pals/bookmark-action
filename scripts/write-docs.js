@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
-import { version } from "../package.json";
 import { load } from "js-yaml";
+
+const { version } = JSON.parse(readFileSync("./package.json", "utf-8"));
 
 function writeDocs(doc, name) {
   const readme = readFileSync("./README.md", "utf-8");
