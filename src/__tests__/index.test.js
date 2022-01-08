@@ -36,15 +36,13 @@ describe("bookmark", () => {
     expect(core.exportVariable).toHaveBeenNthCalledWith(
       1,
       "DateBookmarked",
-      "2022-01-08"
+      new Date().toISOString().slice(0, 10)
     );
     expect(core.exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
   });
 
   test("throws", async () => {
     Object.defineProperty(github, "context", {});
-    return expect(bookmark()).rejects.toMatchInlineSnapshot(
-      `[Error: TypeError: Cannot destructure property 'title' of '((cov_1qqxuk29du(...).s[4]++) , github.context.payload.issue)' as it is undefined.]`
-    );
+    return expect(bookmark()).rejects.toThrow();
   });
 });
