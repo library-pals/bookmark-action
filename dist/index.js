@@ -55781,7 +55781,6 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             if (!github.context.payload.issue) {
-                (0, core_1.setFailed)("Cannot find GitHub issue");
                 throw new Error("Cannot find GitHub issue");
             }
             const { title, number, body } = github.context.payload.issue;
@@ -55796,7 +55795,6 @@ function main() {
             yield (0, utils_js_1.saveBookmarks)(fileName, bookmarks);
         }
         catch (error) {
-            (0, core_1.setFailed)(error);
             throw new Error(error);
         }
     });
@@ -55874,8 +55872,6 @@ function slugify(text) {
 function titleParser(title) {
     const split = title.split(" ");
     const url = isUrl(split[0]) ? split[0] : undefined;
-    if (!url)
-        (0, core_1.setFailed)(`The url "${url}" is not valid`);
     const date = isDate(split[1])
         ? split[1]
         : new Date().toISOString().slice(0, 10);
