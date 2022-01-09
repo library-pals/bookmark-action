@@ -1,16 +1,15 @@
-const {
+import {
   setImage,
   getMetadata,
   titleParser,
   addBookmark,
   saveBookmarks,
-} = require("../utils.js");
-const pen15 = require("./fixtures/pen15.json");
-const soup = require("./fixtures/slow-cooker-soup.json");
-const ogs = require("open-graph-scraper");
-const fs = require("fs");
-const yaml = require("js-yaml");
-const core = require("@actions/core");
+} from "../utils.ts";
+import pen15 from "./fixtures/pen15.json";
+import soup from "./fixtures/slow-cooker-soup.json";
+import ogs from "open-graph-scraper";
+import fs, { writeFileSync } from "fs";
+import { dump } from "js-yaml";
 
 jest.mock("open-graph-scraper");
 jest.mock("fs");
@@ -49,12 +48,6 @@ describe("titleParser", () => {
       date: "2022-01-01",
       url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     });
-  });
-  test("missing url", () => {
-    titleParser("");
-    expect(core.setFailed).toHaveBeenCalledWith(
-      'The url "undefined" is not valid'
-    );
   });
 });
 
@@ -104,11 +97,11 @@ describe("getMetadata", () => {
   test("tv show", async () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -124,11 +117,11 @@ describe("getMetadata", () => {
   test("recipe, with note", async () => {
     ogs.mockResolvedValueOnce({ result: soup });
     expect(
-      await getMetadata(
-        "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-        "Delicious!",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
+        body: "Delicious!",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -150,11 +143,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -175,11 +167,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -202,11 +193,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -218,11 +208,6 @@ describe("getMetadata", () => {
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
       }
     `);
-  });
-  test("throw error", async () => {
-    ogs.mockResolvedValueOnce({ error: "Error!" });
-    await getMetadata();
-    expect(core.setFailed).toHaveBeenCalledWith("Error!");
   });
 });
 
@@ -265,9 +250,9 @@ describe("saveBookmarks", () => {
     const bookmarks = `- title: bookmark1
 - title: bookmark2`;
     await saveBookmarks(fileName, bookmarks);
-    expect(fs.writeFileSync).toHaveBeenCalledWith(
+    expect(writeFileSync).toHaveBeenCalledWith(
       fileName,
-      yaml.dump(bookmarks),
+      dump(bookmarks),
       "utf-8"
     );
   });
