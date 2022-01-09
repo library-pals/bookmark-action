@@ -52287,11 +52287,6 @@ var __webpack_exports__ = {};
 // ESM COMPAT FLAG
 __nccwpck_require__.r(__webpack_exports__);
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ main)
-});
-
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
@@ -56225,9 +56220,9 @@ const dateFormat = (date) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
 const isDate = (date) => !isNaN(Date.parse(date)) && dateFormat(date);
 const isUrl = (url) => url.startsWith("http");
 
-;// CONCATENATED MODULE: ./src/index.ts
+;// CONCATENATED MODULE: ./src/action.ts
 
-var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var action_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -56239,8 +56234,8 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 
 
 
-function main() {
-    return src_awaiter(this, void 0, void 0, function* () {
+function action() {
+    return action_awaiter(this, void 0, void 0, function* () {
         try {
             if (!github.context.payload.issue) {
                 throw new Error("Cannot find GitHub issue");
@@ -56261,6 +56256,10 @@ function main() {
         }
     });
 }
+
+;// CONCATENATED MODULE: ./src/index.ts
+
+action();
 
 })();
 

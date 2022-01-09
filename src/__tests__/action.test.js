@@ -1,4 +1,4 @@
-import bookmark from "../index.ts";
+import action from "../action.ts";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 import pen15 from "./fixtures/pen15.json";
@@ -35,7 +35,7 @@ describe("bookmark", () => {
 
     ogs.mockResolvedValueOnce({ result: pen15 });
 
-    await bookmark();
+    await action();
     expect(core.exportVariable).toHaveBeenNthCalledWith(
       1,
       "DateBookmarked",
@@ -47,7 +47,7 @@ describe("bookmark", () => {
   test("throws", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {});
-    return expect(bookmark()).rejects.toThrow();
+    return expect(action()).rejects.toThrow();
   });
 
   test("throws, invalid url", async () => {
@@ -62,6 +62,6 @@ describe("bookmark", () => {
         },
       },
     });
-    return expect(bookmark()).rejects.toThrow();
+    return expect(action()).rejects.toThrow();
   });
 });
