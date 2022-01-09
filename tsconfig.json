@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2015",
-    "module": "commonjs",
-    "strictNullChecks": true,
-    "esModuleInterop": true
+    "moduleResolution": "node",
+    "strictNullChecks": true
   },
   "include": ["src/*.ts"]
 }
