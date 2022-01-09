@@ -4,7 +4,7 @@ import {
   titleParser,
   addBookmark,
   saveBookmarks,
-} from "../utils.js";
+} from "../utils.ts";
 import pen15 from "./fixtures/pen15.json";
 import soup from "./fixtures/slow-cooker-soup.json";
 import ogs from "open-graph-scraper";
@@ -148,11 +148,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -173,11 +172,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -200,11 +198,10 @@ describe("getMetadata", () => {
       },
     });
     expect(
-      await getMetadata(
-        "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-        "",
-        "2022-01-01"
-      )
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
     ).toMatchInlineSnapshot(`
       Object {
         "date": "2022-01-01",
@@ -216,11 +213,6 @@ describe("getMetadata", () => {
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
       }
     `);
-  });
-  test("throw error", async () => {
-    ogs.mockResolvedValueOnce({ error: "Error!" });
-    await getMetadata();
-    expect(setFailed).toHaveBeenCalledWith("Error!");
   });
 });
 

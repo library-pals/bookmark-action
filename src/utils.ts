@@ -13,6 +13,15 @@ export type Bookmark = {
   notes?: string;
 };
 
+export type OpenGraphObject = {
+  ogTitle: string;
+  ogSiteName: string;
+  ogDescription: string;
+  ogUrl: string;
+  ogType: string;
+  success: boolean;
+};
+
 export async function getMetadata({
   url,
   body,
@@ -22,26 +31,20 @@ export async function getMetadata({
   body?: string;
   date: string;
 }) {
-  return ogs({ url }).then((data) => {
-    const { error, result } = data;
-    if (error) throw new Error();
-    if (!result) return;
-    if ("ogTitle" in result) {
-      exportVariable("BookmarkTitle", result.ogTitle);
-      exportVariable("DateBookmarked", date);
-      const image = setImage(result);
-      return {
-        title: result.ogTitle || "",
-        site: result.ogSiteName || "",
-        date,
-        description: result.ogDescription || "",
-        url: result.ogUrl,
-        image: image || "",
-        type: result.ogType || "",
-        ...(body && { notes: body }),
-      };
-    }
-  });
+  const { result } = (await ogs({ url })) as { result: OpenGraphObject };
+  exportVariable("BookmarkTitle", result.ogTitle);
+  exportVariable("DateBookmarked", date);
+  const image = setImage(result);
+  return {
+    title: result.ogTitle || "",
+    site: result.ogSiteName || "",
+    date,
+    description: result.ogDescription || "",
+    url: result.ogUrl,
+    image: image || "",
+    type: result.ogType || "",
+    ...(body && { notes: body }),
+  };
 }
 
 export function addBookmark(fileName: string, bookmark: Bookmark) {
@@ -53,11 +56,8 @@ export function addBookmark(fileName: string, bookmark: Bookmark) {
 }
 
 export async function saveBookmarks(fileName: string, bookmarks: Bookmark[]) {
-  try {
-    writeFileSync(fileName, dump(bookmarks), "utf-8");
-  } catch (error) {
-    setFailed(error.message);
-  }
+  const json = dump(bookmarks);
+  writeFileSync(fileName, json, "utf-8");
 }
 
 export function setImage(result) {
@@ -84,7 +84,7 @@ function slugify(text: string) {
 export function titleParser(title: string) {
   const split = title.split(" ");
   const url = isUrl(split[0]) ? split[0] : undefined;
-  if (!url) setFailed(`${url} is not valid`);
+  if (!url) setFailed(`The url "${url}" is not valid`);
   const date = isDate(split[1])
     ? split[1]
     : new Date().toISOString().slice(0, 10);

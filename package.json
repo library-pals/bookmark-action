@@ -24,6 +24,7 @@
     "@babel/eslint-parser": "^7.16.5",
     "@babel/preset-env": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
+    "@octokit/webhooks-definitions": "^3.67.3",
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^17.0.8",
     "@types/open-graph-scraper": "^4.8.1",
@@ -47,6 +48,9 @@
   "homepage": "https://github.com/katydecorah/bookmark-action#readme",
   "jest": {
     "resetMocks": true,
+    "moduleNameMapper": {
+      "^./utils.js$": "<rootDir>/src/utils.ts"
+    },
     "coverageThreshold": {
       "global": {
         "branches": 100,

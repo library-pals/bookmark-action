@@ -1,7 +1,7 @@
 "use strict";
 
 import { setFailed, getInput, exportVariable } from "@actions/core";
-import github from "@actions/github";
+import * as github from "@actions/github";
 import {
   titleParser,
   getMetadata,
@@ -14,13 +14,12 @@ export default async function main() {
   try {
     if (!github.context.payload.issue) {
       setFailed("Cannot find GitHub issue");
-      return;
+      throw new Error("Cannot find GitHub issue");
     }
     const { title, number, body } = github.context.payload.issue;
     const { url, date } = titleParser(title);
     if (!url) {
-      setFailed("Cannot find url");
-      return;
+      throw new Error(`The url "${url}" is not valid`);
     }
     const fileName = getInput("fileName");
     exportVariable("IssueNumber", number);
@@ -29,5 +28,6 @@ export default async function main() {
     await saveBookmarks(fileName, bookmarks);
   } catch (error) {
     setFailed(error);
+    throw new Error(error);
   }
 }
