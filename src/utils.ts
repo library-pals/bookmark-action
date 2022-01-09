@@ -1,4 +1,4 @@
-import { exportVariable, setFailed } from "@actions/core";
+import { exportVariable } from "@actions/core";
 import { writeFileSync, readFileSync } from "fs";
 import ogs from "open-graph-scraper";
 import { load, dump } from "js-yaml";
@@ -84,7 +84,6 @@ function slugify(text: string) {
 export function titleParser(title: string) {
   const split = title.split(" ");
   const url = isUrl(split[0]) ? split[0] : undefined;
-  if (!url) setFailed(`The url "${url}" is not valid`);
   const date = isDate(split[1])
     ? split[1]
     : new Date().toISOString().slice(0, 10);

@@ -10,7 +10,6 @@ import soup from "./fixtures/slow-cooker-soup.json";
 import ogs from "open-graph-scraper";
 import fs, { writeFileSync } from "fs";
 import { dump } from "js-yaml";
-import { setFailed } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("fs");
@@ -49,10 +48,6 @@ describe("titleParser", () => {
       date: "2022-01-01",
       url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     });
-  });
-  test("missing url", () => {
-    titleParser("");
-    expect(setFailed).toHaveBeenCalledWith('The url "undefined" is not valid');
   });
 });
 

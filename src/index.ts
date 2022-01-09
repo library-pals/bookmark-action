@@ -1,6 +1,6 @@
 "use strict";
 
-import { setFailed, getInput, exportVariable } from "@actions/core";
+import { getInput, exportVariable } from "@actions/core";
 import * as github from "@actions/github";
 import {
   titleParser,
@@ -13,7 +13,6 @@ import {
 export default async function main() {
   try {
     if (!github.context.payload.issue) {
-      setFailed("Cannot find GitHub issue");
       throw new Error("Cannot find GitHub issue");
     }
     const { title, number, body } = github.context.payload.issue;
@@ -27,7 +26,6 @@ export default async function main() {
     const bookmarks: Bookmark[] = addBookmark(fileName, page);
     await saveBookmarks(fileName, bookmarks);
   } catch (error) {
-    setFailed(error);
     throw new Error(error);
   }
 }
