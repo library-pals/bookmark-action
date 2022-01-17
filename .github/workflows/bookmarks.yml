@@ -1,12 +1,12 @@
-name: Add recipes
+name: Add bookmark
 on:
   issues:
     types: opened
 
 jobs:
-  update_recipe:
+  add_bookmark:
     runs-on: macOS-latest
-    name: Add recipe
+    name: Add bookmark
     # only continue if issue has "recipe" label
     if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
@@ -15,13 +15,13 @@ jobs:
       - name: Bookmark action
         uses: ./
         with:
-          fileName: _data/recipes.yml
+          fileName: _data/bookmarks.yml
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A && git commit -m "Updated _data/recipes.yml"
-          git push "https://${GITHUB_ACTOR}:${{secrets.GITHUB_TOKEN}}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${GITHUB_REF}
+          git commit -am  "Updated _data/bookmarks.yml"
+          git push
       - name: Close issue
         uses: peter-evans/close-issue@v1
         with:
