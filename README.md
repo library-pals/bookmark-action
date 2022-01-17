@@ -11,15 +11,15 @@ Create a new issue with the URL in the title. The action will then fetch the web
 To use this action, create a new workflow in `.github/workflows` and modify it as needed:
 
 ```yml
-name: Add recipes
+name: Add bookmark
 on:
   issues:
     types: opened
 
 jobs:
-  update_recipe:
+  add_bookmark:
     runs-on: macOS-latest
-    name: Add recipe
+    name: Add bookmark
     # only continue if issue has "recipe" label
     if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
@@ -28,12 +28,12 @@ jobs:
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v3.0.0
         with:
-          fileName: _data/recipes.yml
+          fileName: _data/bookmarks.yml
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am  "Updated _data/recipes.yml"
+          git commit -am  "Updated _data/bookmarks.yml"
           git push
       - name: Close issue
         uses: peter-evans/close-issue@v1
