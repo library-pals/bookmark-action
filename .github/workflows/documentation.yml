@@ -2,7 +2,7 @@ name: Document GitHub action
 on:
   push:
     paths:
-      - ".github/workflows/recipe.yml"
+      - ".github/workflows/bookmarks.yml"
       - "action.yml"
       - "package.json"
       - "README.md"
@@ -17,7 +17,7 @@ jobs:
       - name: Documentation action
         uses: katydecorah/documentation-action@v0.1.0
         with:
-          exampleWorkflowFile: "recipe.yml"
+          exampleWorkflowFile: "bookmarks.yml"
       - name: Commit files
         if: env.UpdateDocumentation == 'true'
         run: |
