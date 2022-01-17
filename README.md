@@ -56,7 +56,7 @@ The title of your issue must start with the URL:
 https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
 ```
 
-The action will automatically set the bookmarked date to today. To specify a different date, add the date after the URL in `YYYY-MM-DD` format.
+The action will automatically set the bookmarked date to today. To specify a different date, add the date after the URL in `YYYY-MM-DD` format:
 
 ```
 https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans 2020-06-12
