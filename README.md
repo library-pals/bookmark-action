@@ -6,6 +6,46 @@ Create a new issue with the URL in the title. The action will then fetch the web
 
 <!-- START GENERATED DOCUMENTATION -->
 
+## Set up the workflow
+
+To use this action, create a new workflow in `.github/workflows` and modify it as needed:
+
+```yml
+name: Add recipes
+on:
+  issues:
+    types: opened
+
+jobs:
+  update_recipe:
+    runs-on: macOS-latest
+    name: Add recipe
+    # only continue if issue has "recipe" label
+    if: contains( github.event.issue.labels.*.name, 'recipe')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Bookmark action
+        uses: katydecorah/bookmark-action@v3.0.0
+        with:
+          fileName: _data/recipes.yml
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am dated _data/recipes.yml"
+          git push
+      - name: Close issue
+        uses: peter-evans/close-issue@v1
+        with:
+          issue-number: "${{ env.IssueNumber }}"
+          comment: "You bookmarked ${{ env.BookmarkTitle }} on ${{env.DateBookmarked}}."
+```
+
+## Action options
+
+- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.yml`.
+
 <!-- END GENERATED DOCUMENTATION -->
 
 ## Create an issue
