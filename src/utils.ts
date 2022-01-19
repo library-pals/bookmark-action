@@ -48,8 +48,8 @@ export async function getMetadata({
 }
 
 export function addBookmark(fileName: string, bookmark: Bookmark): Bookmark[] {
-  const currentBookmarks = load(readFileSync(fileName, "utf-8")) as Bookmark[];
-  return [...(currentBookmarks ? [...currentBookmarks] : []), bookmark].sort(
+  const bookmarks = load(readFileSync(fileName, "utf-8")) as Bookmark[];
+  return [...(bookmarks ? [...bookmarks] : []), bookmark].sort(
     (a: Bookmark, b: Bookmark) =>
       new Date(a.date).valueOf() - new Date(b.date).valueOf()
   );

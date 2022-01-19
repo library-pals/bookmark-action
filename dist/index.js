@@ -56173,11 +56173,8 @@ function getMetadata({ url, body, date, }) {
     });
 }
 function addBookmark(fileName, bookmark) {
-    const currentBookmarks = load((0,external_fs_.readFileSync)(fileName, "utf-8"));
-    return [
-        ...currentBookmarks ? [...currentBookmarks] : [],
-        bookmark
-    ].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+    const bookmarks = load((0,external_fs_.readFileSync)(fileName, "utf-8"));
+    return [...(bookmarks ? [...bookmarks] : []), bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
 }
 function saveBookmarks(fileName, bookmarks) {
     return __awaiter(this, void 0, void 0, function* () {
