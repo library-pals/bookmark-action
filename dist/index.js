@@ -56174,7 +56174,7 @@ function getMetadata({ url, body, date, }) {
 }
 function addBookmark(fileName, bookmark) {
     const bookmarks = load((0,external_fs_.readFileSync)(fileName, "utf-8"));
-    return [...bookmarks, bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+    return [...(bookmarks ? [...bookmarks] : []), bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
 }
 function saveBookmarks(fileName, bookmarks) {
     return __awaiter(this, void 0, void 0, function* () {
