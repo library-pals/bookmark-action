@@ -20,7 +20,11 @@ export async function action() {
     const fileName = getInput("fileName");
     exportVariable("IssueNumber", number);
     const page = (await getMetadata({ url, body, date })) as Bookmark;
-    const bookmarks: Bookmark[] = addBookmark(fileName, page);
+    const bookmarks = await addBookmark(fileName, page);
+    if (!bookmarks) {
+      setFailed(`Unable to add bookmark`);
+      return;
+    }
     await saveBookmarks({ fileName, bookmarks });
   } catch (error) {
     setFailed(error.message);

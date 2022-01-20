@@ -13,7 +13,7 @@ export async function saveBookmarks({
   try {
     const json = dump(bookmarks);
     return await writeFile(fileName, json, "utf-8");
-  } catch (err) {
-    setFailed(err.message);
+  } catch (error) {
+    setFailed(error.message);
   }
 }

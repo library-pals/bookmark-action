@@ -1,7 +1,6 @@
-import fs from "fs";
+import { promises } from "fs";
 import { addBookmark } from "../add-bookmark";
 
-jest.mock("fs");
 jest.mock("@actions/core");
 
 const newRecipe = {
@@ -18,9 +17,9 @@ const newRecipe = {
 };
 
 describe("addBookmark", () => {
-  test("Add bookmark and sort by date", () => {
-    jest.spyOn(fs, "readFileSync")
-      .mockReturnValueOnce(`- title: Cornmeal Lime Shortbread Fans Recipe
+  test("Add bookmark and sort by date", async () => {
+    jest.spyOn(promises, "readFile")
+      .mockResolvedValueOnce(`- title: Cornmeal Lime Shortbread Fans Recipe
   site: NYT Cooking
   date: '2021-01-03'
   url: https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
@@ -30,7 +29,7 @@ describe("addBookmark", () => {
   url: >-
     https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette`);
 
-    expect(addBookmark("recipes.yml", newRecipe)).toMatchInlineSnapshot(`
+    expect(await addBookmark("recipes.yml", newRecipe)).toMatchInlineSnapshot(`
       Array [
         Object {
           "date": "2021-01-03",
@@ -57,9 +56,9 @@ describe("addBookmark", () => {
       ]
     `);
   });
-  test("Add to empty file", () => {
-    jest.spyOn(fs, "readFileSync").mockReturnValueOnce("");
-    expect(addBookmark("recipes.yml", newRecipe)).toMatchInlineSnapshot(`
+  test("Add to empty file", async () => {
+    jest.spyOn(promises, "readFile").mockResolvedValueOnce("");
+    expect(await addBookmark("recipes.yml", newRecipe)).toMatchInlineSnapshot(`
       Array [
         Object {
           "date": "2022-01-01",
