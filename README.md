@@ -28,12 +28,12 @@ jobs:
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v3.0.1
         with:
-          fileName: _data/bookmarks.yml
+          fileName: _data/recipes.yml
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -am  "Updated _data/bookmarks.yml"
+          git commit -am  "Added ${{ env.BookmarkTitle }} to recipes.yml"
           git push
       - name: Close issue
         uses: peter-evans/close-issue@v1
