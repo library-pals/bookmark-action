@@ -56202,20 +56202,38 @@ function saveBookmarks({ fileName, bookmarks, }) {
             const json = dump(bookmarks);
             return yield (0,promises_namespaceObject.writeFile)(fileName, json, "utf-8");
         }
-        catch (err) {
-            (0,core.setFailed)(err.message);
+        catch (error) {
+            (0,core.setFailed)(error.message);
         }
     });
 }
 
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
 ;// CONCATENATED MODULE: ./src/add-bookmark.ts
+var add_bookmark_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
 
 
 function addBookmark(fileName, bookmark) {
-    const bookmarks = load((0,external_fs_.readFileSync)(fileName, "utf-8"));
-    return [...(bookmarks ? [...bookmarks] : []), bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+    return add_bookmark_awaiter(this, void 0, void 0, function* () {
+        try {
+            const currentBookmarks = yield (0,promises_namespaceObject.readFile)(fileName, "utf-8");
+            const currentJson = currentBookmarks
+                ? load(currentBookmarks)
+                : [];
+            return [...currentJson, bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+        }
+        catch (error) {
+            (0,core.setFailed)(error.message);
+        }
+    });
 }
 
 // EXTERNAL MODULE: ./node_modules/open-graph-scraper/index.js
@@ -56289,7 +56307,11 @@ function action() {
             const fileName = (0,core.getInput)("fileName");
             (0,core.exportVariable)("IssueNumber", number);
             const page = (yield getMetadata({ url, body, date }));
-            const bookmarks = addBookmark(fileName, page);
+            const bookmarks = yield addBookmark(fileName, page);
+            if (!bookmarks) {
+                (0,core.setFailed)(`Unable to add bookmark`);
+                return;
+            }
             yield saveBookmarks({ fileName, bookmarks });
         }
         catch (error) {
