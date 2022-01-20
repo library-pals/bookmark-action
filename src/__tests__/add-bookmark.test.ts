@@ -1,3 +1,4 @@
+import { setFailed } from "@actions/core";
 import { promises } from "fs";
 import { addBookmark } from "../add-bookmark";
 
@@ -72,5 +73,12 @@ describe("addBookmark", () => {
         },
       ]
     `);
+  });
+  test("fail", async () => {
+    jest
+      .spyOn(promises, "readFile")
+      .mockRejectedValueOnce({ message: "Error" });
+    await addBookmark("recipes.yml", newRecipe);
+    expect(setFailed).toHaveBeenCalledWith("Error");
   });
 });
