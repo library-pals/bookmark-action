@@ -56196,7 +56196,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
-function saveBookmarks({ fileName, bookmarks }) {
+function saveBookmarks({ fileName, bookmarks, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const json = dump(bookmarks);

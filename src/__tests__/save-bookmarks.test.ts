@@ -10,7 +10,7 @@ describe("saveBookmarks", () => {
     const fileName = "my-file.yml";
     const bookmarks = `- title: bookmark1
 - title: bookmark2`;
-    const writeSpy = jest.spyOn(promises, "writeFile");
+    const writeSpy = jest.spyOn(promises, "writeFile").mockResolvedValueOnce();
     await saveBookmarks({ fileName, bookmarks });
     expect(writeSpy).toHaveBeenCalledWith(fileName, dump(bookmarks), "utf-8");
   });
