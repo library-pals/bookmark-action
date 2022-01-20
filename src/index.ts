@@ -1,8 +1,8 @@
 import { getInput, exportVariable, setFailed } from "@actions/core";
 import * as github from "@actions/github";
-import { titleParser, Bookmark } from "./utils.js";
+import { titleParser } from "./utils.js";
 import { saveBookmarks } from "./save-bookmarks";
-import { addBookmark } from "./add-bookmark";
+import { addBookmark, Bookmark } from "./add-bookmark";
 import { getMetadata } from "./get-metadata";
 
 export async function action() {

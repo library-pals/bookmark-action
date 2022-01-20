@@ -1,7 +1,7 @@
 import { setFailed } from "@actions/core";
 import { writeFile } from "fs/promises";
 import { dump } from "js-yaml";
-import { Bookmark } from "./utils";
+import { Bookmark } from "./add-bookmark";
 
 export async function saveBookmarks({
   fileName,

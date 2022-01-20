@@ -1,7 +1,6 @@
 import { setFailed } from "@actions/core";
 import { readFile } from "fs/promises";
 import { load } from "js-yaml";
-import { Bookmark } from "./utils";
 
 export async function addBookmark(
   fileName: string,
@@ -20,3 +19,13 @@ export async function addBookmark(
     setFailed(error.message);
   }
 }
+
+export type Bookmark = {
+  title: string;
+  site: string;
+  date: string;
+  description: string;
+  url: string;
+  image?: string;
+  notes?: string;
+};

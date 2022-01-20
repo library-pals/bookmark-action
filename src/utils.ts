@@ -1,24 +1,5 @@
 import { exportVariable } from "@actions/core";
 
-export type Bookmark = {
-  title: string;
-  site: string;
-  date: string;
-  description: string;
-  url: string;
-  image?: string;
-  notes?: string;
-};
-
-export type OpenGraphObject = {
-  ogTitle: string;
-  ogSiteName: string;
-  ogDescription: string;
-  ogUrl: string;
-  ogType: string;
-  success: boolean;
-};
-
 // Credit: https://gist.github.com/mathewbyrne/1280286
 export function slugify(text: string) {
   return text
@@ -44,8 +25,15 @@ export function titleParser(title: string) {
   };
 }
 
-// make sure date is in YYYY-MM-DD format
-const dateFormat = (date: string) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
-// make sure date value is a date
-const isDate = (date: string) => !isNaN(Date.parse(date)) && dateFormat(date);
-const isUrl = (url: string) => url.startsWith("http");
+/** Validate that string is in correct date format */
+function dateFormat(date: string) {
+  return date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
+}
+/** Validate that string is a date */
+function isDate(date: string) {
+  return !isNaN(Date.parse(date)) && dateFormat(date);
+}
+/** Validate that string is a url */
+function isUrl(url: string) {
+  return url.startsWith("http");
+}

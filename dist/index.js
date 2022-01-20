@@ -52322,11 +52322,18 @@ function titleParser(title) {
         date,
     };
 }
-// make sure date is in YYYY-MM-DD format
-const dateFormat = (date) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
-// make sure date value is a date
-const isDate = (date) => !isNaN(Date.parse(date)) && dateFormat(date);
-const isUrl = (url) => url.startsWith("http");
+/** Validate that string is in correct date format */
+function dateFormat(date) {
+    return date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
+}
+/** Validate that string is a date */
+function isDate(date) {
+    return !isNaN(Date.parse(date)) && dateFormat(date);
+}
+/** Validate that string is a url */
+function isUrl(url) {
+    return url.startsWith("http");
+}
 
 ;// CONCATENATED MODULE: external "fs/promises"
 const promises_namespaceObject = require("fs/promises");

@@ -1,6 +1,5 @@
 import { exportVariable } from "@actions/core";
 import ogs from "open-graph-scraper";
-import { OpenGraphObject } from "./utils";
 import { setImage } from "./set-image";
 
 export async function getMetadata({
@@ -27,3 +26,12 @@ export async function getMetadata({
     ...(body && { notes: body }),
   };
 }
+
+export type OpenGraphObject = {
+  ogTitle: string;
+  ogSiteName: string;
+  ogDescription: string;
+  ogUrl: string;
+  ogType: string;
+  success: boolean;
+};
