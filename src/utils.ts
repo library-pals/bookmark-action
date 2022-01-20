@@ -1,7 +1,4 @@
 import { exportVariable } from "@actions/core";
-import { writeFileSync, readFileSync } from "fs";
-import ogs from "open-graph-scraper";
-import { load, dump } from "js-yaml";
 
 export type Bookmark = {
   title: string;
@@ -22,55 +19,8 @@ export type OpenGraphObject = {
   success: boolean;
 };
 
-export async function getMetadata({
-  url,
-  body,
-  date,
-}: {
-  url: string;
-  body?: string;
-  date: string;
-}) {
-  const { result } = (await ogs({ url })) as { result: OpenGraphObject };
-  exportVariable("BookmarkTitle", result.ogTitle);
-  exportVariable("DateBookmarked", date);
-  const image = setImage(result);
-  return {
-    title: result.ogTitle || "",
-    site: result.ogSiteName || "",
-    date,
-    description: result.ogDescription || "",
-    url: result.ogUrl,
-    image: image || "",
-    type: result.ogType || "",
-    ...(body && { notes: body }),
-  };
-}
-
-export function addBookmark(fileName: string, bookmark: Bookmark): Bookmark[] {
-  const bookmarks = load(readFileSync(fileName, "utf-8")) as Bookmark[];
-  return [...(bookmarks ? [...bookmarks] : []), bookmark].sort(
-    (a: Bookmark, b: Bookmark) =>
-      new Date(a.date).valueOf() - new Date(b.date).valueOf()
-  );
-}
-
-export async function saveBookmarks(fileName: string, bookmarks: Bookmark[]) {
-  const json = dump(bookmarks);
-  writeFileSync(fileName, json, "utf-8");
-}
-
-export function setImage(result) {
-  if (!result.ogImage || !result.ogImage.url || !result.ogTitle) return;
-  const imageType = result.ogImage.type ? `.${result.ogImage.type}` : ".jpg";
-  const image = `bookmark-${slugify(result.ogTitle)}${imageType}`;
-  exportVariable("BookmarkImageOutput", image);
-  exportVariable("BookmarkImage", result.ogImage.url);
-  return image;
-}
-
 // Credit: https://gist.github.com/mathewbyrne/1280286
-function slugify(text: string) {
+export function slugify(text: string) {
   return text
     .toString()
     .toLowerCase()

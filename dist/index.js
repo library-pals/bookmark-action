@@ -52287,15 +52287,49 @@ var __webpack_exports__ = {};
 // ESM COMPAT FLAG
 __nccwpck_require__.r(__webpack_exports__);
 
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "action": () => (/* binding */ action),
+  "default": () => (/* binding */ src)
+});
+
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(7147);
-// EXTERNAL MODULE: ./node_modules/open-graph-scraper/index.js
-var open_graph_scraper = __nccwpck_require__(2990);
-var open_graph_scraper_default = /*#__PURE__*/__nccwpck_require__.n(open_graph_scraper);
+;// CONCATENATED MODULE: ./src/utils.ts
+
+// Credit: https://gist.github.com/mathewbyrne/1280286
+function slugify(text) {
+    return text
+        .toString()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "")
+        .replace(/--+/g, "-")
+        .replace(/^-+/, "")
+        .replace(/-+$/, "");
+}
+function titleParser(title) {
+    const split = title.split(" ");
+    const url = isUrl(split[0]) ? split[0] : undefined;
+    const date = isDate(split[1])
+        ? split[1]
+        : new Date().toISOString().slice(0, 10);
+    (0,core.exportVariable)("DateBookmarked", date);
+    return {
+        url,
+        date,
+    };
+}
+// make sure date is in YYYY-MM-DD format
+const dateFormat = (date) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
+// make sure date value is a date
+const isDate = (date) => !isNaN(Date.parse(date)) && dateFormat(date);
+const isUrl = (url) => url.startsWith("http");
+
+;// CONCATENATED MODULE: external "fs/promises"
+const promises_namespaceObject = require("fs/promises");
 ;// CONCATENATED MODULE: ./node_modules/js-yaml/dist/js-yaml.mjs
 
 /*! js-yaml 4.1.0 https://github.com/nodeca/js-yaml @license MIT */
@@ -56149,7 +56183,7 @@ var jsYaml = {
 /* harmony default export */ const js_yaml = ((/* unused pure expression or super */ null && (jsYaml)));
 
 
-;// CONCATENATED MODULE: ./src/utils.ts
+;// CONCATENATED MODULE: ./src/save-bookmarks.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -56162,26 +56196,34 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 
 
 
-
-function getMetadata({ url, body, date, }) {
+function saveBookmarks({ fileName, bookmarks }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { result } = (yield open_graph_scraper_default()({ url }));
-        (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
-        (0,core.exportVariable)("DateBookmarked", date);
-        const image = setImage(result);
-        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl, image: image || "", type: result.ogType || "" }, (body && { notes: body }));
+        try {
+            const json = dump(bookmarks);
+            return yield (0,promises_namespaceObject.writeFile)(fileName, json, "utf-8");
+        }
+        catch (err) {
+            (0,core.setFailed)(err.message);
+        }
     });
 }
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(7147);
+;// CONCATENATED MODULE: ./src/add-bookmark.ts
+
+
 function addBookmark(fileName, bookmark) {
     const bookmarks = load((0,external_fs_.readFileSync)(fileName, "utf-8"));
     return [...(bookmarks ? [...bookmarks] : []), bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
 }
-function saveBookmarks(fileName, bookmarks) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const json = dump(bookmarks);
-        (0,external_fs_.writeFileSync)(fileName, json, "utf-8");
-    });
-}
+
+// EXTERNAL MODULE: ./node_modules/open-graph-scraper/index.js
+var open_graph_scraper = __nccwpck_require__(2990);
+var open_graph_scraper_default = /*#__PURE__*/__nccwpck_require__.n(open_graph_scraper);
+;// CONCATENATED MODULE: ./src/set-image.ts
+
+
 function setImage(result) {
     if (!result.ogImage || !result.ogImage.url || !result.ogTitle)
         return;
@@ -56191,38 +56233,9 @@ function setImage(result) {
     (0,core.exportVariable)("BookmarkImage", result.ogImage.url);
     return image;
 }
-// Credit: https://gist.github.com/mathewbyrne/1280286
-function slugify(text) {
-    return text
-        .toString()
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w-]+/g, "")
-        .replace(/--+/g, "-")
-        .replace(/^-+/, "")
-        .replace(/-+$/, "");
-}
-function titleParser(title) {
-    const split = title.split(" ");
-    const url = isUrl(split[0]) ? split[0] : undefined;
-    const date = isDate(split[1])
-        ? split[1]
-        : new Date().toISOString().slice(0, 10);
-    (0,core.exportVariable)("DateBookmarked", date);
-    return {
-        url,
-        date,
-    };
-}
-// make sure date is in YYYY-MM-DD format
-const dateFormat = (date) => date.match(/^\d{4}-\d{2}-\d{2}$/) != null;
-// make sure date value is a date
-const isDate = (date) => !isNaN(Date.parse(date)) && dateFormat(date);
-const isUrl = (url) => url.startsWith("http");
 
-;// CONCATENATED MODULE: ./src/action.ts
-
-var action_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+;// CONCATENATED MODULE: ./src/get-metadata.ts
+var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -56234,32 +56247,57 @@ var action_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _a
 
 
 
+function getMetadata({ url, body, date, }) {
+    return get_metadata_awaiter(this, void 0, void 0, function* () {
+        const { result } = (yield open_graph_scraper_default()({ url }));
+        (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
+        (0,core.exportVariable)("DateBookmarked", date);
+        const image = setImage(result);
+        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl, image: image || "", type: result.ogType || "" }, (body && { notes: body }));
+    });
+}
+
+;// CONCATENATED MODULE: ./src/index.ts
+var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+
+
+
 function action() {
-    return action_awaiter(this, void 0, void 0, function* () {
+    return src_awaiter(this, void 0, void 0, function* () {
         try {
             if (!github.context.payload.issue) {
-                throw new Error("Cannot find GitHub issue");
+                (0,core.setFailed)("Cannot find GitHub issue");
+                return;
             }
             const { title, number, body } = github.context.payload.issue;
             const { url, date } = titleParser(title);
             if (!url) {
-                throw new Error(`The url "${url}" is not valid`);
+                (0,core.setFailed)(`The url "${url}" is not valid`);
+                return;
             }
             const fileName = (0,core.getInput)("fileName");
             (0,core.exportVariable)("IssueNumber", number);
             const page = (yield getMetadata({ url, body, date }));
             const bookmarks = addBookmark(fileName, page);
-            yield saveBookmarks(fileName, bookmarks);
+            yield saveBookmarks({ fileName, bookmarks });
         }
         catch (error) {
-            throw new Error(error);
+            (0,core.setFailed)(error.message);
         }
     });
 }
-
-;// CONCATENATED MODULE: ./src/index.ts
-
-action();
+/* harmony default export */ const src = (action());
 
 })();
 

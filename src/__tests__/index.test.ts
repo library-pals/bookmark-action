@@ -1,8 +1,9 @@
-import action from "../action.ts";
+import { action } from "..";
 import * as github from "@actions/github";
-import * as core from "@actions/core";
+import { exportVariable, setFailed } from "@actions/core";
 import pen15 from "./fixtures/pen15.json";
 import ogs from "open-graph-scraper";
+import fs from "fs";
 
 jest.mock("@actions/core");
 jest.mock("fs");
@@ -36,18 +37,19 @@ describe("bookmark", () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
 
     await action();
-    expect(core.exportVariable).toHaveBeenNthCalledWith(
+    expect(exportVariable).toHaveBeenNthCalledWith(
       1,
       "DateBookmarked",
       new Date().toISOString().slice(0, 10)
     );
-    expect(core.exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
+    expect(exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
   });
 
-  test("throws", async () => {
+  test("throws, can't get issue", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {});
-    return expect(action()).rejects.toThrow();
+    await action();
+    expect(setFailed).toHaveBeenCalledWith("Cannot find GitHub issue");
   });
 
   test("throws, invalid url", async () => {
@@ -62,6 +64,24 @@ describe("bookmark", () => {
         },
       },
     });
-    return expect(action()).rejects.toThrow();
+    await action();
+    expect(setFailed).toHaveBeenCalledWith('The url "undefined" is not valid');
+  });
+  test("throws, can't write file", async () => {
+    // eslint-disable-next-line no-import-assign
+    Object.defineProperty(github, "context", {
+      value: {
+        payload: {
+          issue: {
+            title: "https://katydecorah.com",
+            body: "note",
+            number: 1,
+          },
+        },
+      },
+    });
+    jest.spyOn(fs, "writeFileSync").mockRejectedValue();
+    await action();
+    expect(setFailed).toHaveBeenCalled();
   });
 });
