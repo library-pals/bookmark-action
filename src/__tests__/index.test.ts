@@ -7,7 +7,6 @@ import ogs from "open-graph-scraper";
 import { promises } from "fs";
 
 jest.mock("@actions/core");
-//jest.mock("fs");
 jest.mock("open-graph-scraper");
 
 // h/t https://github.com/actions/toolkit/issues/71#issuecomment-984111601
