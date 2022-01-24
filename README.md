@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v3.1.1
+        uses: katydecorah/bookmark-action@v3.1.2
         with:
           fileName: _data/recipes.yml
       - name: Commit files
