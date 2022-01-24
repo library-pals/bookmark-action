@@ -56251,7 +56251,8 @@ var open_graph_scraper_default = /*#__PURE__*/__nccwpck_require__.n(open_graph_s
 
 function handleMimeType(type) {
     const matches = type.match("(jpe?g)|(png)");
-    return matches ? matches[0] : "jpg";
+    // TO DO: Refactor
+    return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
 }
 function setImage(result) {
     if (!result.ogImage || !result.ogImage.url || !result.ogTitle)

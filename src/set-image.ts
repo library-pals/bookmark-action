@@ -3,7 +3,8 @@ import { slugify } from "./utils";
 
 function handleMimeType(type: string) {
   const matches = type.match("(jpe?g)|(png)");
-  return matches ? matches[0] : "jpg";
+  // TO DO: Refactor
+  return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
 }
 
 export function setImage(result) {

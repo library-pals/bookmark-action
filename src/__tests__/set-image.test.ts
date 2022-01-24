@@ -48,11 +48,11 @@ describe("setImage", () => {
           type: "image/jpeg",
         },
       })
-    ).toEqual("bookmark-the-best-chia-pudding-recipe-5-delicious-flavors.jpeg");
+    ).toEqual("bookmark-the-best-chia-pudding-recipe-5-delicious-flavors.jpg");
     expect(exportVariable).toHaveBeenNthCalledWith(
       1,
       "BookmarkImageOutput",
-      "bookmark-the-best-chia-pudding-recipe-5-delicious-flavors.jpeg"
+      "bookmark-the-best-chia-pudding-recipe-5-delicious-flavors.jpg"
     );
     expect(exportVariable).toHaveBeenNthCalledWith(
       2,
