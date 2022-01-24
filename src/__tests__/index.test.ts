@@ -11,7 +11,7 @@ jest.mock("open-graph-scraper");
 
 // h/t https://github.com/actions/toolkit/issues/71#issuecomment-984111601
 // Shallow clone original @actions/github context
-let originalContext = { ...github.context };
+const originalContext = { ...github.context };
 afterEach(() => {
   // eslint-disable-next-line no-import-assign
   Object.defineProperty(github, "context", {
