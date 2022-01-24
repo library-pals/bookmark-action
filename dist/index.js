@@ -56249,10 +56249,16 @@ var open_graph_scraper_default = /*#__PURE__*/__nccwpck_require__.n(open_graph_s
 ;// CONCATENATED MODULE: ./src/set-image.ts
 
 
+function handleMimeType(type) {
+    const matches = type.match("(jpe?g)|(png)");
+    return matches ? matches[0] : "jpg";
+}
 function setImage(result) {
     if (!result.ogImage || !result.ogImage.url || !result.ogTitle)
         return;
-    const imageType = result.ogImage.type ? `.${result.ogImage.type}` : ".jpg";
+    const imageType = result.ogImage.type
+        ? `.${handleMimeType(result.ogImage.type)}`
+        : ".jpg";
     const image = `bookmark-${slugify(result.ogTitle)}${imageType}`;
     (0,core.exportVariable)("BookmarkImageOutput", image);
     (0,core.exportVariable)("BookmarkImage", result.ogImage.url);

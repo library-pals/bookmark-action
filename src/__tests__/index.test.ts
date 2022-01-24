@@ -65,7 +65,7 @@ describe("bookmark", () => {
         url: https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
       - title: PEN15
         site: Hulu
-        date: '2022-01-20'
+        date: '2022-01-24'
         description: >-
           PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle
           star in this adult comedy, playing versions of themselves as
