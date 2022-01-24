@@ -4,7 +4,7 @@
   "description": "Save website metadata to a YAML file.",
   "main": "dist/index.js",
   "scripts": {
-    "pretest": "eslint src/**/*.ts",
+    "pretest": "eslint . --ext .js,.ts",
     "test": "jest --coverage",
     "build": "ncc build src/index.ts",
     "pretty-quick": "pretty-quick",
@@ -19,7 +19,6 @@
     "open-graph-scraper": "^4.11.0"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.16.5",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@octokit/webhooks-definitions": "^3.67.3",
@@ -27,6 +26,8 @@
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^17.0.10",
     "@types/open-graph-scraper": "^4.8.1",
+    "@typescript-eslint/eslint-plugin": "^5.10.1",
+    "@typescript-eslint/parser": "^5.10.1",
     "@vercel/ncc": "^0.33.1",
     "eslint": "^8.7.0",
     "eslint-config-prettier": "^8.3.0",
