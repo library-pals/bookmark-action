@@ -1,6 +1,6 @@
 # Bookmark shortcut
 
-Download the [Add to recipe shortcut](Add%20ato%20arecipe%20abox.shortcut) to quickly create GitHub issues for the action.
+Download the [Add to recipe shortcut](Add%20to%20recipe%20box.shortcut) to quickly create GitHub issues for the action.
 
 ![](thumbnail.png)
 
