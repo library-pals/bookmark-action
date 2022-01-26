@@ -56,35 +56,33 @@ describe("bookmark", () => {
     );
     expect(exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
     expect(setFailed).not.toHaveBeenCalled();
-    expect(writeFileSpy.mock.calls[0]).toMatchInlineSnapshot(`
-      Array [
-        "_data/recipes.yml",
-        "- title: Cornmeal Lime Shortbread Fans Recipe
-        site: NYT Cooking
-        date: '2021-01-03'
-        url: https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
-      - title: PEN15
-        site: Hulu
-        date: '2022-01-24'
-        description: >-
-          PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle
-          star in this adult comedy, playing versions of themselves as
-          thirteen-year-old outcasts in the year 2000, surrounded by actual
-          thirteen-year-olds, where the best day of your life can turn into your worst
-          with the stroke of a gel pen.
-        url: https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d
-        image: bookmark-pen15.jpg
-        type: tv_show
-        notes: note
-      - title: Mini Meatball Soup With Broccoli and Orecchiette Recipe
-        site: NYT Cooking
-        date: '2022-03-27'
-        url: >-
-          https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette
-      ",
-        "utf-8",
-      ]
-    `);
+    expect(writeFileSpy.mock.calls[0]).toEqual([
+      "_data/recipes.yml",
+      `- title: Cornmeal Lime Shortbread Fans Recipe
+  site: NYT Cooking
+  date: '2021-01-03'
+  url: https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
+- title: PEN15
+  site: Hulu
+  date: '${new Date().toISOString().slice(0, 10)}'
+  description: >-
+    PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle
+    star in this adult comedy, playing versions of themselves as
+    thirteen-year-old outcasts in the year 2000, surrounded by actual
+    thirteen-year-olds, where the best day of your life can turn into your worst
+    with the stroke of a gel pen.
+  url: https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d
+  image: bookmark-pen15.jpg
+  type: tv_show
+  notes: note
+- title: Mini Meatball Soup With Broccoli and Orecchiette Recipe
+  site: NYT Cooking
+  date: '2022-03-27'
+  url: >-
+    https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette
+`,
+      "utf-8",
+    ]);
   });
 
   test("cannot get bookmarks", async () => {
