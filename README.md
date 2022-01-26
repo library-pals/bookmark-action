@@ -29,8 +29,8 @@ jobs:
         uses: katydecorah/bookmark-action@v3.1.2
         with:
           fileName: _data/recipes.yml
-      - name: Download the thumbnail
-        run: mkdir img/staging && curl "${{ env.BookmarkImage }}" -o "img/staging/${{ env.BookmarkImageOutput }}"
+      - name: Download the thumbnail image
+        run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
