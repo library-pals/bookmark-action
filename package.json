@@ -21,7 +21,6 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
-    "@octokit/webhooks-definitions": "^3.67.3",
     "@types/jest": "^27.4.0",
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^17.0.18",
