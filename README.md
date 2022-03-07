@@ -24,7 +24,7 @@ jobs:
     if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v3.1.2
         with:
