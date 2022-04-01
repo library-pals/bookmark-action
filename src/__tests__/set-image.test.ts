@@ -39,7 +39,7 @@ describe("setImage", () => {
     ).toBeUndefined();
   });
 
-  test("handle mime type", () => {
+  test("handle mime type, jpeg", () => {
     expect(
       setImage({
         ogTitle: "The Best Chia Pudding Recipe - 5 Delicious Flavors!",
@@ -61,7 +61,7 @@ describe("setImage", () => {
     );
   });
 
-  test("handle mime type", () => {
+  test("handle mime type, jpg", () => {
     expect(
       setImage({
         ogTitle: "The Best Chia Pudding Recipe - 5 Delicious Flavors!",
