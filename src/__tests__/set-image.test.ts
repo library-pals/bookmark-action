@@ -4,7 +4,11 @@ import { setImage } from "../set-image";
 import { exportVariable } from "@actions/core";
 
 jest.mock("open-graph-scraper");
-jest.mock("fs");
+jest.mock("fs", () => ({
+  promises: {
+    access: jest.fn(),
+  },
+}));
 jest.mock("@actions/core");
 
 describe("setImage", () => {
