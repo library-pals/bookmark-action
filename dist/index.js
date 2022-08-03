@@ -57245,12 +57245,12 @@ function handleMimeType(type) {
 function setImage(result) {
     if (!result.ogImage || !result.ogTitle)
         return;
-    const image = Array.isArray(result.ogImage) ? result.ogImage[0] : result.ogImage;
+    const image = Array.isArray(result.ogImage)
+        ? result.ogImage[0]
+        : result.ogImage;
     if (!image.url)
         return;
-    const imageType = image.type
-        ? `.${handleMimeType(image.type)}`
-        : ".jpg";
+    const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
     const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
     (0,core.exportVariable)("BookmarkImageOutput", imageName);
     (0,core.exportVariable)("BookmarkImage", image.url);
@@ -57272,7 +57272,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 function getMetadata({ url, body, date, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
-        const { result, error } = (yield open_graph_scraper_default()({ url }));
+        const { result, error } = yield open_graph_scraper_default()({ url });
         if (error) {
             (0,core.setFailed)(`${result}`);
             return;
