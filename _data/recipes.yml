@@ -269,3 +269,12 @@
     https://cooking.nytimes.com/recipes/1022846-pesto-and-mozzarella-french-bread-pizza
   image: bookmark-pesto-and-mozzarella-french-bread-pizza-recipe.jpg
   type: article
+- title: You can create a great looking website while sucking at design
+  site: ''
+  date: '2022-08-03'
+  description: How to create great looking websites while having little design skill.
+  url: >-
+    https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/
+  image: bookmark-you-can-create-a-great-looking-website-while-sucking-at-design.png
+  type: ''
+  notes: Testing
