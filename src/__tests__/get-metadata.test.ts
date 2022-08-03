@@ -1,7 +1,9 @@
 import pen15 from "./fixtures/pen15.json";
 import soup from "./fixtures/slow-cooker-soup.json";
+import fullstack from "./fixtures/fullstackdev.json";
 import ogs from "open-graph-scraper";
 import { getMetadata } from "../get-metadata";
+import { setFailed } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("@actions/core");
@@ -26,6 +28,19 @@ describe("getMetadata", () => {
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
       }
     `);
+  });
+  test("fails", async () => {
+    ogs.mockResolvedValueOnce({
+      error: true,
+      result: new Error("Page not found"),
+    });
+    expect(
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`undefined`);
+    expect(setFailed).toHaveBeenCalledWith("Error: Page not found");
   });
   test("recipe, with note", async () => {
     ogs.mockResolvedValueOnce({ result: soup });
@@ -119,6 +134,27 @@ describe("getMetadata", () => {
         "title": "",
         "type": "tv_show",
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+  });
+  test("bug fix, full stack dev", async () => {
+    ogs.mockResolvedValueOnce({
+      result: fullstack,
+    });
+    expect(
+      await getMetadata({
+        url: "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
+        date: "2022-08-03",
+      })
+    ).toMatchInlineSnapshot(`
+      Object {
+        "date": "2022-08-03",
+        "description": "How to create great looking websites while having little design skill.",
+        "image": "bookmark-you-can-create-a-great-looking-website-while-sucking-at-design.png",
+        "site": "",
+        "title": "You can create a great looking website while sucking at design",
+        "type": "",
+        "url": "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
       }
     `);
   });

@@ -8,12 +8,14 @@ function handleMimeType(type: string) {
 }
 
 export function setImage(result) {
-  if (!result.ogImage || !result.ogImage.url || !result.ogTitle) return;
-  const imageType = result.ogImage.type
-    ? `.${handleMimeType(result.ogImage.type)}`
-    : ".jpg";
-  const image = `bookmark-${slugify(result.ogTitle)}${imageType}`;
-  exportVariable("BookmarkImageOutput", image);
-  exportVariable("BookmarkImage", result.ogImage.url);
-  return image;
+  if (!result.ogImage || !result.ogTitle) return;
+  const image = Array.isArray(result.ogImage)
+    ? result.ogImage[0]
+    : result.ogImage;
+  if (!image.url) return;
+  const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
+  const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
+  exportVariable("BookmarkImageOutput", imageName);
+  exportVariable("BookmarkImage", image.url);
+  return imageName;
 }

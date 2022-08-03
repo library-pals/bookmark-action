@@ -57243,15 +57243,18 @@ function handleMimeType(type) {
     return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
 }
 function setImage(result) {
-    if (!result.ogImage || !result.ogImage.url || !result.ogTitle)
+    if (!result.ogImage || !result.ogTitle)
         return;
-    const imageType = result.ogImage.type
-        ? `.${handleMimeType(result.ogImage.type)}`
+    const image = Array.isArray(result.ogImage) ? result.ogImage[0] : result.ogImage;
+    if (!image.url)
+        return;
+    const imageType = image.type
+        ? `.${handleMimeType(image.type)}`
         : ".jpg";
-    const image = `bookmark-${slugify(result.ogTitle)}${imageType}`;
-    (0,core.exportVariable)("BookmarkImageOutput", image);
-    (0,core.exportVariable)("BookmarkImage", result.ogImage.url);
-    return image;
+    const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
+    (0,core.exportVariable)("BookmarkImageOutput", imageName);
+    (0,core.exportVariable)("BookmarkImage", image.url);
+    return imageName;
 }
 
 ;// CONCATENATED MODULE: ./src/get-metadata.ts
@@ -57269,11 +57272,15 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 function getMetadata({ url, body, date, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
-        const { result } = (yield open_graph_scraper_default()({ url }));
+        const { result, error } = (yield open_graph_scraper_default()({ url }));
+        if (error) {
+            (0,core.setFailed)(`${result}`);
+            return;
+        }
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
         (0,core.exportVariable)("DateBookmarked", date);
         const image = setImage(result);
-        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl, image: image || "", type: result.ogType || "" }, (body && { notes: body }));
+        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image: image || "", type: result.ogType || "" }, (body && { notes: body }));
     });
 }
 

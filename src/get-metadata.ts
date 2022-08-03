@@ -1,4 +1,4 @@
-import { exportVariable } from "@actions/core";
+import { exportVariable, setFailed } from "@actions/core";
 import ogs from "open-graph-scraper";
 import { setImage } from "./set-image";
 
@@ -11,7 +11,11 @@ export async function getMetadata({
   body?: string;
   date: string;
 }) {
-  const { result } = (await ogs({ url })) as { result: OpenGraphObject };
+  const { result, error } = await ogs({ url });
+  if (error) {
+    setFailed(`${result}`);
+    return;
+  }
   exportVariable("BookmarkTitle", result.ogTitle);
   exportVariable("DateBookmarked", date);
   const image = setImage(result);
@@ -20,18 +24,9 @@ export async function getMetadata({
     site: result.ogSiteName || "",
     date,
     description: result.ogDescription || "",
-    url: result.ogUrl,
+    url: result.ogUrl || result.requestUrl,
     image: image || "",
     type: result.ogType || "",
     ...(body && { notes: body }),
   };
 }
-
-export type OpenGraphObject = {
-  ogTitle: string;
-  ogSiteName: string;
-  ogDescription: string;
-  ogUrl: string;
-  ogType: string;
-  success: boolean;
-};
