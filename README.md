@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v3.1.2
+        uses: katydecorah/bookmark-action@v3.1.3
         with:
           fileName: _data/recipes.yml
       - name: Download the thumbnail image
