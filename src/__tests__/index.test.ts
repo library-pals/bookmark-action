@@ -21,6 +21,8 @@ afterEach(() => {
 
 describe("bookmark", () => {
   test("works", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
