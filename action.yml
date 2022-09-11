@@ -8,4 +8,4 @@ runs:
 inputs:
   fileName:
     description: "The filename to save your bookmarks."
-    default: "_data/bookmarks.yml"
+    default: "_data/bookmarks.json"

@@ -28,14 +28,14 @@ jobs:
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v3.1.3
         with:
-          fileName: _data/recipes.yml
+          fileName: _data/recipes.json
       - name: Download the thumbnail image
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.yml"
+          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.json"
           git push
       - name: Close issue
         uses: peter-evans/close-issue@v2

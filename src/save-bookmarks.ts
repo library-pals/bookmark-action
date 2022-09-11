@@ -1,6 +1,5 @@
 import { setFailed } from "@actions/core";
 import { writeFile } from "fs/promises";
-import { dump } from "js-yaml";
 import { Bookmark } from "./add-bookmark";
 
 export async function saveBookmarks({
@@ -11,8 +10,11 @@ export async function saveBookmarks({
   bookmarks: Bookmark[];
 }) {
   try {
-    const json = dump(bookmarks);
-    return await writeFile(fileName, json, "utf-8");
+    return await writeFile(
+      fileName,
+      JSON.stringify(bookmarks, null, 2),
+      "utf-8"
+    );
   } catch (error) {
     setFailed(error.message);
   }

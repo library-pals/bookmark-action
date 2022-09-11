@@ -1,6 +1,5 @@
 import { setFailed } from "@actions/core";
 import { readFile } from "fs/promises";
-import { load } from "js-yaml";
 
 export async function addBookmark(
   fileName: string,
@@ -9,7 +8,7 @@ export async function addBookmark(
   try {
     const currentBookmarks = await readFile(fileName, "utf-8");
     const currentJson = currentBookmarks
-      ? (load(currentBookmarks) as Bookmark[])
+      ? (JSON.parse(currentBookmarks) as Bookmark[])
       : [];
     return [...currentJson, bookmark].sort(
       (a: Bookmark, b: Bookmark) =>
