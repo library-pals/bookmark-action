@@ -13,15 +13,13 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 ```yml
 name: Add bookmark
 on:
-  issues:
-    types: opened
+  repository_dispatch:
+    types: [bookmarks]
 
 jobs:
   add_bookmark:
     runs-on: macOS-latest
     name: Add bookmark
-    # only continue if issue has "recipe" label
-    if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -33,6 +31,7 @@ jobs:
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
         run: |
+          git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.yml"
