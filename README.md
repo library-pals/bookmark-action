@@ -40,7 +40,7 @@ jobs:
 
 ## Action options
 
-- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.yml`.
+- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
 <!-- END GENERATED DOCUMENTATION -->
 
