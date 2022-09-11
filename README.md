@@ -1,8 +1,8 @@
 # bookmark-action
 
-This GitHub action bookmarks websites to a YAML file. Pair it with the [iOS Shortcut](shortcut/README.md).
+This GitHub action bookmarks websites to a JSON file. Pair it with the [iOS Shortcut](shortcut/README.md).
 
-[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your YAML file in your repository, always sorting by the bookmark date.
+[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your JSON file in your repository, always sorting by the bookmark date.
 
 <!-- START GENERATED DOCUMENTATION -->
 
