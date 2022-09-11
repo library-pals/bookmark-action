@@ -14,10 +14,10 @@ From your phone:
 
 1. From the page, click the **Share** button.
 2. Click **Add to recipe box** from the sharesheet.
-3. The action will automatically create and open a GitHub issue.
+3. The action will automatically create a dispatch event.
 
 From your computer:
 
 1. Copy the URL for the page you want to bookmark.
 2. From Shortcuts, click the play icon for **Add to recipe box** and paste the URL.
-3. The action will automatically create and open a GitHub issue.
+3. The action will automatically create a dispatch event.

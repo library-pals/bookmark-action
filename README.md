@@ -1,8 +1,8 @@
 # bookmark-action
 
-This GitHub action bookmarks websites to a YAML file. Pair it with the [iOS Shortcut](shortcut/README.md) to automatically format and open the GitHub issue.
+This GitHub action bookmarks websites to a YAML file. Pair it with the [iOS Shortcut](shortcut/README.md).
 
-Create a new issue with the URL in the title. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your YAML file in your repository, always sorting by the bookmark date.
+[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your YAML file in your repository, always sorting by the bookmark date.
 
 <!-- START GENERATED DOCUMENTATION -->
 
@@ -13,15 +13,13 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 ```yml
 name: Add bookmark
 on:
-  issues:
-    types: opened
+  repository_dispatch:
+    types: [bookmarks]
 
 jobs:
   add_bookmark:
     runs-on: macOS-latest
     name: Add bookmark
-    # only continue if issue has "recipe" label
-    if: contains( github.event.issue.labels.*.name, 'recipe')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -33,15 +31,11 @@ jobs:
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
         run: |
+          git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.yml"
           git push
-      - name: Close issue
-        uses: peter-evans/close-issue@v2
-        with:
-          issue-number: "${{ env.IssueNumber }}"
-          comment: "You bookmarked ${{ env.BookmarkTitle }} on ${{env.DateBookmarked}}."
 ```
 
 ## Action options
@@ -50,18 +44,21 @@ jobs:
 
 <!-- END GENERATED DOCUMENTATION -->
 
-## Create an issue
+## Send an event
 
-The title of your issue must start with the URL:
+To trigger the action, you will [create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with information about the book.
 
+The [iOS Shortcut](shortcut/README.md) helps format and send the event.
+
+### Payload
+
+```js
+{
+  "event_type": "bookmarks", // Optional. This helps you filter events in the workflow, in case you have more than one.
+  "client_payload": {
+    "url": "", // Required. The URL to be bookmarked.
+    "date": "", // Optional. The date you saved the bookmark in YYYY-MM-DD format. The default it today's date.
+    "notes": "" // Optional. Notes about the bookmark.
+  }
+}
 ```
-https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans
-```
-
-The action will automatically set the bookmarked date to today. To specify a different date, add the date after the URL in `YYYY-MM-DD` format:
-
-```
-https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans 2020-06-12
-```
-
-If you add content to the body of the comment, the action will add it as the value of `notes`.

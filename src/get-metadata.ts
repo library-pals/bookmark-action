@@ -4,11 +4,11 @@ import { setImage } from "./set-image";
 
 export async function getMetadata({
   url,
-  body,
+  notes,
   date,
 }: {
   url: string;
-  body?: string;
+  notes?: string;
   date: string;
 }) {
   const { result, error } = await ogs({ url });
@@ -27,6 +27,6 @@ export async function getMetadata({
     url: result.ogUrl || result.requestUrl,
     image: image || "",
     type: result.ogType || "",
-    ...(body && { notes: body }),
+    ...(notes && { notes }),
   };
 }
