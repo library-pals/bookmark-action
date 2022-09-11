@@ -53948,7 +53948,6 @@ var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
 ;// CONCATENATED MODULE: ./src/utils.ts
-
 // Credit: https://gist.github.com/mathewbyrne/1280286
 function slugify(text) {
     return text
@@ -53959,18 +53958,6 @@ function slugify(text) {
         .replace(/--+/g, "-")
         .replace(/^-+/, "")
         .replace(/-+$/, "");
-}
-function titleParser(title) {
-    const split = title.split(" ");
-    const url = isUrl(split[0]) ? split[0] : undefined;
-    const date = isDate(split[1])
-        ? split[1]
-        : new Date().toISOString().slice(0, 10);
-    (0,core.exportVariable)("DateBookmarked", date);
-    return {
-        url,
-        date,
-    };
 }
 /** Validate that string is in correct date format */
 function dateFormat(date) {
@@ -57932,7 +57919,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 
-function getMetadata({ url, body, date, }) {
+function getMetadata({ url, notes, date, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
         const { result, error } = yield open_graph_scraper_default()({ url });
         if (error) {
@@ -57942,7 +57929,7 @@ function getMetadata({ url, body, date, }) {
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
         (0,core.exportVariable)("DateBookmarked", date);
         const image = setImage(result);
-        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image: image || "", type: result.ogType || "" }, (body && { notes: body }));
+        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image: image || "", type: result.ogType || "" }, (notes && { notes }));
     });
 }
 
@@ -57965,19 +57952,24 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 function action() {
     return src_awaiter(this, void 0, void 0, function* () {
         try {
-            if (!github.context.payload.issue) {
-                (0,core.setFailed)("Cannot find GitHub issue");
-                return;
+            // Get client_payload
+            const payload = github.context.payload.client_payload;
+            // Validate client_payload
+            if (!payload)
+                return (0,core.setFailed)("Missing `client_payload`");
+            if (!payload.url)
+                return (0,core.setFailed)("Missing `url` in payload");
+            const { url, notes } = payload;
+            if (!isUrl(url)) {
+                return (0,core.setFailed)(`The \`url\` "${url}" is not valid`);
             }
-            const { title, number, body } = github.context.payload.issue;
-            const { url, date } = titleParser(title);
-            if (!url) {
-                (0,core.setFailed)(`The url "${url}" is not valid`);
-                return;
+            if (payload.date && !isDate(payload.date)) {
+                return (0,core.setFailed)(`The \`date\` "${payload.date}" must be in YYYY-MM-DD format`);
             }
+            const date = payload.date || new Date().toISOString().slice(0, 10);
+            (0,core.exportVariable)("DateBookmarked", date);
             const fileName = (0,core.getInput)("fileName");
-            (0,core.exportVariable)("IssueNumber", number);
-            const page = (yield getMetadata({ url, body, date }));
+            const page = (yield getMetadata({ url, notes, date }));
             const bookmarks = yield addBookmark(fileName, page);
             if (!bookmarks) {
                 (0,core.setFailed)(`Unable to add bookmark`);

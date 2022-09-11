@@ -47,7 +47,7 @@ describe("getMetadata", () => {
     expect(
       await getMetadata({
         url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-        body: "Delicious!",
+        notes: "Delicious!",
         date: "2022-01-01",
       })
     ).toMatchInlineSnapshot(`

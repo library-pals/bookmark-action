@@ -25,10 +25,9 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          issue: {
-            title: "https://katydecorah.com",
-            body: "note",
-            number: 1,
+          client_payload: {
+            url: "https://katydecorah.com",
+            notes: "note",
           },
         },
       },
@@ -54,7 +53,6 @@ describe("bookmark", () => {
       "DateBookmarked",
       new Date().toISOString().slice(0, 10)
     );
-    expect(exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
     expect(setFailed).not.toHaveBeenCalled();
     expect(writeFileSpy.mock.calls[0]).toEqual([
       "_data/recipes.yml",
@@ -90,10 +88,9 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          issue: {
-            title: "https://katydecorah.com",
-            body: "note",
-            number: 1,
+          client_payload: {
+            url: "https://katydecorah.com",
+            notes: "note",
           },
         },
       },
@@ -111,7 +108,6 @@ describe("bookmark", () => {
       "DateBookmarked",
       new Date().toISOString().slice(0, 10)
     );
-    expect(exportVariable).toHaveBeenNthCalledWith(2, "IssueNumber", 1);
     expect(setFailed).toHaveBeenNthCalledWith(1, "Error");
     expect(setFailed).toHaveBeenNthCalledWith(2, "Unable to add bookmark");
   });
@@ -120,33 +116,61 @@ describe("bookmark", () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {});
     await action();
-    expect(setFailed).toHaveBeenCalledWith("Cannot find GitHub issue");
+    expect(setFailed).toHaveBeenCalledWith("Missing `client_payload`");
   });
-
-  test("throws, invalid url", async () => {
+  test("throws, missing url", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          issue: {
-            title: "boop",
-            number: 1,
+          client_payload: {
+            date: "2022-09-10",
           },
         },
       },
     });
     await action();
-    expect(setFailed).toHaveBeenCalledWith('The url "undefined" is not valid');
+    expect(setFailed).toHaveBeenCalledWith("Missing `url` in payload");
+  });
+  test("throws, invalid url", async () => {
+    // eslint-disable-next-line no-import-assign
+    Object.defineProperty(github, "context", {
+      value: {
+        payload: {
+          client_payload: {
+            url: "boop",
+          },
+        },
+      },
+    });
+    await action();
+    expect(setFailed).toHaveBeenCalledWith('The `url` "boop" is not valid');
+  });
+  test("throws, invalid date", async () => {
+    // eslint-disable-next-line no-import-assign
+    Object.defineProperty(github, "context", {
+      value: {
+        payload: {
+          client_payload: {
+            url: "https://google.com",
+            date: "September 10 2022",
+          },
+        },
+      },
+    });
+    await action();
+    expect(setFailed).toHaveBeenCalledWith(
+      'The `date` "September 10 2022" must be in YYYY-MM-DD format'
+    );
   });
   test("throws, can't write file", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          issue: {
-            title: "https://katydecorah.com",
-            body: "note",
-            number: 1,
+          client_payload: {
+            url: "https://katydecorah.com",
+            notes: "note",
           },
         },
       },
