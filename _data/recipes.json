@@ -205,5 +205,15 @@
     "image": "bookmark-chicken-and-celery-salad-with-wasabi-tahini-dressing-recipe.jpg",
     "type": "article",
     "notes": "Testing"
+  },
+  {
+    "title": "Caramelized Zucchini Pasta Recipe",
+    "site": "NYT Cooking",
+    "date": "2022-09-12",
+    "description": "This recipe transforms two pounds of grated fresh zucchini into one cup of caramelized zucchini that’s rich, sweet and jammy enough to become a pasta sauce Cooked over moderately high heat in a combination of olive oil and butter, the zucchini fries in its own juices and concentrates its flavor Adding garlic and basil lends sweetness, but consider adding anchovy, preserved lemon or red-pepper flakes",
+    "url": "https://cooking.nytimes.com/recipes/1022458-caramelized-zucchini-pasta",
+    "image": "bookmark-caramelized-zucchini-pasta-recipe.jpg",
+    "type": "article",
+    "notes": "Testing 1234"
   }
 ]
