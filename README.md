@@ -1,8 +1,8 @@
 # bookmark-action
 
-This GitHub action bookmarks websites to a YAML file. Pair it with the [iOS Shortcut](shortcut/README.md).
+This GitHub action bookmarks websites to a JSON file. Pair it with the [iOS Shortcut](shortcut/README.md).
 
-[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your YAML file in your repository, always sorting by the bookmark date.
+[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your JSON file in your repository, always sorting by the bookmark date.
 
 <!-- START GENERATED DOCUMENTATION -->
 
@@ -26,7 +26,7 @@ jobs:
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v3.1.3
         with:
-          fileName: _data/recipes.yml
+          fileName: _data/recipes.json
       - name: Download the thumbnail image
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
@@ -34,13 +34,13 @@ jobs:
           git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.yml"
+          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.json"
           git push
 ```
 
 ## Action options
 
-- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.yml`.
+- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
 <!-- END GENERATED DOCUMENTATION -->
 

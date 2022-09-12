@@ -1,6 +1,6 @@
 name: Bookmark
 author: "@katydecorah"
-description: "Bookmark websites to a YAML file."
+description: "Bookmark websites to a JSON file."
 runs:
   using: "node16"
   main: dist/index.js
@@ -8,4 +8,4 @@ runs:
 inputs:
   fileName:
     description: "The filename to save your bookmarks."
-    default: "_data/bookmarks.yml"
+    default: "_data/bookmarks.json"
