@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v3.1.3
+        uses: katydecorah/bookmark-action@v4.0.0
         with:
           fileName: _data/recipes.json
       - name: Download the thumbnail image
