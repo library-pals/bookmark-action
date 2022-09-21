@@ -6,13 +6,10 @@ on:
       url:
         description: The URL to bookmark
         required: true
-        type: text
+        type: string
       notes:
         description: Notes
-        type: text
-      date:
-        description: Date (YYYY-MM-DD)
-        type: text
+        type: string
 
 jobs:
   add_bookmark:
