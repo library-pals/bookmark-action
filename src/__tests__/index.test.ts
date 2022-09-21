@@ -27,7 +27,7 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             url: "https://katydecorah.com",
             notes: "note",
           },
@@ -99,7 +99,7 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             url: "https://katydecorah.com",
             notes: "note",
           },
@@ -127,14 +127,14 @@ describe("bookmark", () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {});
     await action();
-    expect(setFailed).toHaveBeenCalledWith("Missing `client_payload`");
+    expect(setFailed).toHaveBeenCalledWith("Missing `inputs`");
   });
   test("throws, missing url", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             date: "2022-09-10",
           },
         },
@@ -148,7 +148,7 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             url: "boop",
           },
         },
@@ -162,7 +162,7 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             url: "https://google.com",
             date: "September 10 2022",
           },
@@ -179,7 +179,7 @@ describe("bookmark", () => {
     Object.defineProperty(github, "context", {
       value: {
         payload: {
-          client_payload: {
+          inputs: {
             url: "https://katydecorah.com",
             notes: "note",
           },

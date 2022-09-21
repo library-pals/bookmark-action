@@ -54096,11 +54096,11 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
 function action() {
     return src_awaiter(this, void 0, void 0, function* () {
         try {
-            // Get client_payload
-            const payload = github.context.payload.client_payload;
-            // Validate client_payload
+            // Get inputs
+            const payload = github.context.payload.inputs;
+            // Validate inputs
             if (!payload)
-                return (0,core.setFailed)("Missing `client_payload`");
+                return (0,core.setFailed)("Missing `inputs`");
             if (!payload.url)
                 return (0,core.setFailed)("Missing `url` in payload");
             const { url, notes } = payload;

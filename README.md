@@ -1,8 +1,8 @@
 # bookmark-action
 
-This GitHub action bookmarks websites to a JSON file. Pair it with the [iOS Shortcut](shortcut/README.md).
+This GitHub action bookmarks websites to a JSON file. Pair it with the [iOS Shortcut](shortcut/README.md) or click **Run workflow** from the Actions tab to submit details for the bookmark.
 
-[Create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your JSON file in your repository, always sorting by the bookmark date.
+[Create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event) with basic information about the bookmark. The action will then fetch the web page's metadata using [open-graph-scraper](https://www.npmjs.com/package/open-graph-scraper) and add it to your JSON file in your repository, always sorting by the bookmark date.
 
 <!-- START GENERATED DOCUMENTATION -->
 
@@ -12,10 +12,17 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 
 ```yml
 name: Add bookmark
+
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [bookmarks]
+    inputs:
+      url:
+        description: The URL to bookmark
+        required: true
+        type: string
+      notes:
+        description: Notes
+        type: string
 
 jobs:
   add_bookmark:
@@ -35,7 +42,7 @@ jobs:
           git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.json"
+          git add -A && git commit -m  "Bookmark ${{ env.BookmarkTitle }}"
           git push
 ```
 
@@ -47,7 +54,7 @@ jobs:
 
 ## Send an event
 
-To trigger the action, you will [create a respository dispatch event](https://docs.github.com/en/rest/repos/repos#create-a-repository-dispatch-event) with information about the book.
+To trigger the action, you will [create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event) with information for the bookmark.
 
 The [iOS Shortcut](shortcut/README.md) helps format and send the event.
 
@@ -55,8 +62,8 @@ The [iOS Shortcut](shortcut/README.md) helps format and send the event.
 
 ```js
 {
-  "event_type": "bookmarks", // Optional. This helps you filter events in the workflow, in case you have more than one.
-  "client_payload": {
+  "ref": "main", // Required. The branch that you will send changes to.
+  "inputs": {
     "url": "", // Required. The URL to be bookmarked.
     "date": "", // Optional. The date you saved the bookmark in YYYY-MM-DD format. The default it today's date.
     "notes": "" // Optional. Notes about the bookmark.
