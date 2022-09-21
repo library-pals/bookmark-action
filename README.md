@@ -13,6 +13,7 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 ```yml
 name: Add bookmark
 on:
+  workflow_dispatch:
   repository_dispatch:
     types: [bookmarks]
 
