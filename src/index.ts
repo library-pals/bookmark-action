@@ -7,11 +7,11 @@ import { getMetadata } from "./get-metadata";
 
 export async function action() {
   try {
-    // Get client_payload
-    const payload = github.context.payload.client_payload;
+    // Get inputs
+    const payload = github.context.payload.inputs;
 
-    // Validate client_payload
-    if (!payload) return setFailed("Missing `client_payload`");
+    // Validate inputs
+    if (!payload) return setFailed("Missing `inputs`");
     if (!payload.url) return setFailed("Missing `url` in payload");
 
     const { url, notes } = payload;
