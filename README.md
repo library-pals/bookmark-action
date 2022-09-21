@@ -12,9 +12,20 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 
 ```yml
 name: Add bookmark
+
 on:
-  repository_dispatch:
-    types: [bookmarks]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: The URL to bookmark
+        required: true
+        type: text
+      notes:
+        description: Notes
+        type: text
+      date:
+        description: Date (YYYY-MM-DD)
+        type: text
 
 jobs:
   add_bookmark:
@@ -34,7 +45,7 @@ jobs:
           git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A && git commit -m  "Added ${{ env.BookmarkTitle }} to recipes.json"
+          git add -A && git commit -m  "Bookmark ${{ env.BookmarkTitle }}"
           git push
 ```
 
