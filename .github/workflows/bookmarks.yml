@@ -4,11 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: The URL to bookmark
+        description: The URL to bookmark.
         required: true
         type: string
       notes:
-        description: Notes
+        description: Notes about the bookmark.
+        type: string
+      date:
+        description: Date (YYYY-MM-DD). The default date is today.
         type: string
 
 jobs:

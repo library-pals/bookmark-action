@@ -51,22 +51,3 @@ jobs:
 - `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
 <!-- END GENERATED DOCUMENTATION -->
-
-## Send an event
-
-To trigger the action, you will [create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event) with information for the bookmark.
-
-The [iOS Shortcut](shortcut/README.md) helps format and send the event.
-
-### Payload
-
-```js
-{
-  "ref": "main", // Required. The branch that you will send changes to.
-  "inputs": {
-    "url": "", // Required. The URL to be bookmarked.
-    "date": "", // Optional. The date you saved the bookmark in YYYY-MM-DD format. The default it today's date.
-    "notes": "" // Optional. Notes about the bookmark.
-  }
-}
-```
