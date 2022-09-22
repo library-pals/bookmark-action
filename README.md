@@ -17,11 +17,14 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: The URL to bookmark
+        description: The URL to bookmark.
         required: true
         type: string
       notes:
-        description: Notes
+        description: Notes about the bookmark.
+        type: string
+      date:
+        description: Date (YYYY-MM-DD). The default date is today.
         type: string
 
 jobs:
@@ -46,8 +49,23 @@ jobs:
           git push
 ```
 
+
 ## Action options
 
 - `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
+## Trigger the action
+
+To trigger the action, [create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event) with the following body parameters:
+
+```js
+{ 
+  "ref": "main", // Required. The git reference for the workflow, a branch or tag name.
+  "inputs": {
+    "url": "", // Required. The URL to bookmark.
+    "notes": "", // Notes about the bookmark.
+    "date": "", // Date (YYYY-MM-DD). The default date is today.
+  }
+}
+```
 <!-- END GENERATED DOCUMENTATION -->
