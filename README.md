@@ -26,6 +26,9 @@ on:
       date:
         description: Date (YYYY-MM-DD). The default date is today.
         type: string
+      tags:
+        description: Add tags to categorize the book. Separate each tag with a comma. Optional.
+        type: string
 
 jobs:
   add_bookmark:
@@ -66,6 +69,7 @@ To trigger the action, [create a workflow dispatch event](https://docs.github.co
     "url": "", // Required. The URL to bookmark.
     "notes": "", // Notes about the bookmark.
     "date": "", // Date (YYYY-MM-DD). The default date is today.
+    "tags": "", // Add tags to categorize the book. Separate each tag with a comma. Optional.
   }
 }
 ```
