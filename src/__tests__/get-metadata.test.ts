@@ -18,8 +18,8 @@ describe("getMetadata", () => {
     expect(
       await getMetadata({
         url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-
         date: "2022-01-01",
+        tags: "show,new",
       })
     ).toMatchInlineSnapshot(`
       {
@@ -28,6 +28,10 @@ describe("getMetadata", () => {
         "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
         "image": "bookmark-pen15.jpg",
         "site": "Hulu",
+        "tags": [
+          "show",
+          "new",
+        ],
         "title": "PEN15",
         "type": "tv_show",
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",

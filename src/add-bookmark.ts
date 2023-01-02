@@ -25,6 +25,9 @@ export type Bookmark = {
   date: string;
   description: string;
   url: string;
+  author: string;
+  type: string;
   image?: string;
   notes?: string;
+  tags?: string[];
 };
