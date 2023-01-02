@@ -43069,7 +43069,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 
-function getMetadata({ url, notes, date, }) {
+function getMetadata({ url, notes, date, tags, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
         const { result, error } = yield open_graph_scraper_default()({ url });
         if (error) {
@@ -43079,8 +43079,11 @@ function getMetadata({ url, notes, date, }) {
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
         (0,core.exportVariable)("DateBookmarked", date);
         const image = (0,core.getInput)("getImage") === "true" ? setImage(result) : "";
-        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes }));
+        return Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) }));
     });
+}
+function toArray(tags) {
+    return tags.split(",").map((f) => f.trim());
 }
 
 ;// CONCATENATED MODULE: ./src/index.ts
@@ -43109,7 +43112,7 @@ function action() {
                 return (0,core.setFailed)("Missing `inputs`");
             if (!payload.url)
                 return (0,core.setFailed)("Missing `url` in payload");
-            const { url, notes } = payload;
+            const { url, notes, tags } = payload;
             if (!isUrl(url)) {
                 return (0,core.setFailed)(`The \`url\` "${url}" is not valid`);
             }
@@ -43119,7 +43122,7 @@ function action() {
             const date = payload.date || new Date().toISOString().slice(0, 10);
             (0,core.exportVariable)("DateBookmarked", date);
             const fileName = (0,core.getInput)("fileName");
-            const page = (yield getMetadata({ url, notes, date }));
+            const page = (yield getMetadata({ url, notes, date, tags }));
             const bookmarks = yield addBookmark(fileName, page);
             if (!bookmarks) {
                 (0,core.setFailed)(`Unable to add bookmark`);

@@ -5,16 +5,23 @@ import { saveBookmarks } from "./save-bookmarks";
 import { addBookmark, Bookmark } from "./add-bookmark";
 import { getMetadata } from "./get-metadata";
 
+type Payload = {
+  url: string;
+  notes?: string;
+  date?: string;
+  tags?: string;
+};
+
 export async function action() {
   try {
     // Get inputs
-    const payload = github.context.payload.inputs;
+    const payload: Payload = github.context.payload.inputs;
 
     // Validate inputs
     if (!payload) return setFailed("Missing `inputs`");
     if (!payload.url) return setFailed("Missing `url` in payload");
 
-    const { url, notes } = payload;
+    const { url, notes, tags } = payload;
 
     if (!isUrl(url)) {
       return setFailed(`The \`url\` "${url}" is not valid`);
@@ -30,7 +37,7 @@ export async function action() {
 
     const fileName = getInput("fileName");
 
-    const page = (await getMetadata({ url, notes, date })) as Bookmark;
+    const page = (await getMetadata({ url, notes, date, tags })) as Bookmark;
     const bookmarks = await addBookmark(fileName, page);
     if (!bookmarks) {
       setFailed(`Unable to add bookmark`);

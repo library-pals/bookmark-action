@@ -13,6 +13,9 @@ on:
       date:
         description: Date (YYYY-MM-DD). The default date is today.
         type: string
+      tags:
+        description: Add tags to categorize the book. Separate each tag with a comma. Optional.
+        type: string
 
 jobs:
   add_bookmark:
