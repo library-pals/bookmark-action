@@ -215,5 +215,15 @@
     "image": "bookmark-caramelized-zucchini-pasta-recipe.jpg",
     "type": "article",
     "notes": "Testing 1234"
+  },
+  {
+    "title": "Nougat With Honey and Pistachios Recipe",
+    "site": "NYT Cooking",
+    "author": "",
+    "date": "2023-01-02",
+    "description": "Nougat is not exactly for the faint of heart: Preparing it involves heating honey and a sugar syrup separately to different temperatures and streaming them into beaten egg whites in rapid succession Make sure you have all of your ingredients ready before you start cooking, and the reward is a candy unlike any other with a snow-white color, fresh honey flavor and lots of toasted pistachios to temper the sweetness and add crunch.",
+    "url": "https://cooking.nytimes.com/recipes/1023721-nougat-with-honey-and-pistachios",
+    "image": "bookmark-nougat-with-honey-and-pistachios-recipe.jpg",
+    "type": "article"
   }
 ]
