@@ -1,4 +1,5 @@
 name: Add bookmark
+run-name: Add bookmark (${{ inputs.url }})
 
 on:
   workflow_dispatch:
