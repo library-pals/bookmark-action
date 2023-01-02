@@ -3,6 +3,7 @@ import * as github from "@actions/github";
 import * as core from "@actions/core";
 import { exportVariable, setFailed } from "@actions/core";
 import pen15 from "./fixtures/pen15.json";
+import jsn from "./fixtures/jsnmrs.json";
 import ogs from "open-graph-scraper";
 import { promises } from "fs";
 
@@ -81,12 +82,59 @@ describe("bookmark", () => {
         {
           "title": "PEN15",
           "site": "Hulu",
+          "author": "",
           "date": "2022-09-11",
           "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
           "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
           "image": "bookmark-pen15.jpg",
           "type": "tv_show",
           "notes": "note"
+        }
+      ]",
+        "utf-8",
+      ]
+    `);
+  });
+
+  test("works, author", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+
+    // eslint-disable-next-line no-import-assign
+    Object.defineProperty(github, "context", {
+      value: {
+        payload: {
+          inputs: {
+            url: "https://jasonmorris.com",
+          },
+        },
+      },
+    });
+
+    ogs.mockResolvedValueOnce({ result: jsn });
+    jest.spyOn(core, "getInput").mockImplementation(() => "_data/sites.json");
+    jest.spyOn(promises, "readFile").mockResolvedValueOnce(JSON.stringify([]));
+    const writeFileSpy = jest.spyOn(promises, "writeFile").mockImplementation();
+
+    await action();
+    expect(exportVariable).toHaveBeenNthCalledWith(
+      1,
+      "DateBookmarked",
+      new Date().toISOString().slice(0, 10)
+    );
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(writeFileSpy.mock.calls[0]).toMatchInlineSnapshot(`
+      [
+        "_data/sites.json",
+        "[
+        {
+          "title": "Jason Morris",
+          "site": "",
+          "author": "Jason Morris",
+          "date": "2022-09-11",
+          "description": "This is the personal website of Jason Morris — an accessibility engineer and a dialer from upstate New York",
+          "url": "https://jasonmorris.com/",
+          "image": "",
+          "type": ""
         }
       ]",
         "utf-8",

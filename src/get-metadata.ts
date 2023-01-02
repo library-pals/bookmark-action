@@ -22,6 +22,7 @@ export async function getMetadata({
   return {
     title: result.ogTitle || "",
     site: result.ogSiteName || "",
+    author: result.author || "",
     date,
     description: result.ogDescription || "",
     url: result.ogUrl || result.requestUrl,
