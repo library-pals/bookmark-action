@@ -225,5 +225,19 @@
     "url": "https://cooking.nytimes.com/recipes/1023721-nougat-with-honey-and-pistachios",
     "image": "bookmark-nougat-with-honey-and-pistachios-recipe.jpg",
     "type": "article"
+  },
+  {
+    "title": "Velvety Scrambled Eggs Recipe",
+    "site": "NYT Cooking",
+    "author": "",
+    "date": "2023-01-02",
+    "description": "This recipe adapts a technique from making Chinese egg drop soup — gently poaching a thin stream of beaten eggs in simmering liquid — to a Western-style breakfast of scrambled eggs The results are special and one of a kind Drizzling the eggs into hot cream gets them to set into tender, velvety curds that end up bound with a rich custardy sauce, perfect for spooning onto buttered toast",
+    "url": "https://cooking.nytimes.com/recipes/1023773-velvety-scrambled-eggs",
+    "image": "bookmark-velvety-scrambled-eggs-recipe.jpg",
+    "type": "article",
+    "tags": [
+      "breakfast",
+      "eggs"
+    ]
   }
 ]
