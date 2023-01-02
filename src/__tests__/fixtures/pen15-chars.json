@@ -1,0 +1,28 @@
+{
+  "twitterCard": "summary",
+  "twitterTitle": "PEN15",
+  "twitterSite": "@Hulu",
+  "twitterDescription": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+  "twitterUrl": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "ogDescription": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+  "ogUrl": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "ogTitle": "PEN15 - \"tv show\"",
+  "ogSiteName": "Hulu",
+  "ogType": "tv_show",
+  "ogImage": {
+    "url": "https://img.hulu.com/user/v3/artwork/8c87035d-2b10-4b10-a233-ca5b3597145d?base_image_bucket_name=image_manager&base_image=9635da5d-5ca9-458a-9e2c-21b25a590fb6&size=1200x630&format=jpeg&operations=%5B%7B%22gradient_vector%22%3A%22(0%2C0%2C0%2C0.5)%7C(0%2C0%2C0%2C0)%7C(0%2C600)%7C(0%2C240)%22%7D%2C%7B%22overlay%22%3A%7B%22position%22%3A%22SouthEast%7C(30%2C30)%22%2C%22operations%22%3A%5B%7B%22image%22%3A%22image_manager%7C824d0495-a96b-4a94-8064-8faee8f9551e%22%7D%2C%7B%22resize%22%3A%22204x204%7Cmax%22%7D%2C%7B%22extent%22%3A%22204x204%22%7D%5D%7D%7D%2C%5D",
+    "width": null,
+    "height": null,
+    "type": null
+  },
+  "twitterImage": {
+    "url": "https://img.hulu.com/user/v3/artwork/8c87035d-2b10-4b10-a233-ca5b3597145d?base_image_bucket_name=image_manager&base_image=9635da5d-5ca9-458a-9e2c-21b25a590fb6&size=1200x630&format=jpeg&operations=%5B%7B%22gradient_vector%22%3A%22(0%2C0%2C0%2C0.5)%7C(0%2C0%2C0%2C0)%7C(0%2C600)%7C(0%2C240)%22%7D%2C%7B%22overlay%22%3A%7B%22position%22%3A%22SouthEast%7C(30%2C30)%22%2C%22operations%22%3A%5B%7B%22image%22%3A%22image_manager%7C824d0495-a96b-4a94-8064-8faee8f9551e%22%7D%2C%7B%22resize%22%3A%22204x204%7Cmax%22%7D%2C%7B%22extent%22%3A%22204x204%22%7D%5D%7D%7D%2C%5D",
+    "width": null,
+    "height": null,
+    "alt": null
+  },
+  "favicon": "//assetshuluimcom-a.akamaihd.net/h3o/icons/favicon.ico.png",
+  "charset": "utf8",
+  "requestUrl": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "success": true
+}

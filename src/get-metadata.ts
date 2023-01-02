@@ -16,7 +16,7 @@ export async function getMetadata({
     setFailed(`${result}`);
     return;
   }
-  exportVariable("BookmarkTitle", result.ogTitle);
+  exportVariable("BookmarkTitle", result.ogTitle?.replace(/"/g, "'"));
   exportVariable("DateBookmarked", date);
   const image = getInput("getImage") === "true" ? setImage(result) : "";
   return {

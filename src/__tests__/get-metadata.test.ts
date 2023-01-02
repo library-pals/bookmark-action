@@ -1,4 +1,5 @@
 import pen15 from "./fixtures/pen15.json";
+import pen15Chars from "./fixtures/pen15-chars.json";
 import soup from "./fixtures/slow-cooker-soup.json";
 import fullstack from "./fixtures/fullstackdev.json";
 import ogs from "open-graph-scraper";
@@ -15,6 +16,7 @@ describe("getMetadata", () => {
   });
   test("tv show", async () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
+    const exportSpy = jest.spyOn(core, "exportVariable");
     expect(
       await getMetadata({
         url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -33,8 +35,13 @@ describe("getMetadata", () => {
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
       }
     `);
+    expect(exportSpy.mock.calls[0]).toMatchInlineSnapshot(`
+      [
+        "BookmarkTitle",
+        "PEN15",
+      ]
+    `);
   });
-
   test("tv show, don't get image", async () => {
     jest.spyOn(core, "getInput").mockImplementation(() => "false");
     ogs.mockResolvedValueOnce({ result: pen15 });
@@ -55,6 +62,33 @@ describe("getMetadata", () => {
         "type": "tv_show",
         "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
       }
+    `);
+  });
+  test("tv show, with forbidden chars in title", async () => {
+    ogs.mockResolvedValueOnce({ result: pen15Chars });
+    const exportSpy = jest.spyOn(core, "exportVariable");
+    expect(
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
+      {
+        "author": "",
+        "date": "2022-01-01",
+        "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+        "image": "bookmark-pen15-tv-show.jpg",
+        "site": "Hulu",
+        "title": "PEN15 - "tv show"",
+        "type": "tv_show",
+        "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+    expect(exportSpy.mock.calls[0]).toMatchInlineSnapshot(`
+      [
+        "BookmarkTitle",
+        "PEN15 - 'tv show'",
+      ]
     `);
   });
   test("fails", async () => {
