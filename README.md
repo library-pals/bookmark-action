@@ -12,6 +12,7 @@ To use this action, create a new workflow in `.github/workflows` and modify it a
 
 ```yml
 name: Add bookmark
+run-name: Add bookmark (${{ inputs.url }})
 
 on:
   workflow_dispatch:
