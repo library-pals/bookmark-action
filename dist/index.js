@@ -43078,8 +43078,8 @@ function getMetadata({ url, notes, date, }) {
         }
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
         (0,core.exportVariable)("DateBookmarked", date);
-        const image = setImage(result);
-        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image: image || "", type: result.ogType || "" }, (notes && { notes }));
+        const image = (0,core.getInput)("getImage") === "true" ? setImage(result) : "";
+        return Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes }));
     });
 }
 

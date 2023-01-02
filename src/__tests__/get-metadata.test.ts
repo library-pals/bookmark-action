@@ -3,12 +3,16 @@ import soup from "./fixtures/slow-cooker-soup.json";
 import fullstack from "./fixtures/fullstackdev.json";
 import ogs from "open-graph-scraper";
 import { getMetadata } from "../get-metadata";
+import * as core from "@actions/core";
 import { setFailed } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("@actions/core");
 
 describe("getMetadata", () => {
+  beforeEach(() => {
+    jest.spyOn(core, "getInput").mockImplementation(() => "true");
+  });
   test("tv show", async () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
     expect(
@@ -23,6 +27,29 @@ describe("getMetadata", () => {
         "date": "2022-01-01",
         "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
         "image": "bookmark-pen15.jpg",
+        "site": "Hulu",
+        "title": "PEN15",
+        "type": "tv_show",
+        "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      }
+    `);
+  });
+
+  test("tv show, don't get image", async () => {
+    jest.spyOn(core, "getInput").mockImplementation(() => "false");
+    ogs.mockResolvedValueOnce({ result: pen15 });
+    expect(
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
+      {
+        "author": "",
+        "date": "2022-01-01",
+        "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+        "image": "",
         "site": "Hulu",
         "title": "PEN15",
         "type": "tv_show",
@@ -82,7 +109,7 @@ describe("getMetadata", () => {
         "author": "",
         "date": "2022-01-01",
         "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
-        "image": "",
+        "image": undefined,
         "site": "Hulu",
         "title": "PEN15",
         "type": "tv_show",
@@ -134,7 +161,7 @@ describe("getMetadata", () => {
         "author": "",
         "date": "2022-01-01",
         "description": "",
-        "image": "",
+        "image": undefined,
         "site": "",
         "title": "",
         "type": "tv_show",

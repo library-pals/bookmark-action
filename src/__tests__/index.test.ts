@@ -37,7 +37,16 @@ describe("bookmark", () => {
     });
 
     ogs.mockResolvedValueOnce({ result: pen15 });
-    jest.spyOn(core, "getInput").mockImplementation(() => "_data/recipes.json");
+    jest.spyOn(core, "getInput").mockImplementation((v) => {
+      switch (v) {
+        case "fileName":
+          return "_data/recipes.json";
+        case "getImage":
+          return "true";
+        default:
+          return "";
+      }
+    });
     jest.spyOn(promises, "readFile").mockResolvedValueOnce(
       JSON.stringify([
         {
@@ -111,7 +120,16 @@ describe("bookmark", () => {
     });
 
     ogs.mockResolvedValueOnce({ result: jsn });
-    jest.spyOn(core, "getInput").mockImplementation(() => "_data/sites.json");
+    jest.spyOn(core, "getInput").mockImplementation((v) => {
+      switch (v) {
+        case "fileName":
+          return "_data/sites.json";
+        case "getImage":
+          return "true";
+        default:
+          return "";
+      }
+    });
     jest.spyOn(promises, "readFile").mockResolvedValueOnce(JSON.stringify([]));
     const writeFileSpy = jest.spyOn(promises, "writeFile").mockImplementation();
 
@@ -133,7 +151,6 @@ describe("bookmark", () => {
           "date": "2022-09-11",
           "description": "This is the personal website of Jason Morris — an accessibility engineer and a dialer from upstate New York",
           "url": "https://jasonmorris.com/",
-          "image": "",
           "type": ""
         }
       ]",
