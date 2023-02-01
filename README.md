@@ -53,10 +53,10 @@ jobs:
           git push
 ```
 
-
 ## Action options
 
 - `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
+
 - `getImage`: Export the URL's `image` to download later and set `image` property. Default: `true`.
 
 ## Trigger the action
