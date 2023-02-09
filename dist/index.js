@@ -23589,6 +23589,22 @@ const openGraphScraper = __nccwpck_require__(1326);
  */
 
 /**
+ * @typedef {object} twitterImageObject
+ * @property {string | number} [height]
+ * @property {string} [alt]
+ * @property {string} url
+ * @property {string | number} [width]
+ */
+
+/**
+ * @typedef {object} twitterPlayerObject
+ * @property {string | number} [height]
+ * @property {string} [stream]
+ * @property {string} [url]
+ * @property {string | number} [width]
+ */
+
+/**
  * @typedef {object} successResult
  * @property {boolean} error
  * @property {successResultObject} result
@@ -23750,12 +23766,12 @@ const openGraphScraper = __nccwpck_require__(1326);
  * @property {string | undefined} [twitterCreator]
  * @property {string | undefined} [twitterCreatorId]
  * @property {string | undefined} [twitterDescription]
- * @property {string | undefined} [twitterImage]
+ * @property {string | twitterImageObject | twitterImageObject[] | undefined} [twitterImage]
  * @property {string | undefined} [twitterImageAlt]
  * @property {string | undefined} [twitterImageHeight]
  * @property {string | undefined} [twitterImageSrc]
  * @property {string | undefined} [twitterImageWidth]
- * @property {string | undefined} [twitterPlayer]
+ * @property {string | twitterPlayerObject | twitterPlayerObject[] | undefined} [twitterPlayer]
  * @property {string | undefined} [twitterPlayerHeight]
  * @property {string | undefined} [twitterPlayerStream]
  * @property {string | undefined} [twitterPlayerStreamContentType]
@@ -26799,6 +26815,8 @@ var _isFQDN = _interopRequireDefault(__nccwpck_require__(5627));
 
 var _isDate = _interopRequireDefault(__nccwpck_require__(4845));
 
+var _isTime = _interopRequireDefault(__nccwpck_require__(9527));
+
 var _isBoolean = _interopRequireDefault(__nccwpck_require__(2276));
 
 var _isLocale = _interopRequireDefault(__nccwpck_require__(4513));
@@ -26881,6 +26899,8 @@ var _isBefore = _interopRequireDefault(__nccwpck_require__(9367));
 
 var _isIn = _interopRequireDefault(__nccwpck_require__(2353));
 
+var _isLuhnNumber = _interopRequireDefault(__nccwpck_require__(5912));
+
 var _isCreditCard = _interopRequireDefault(__nccwpck_require__(1419));
 
 var _isIdentityCard = _interopRequireDefault(__nccwpck_require__(9778));
@@ -26903,7 +26923,9 @@ var _isCurrency = _interopRequireDefault(__nccwpck_require__(5429));
 
 var _isBtcAddress = _interopRequireDefault(__nccwpck_require__(6185));
 
-var _isISO = _interopRequireDefault(__nccwpck_require__(3790));
+var _isISO = _interopRequireDefault(__nccwpck_require__(7242));
+
+var _isISO2 = _interopRequireDefault(__nccwpck_require__(3790));
 
 var _isRFC = _interopRequireDefault(__nccwpck_require__(7397));
 
@@ -26911,7 +26933,7 @@ var _isISO31661Alpha = _interopRequireDefault(__nccwpck_require__(3442));
 
 var _isISO31661Alpha2 = _interopRequireDefault(__nccwpck_require__(5923));
 
-var _isISO2 = _interopRequireDefault(__nccwpck_require__(909));
+var _isISO3 = _interopRequireDefault(__nccwpck_require__(909));
 
 var _isBase = _interopRequireDefault(__nccwpck_require__(6135));
 
@@ -26963,7 +26985,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var version = '13.7.0';
+var version = '13.9.0';
 var validator = {
   version: version,
   toDate: _toDate.default,
@@ -27023,6 +27045,7 @@ var validator = {
   isAfter: _isAfter.default,
   isBefore: _isBefore.default,
   isIn: _isIn.default,
+  isLuhnNumber: _isLuhnNumber.default,
   isCreditCard: _isCreditCard.default,
   isIdentityCard: _isIdentityCard.default,
   isEAN: _isEAN.default,
@@ -27036,11 +27059,12 @@ var validator = {
   isEthereumAddress: _isEthereumAddress.default,
   isCurrency: _isCurrency.default,
   isBtcAddress: _isBtcAddress.default,
-  isISO8601: _isISO.default,
+  isISO6391: _isISO.default,
+  isISO8601: _isISO2.default,
   isRFC3339: _isRFC.default,
   isISO31661Alpha2: _isISO31661Alpha.default,
   isISO31661Alpha3: _isISO31661Alpha2.default,
-  isISO4217: _isISO2.default,
+  isISO4217: _isISO3.default,
   isBase32: _isBase.default,
   isBase58: _isBase2.default,
   isBase64: _isBase3.default,
@@ -27063,6 +27087,7 @@ var validator = {
   isStrongPassword: _isStrongPassword.default,
   isTaxID: _isTaxID.default,
   isDate: _isDate.default,
+  isTime: _isTime.default,
   isLicensePlate: _isLicensePlate.default,
   isVAT: _isVAT.default,
   ibanLocales: _isIBAN.locales
@@ -27083,7 +27108,7 @@ module.exports["default"] = exports.default;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.commaDecimal = exports.dotDecimal = exports.farsiLocales = exports.arabicLocales = exports.englishLocales = exports.decimal = exports.alphanumeric = exports.alpha = void 0;
+exports.commaDecimal = exports.dotDecimal = exports.bengaliLocales = exports.farsiLocales = exports.arabicLocales = exports.englishLocales = exports.decimal = exports.alphanumeric = exports.alpha = void 0;
 var alpha = {
   'en-US': /^[A-Z]+$/i,
   'az-AZ': /^[A-VXYZÇƏĞİıÖŞÜ]+$/i,
@@ -27097,6 +27122,7 @@ var alpha = {
   'fi-FI': /^[A-ZÅÄÖ]+$/i,
   'fr-FR': /^[A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   'it-IT': /^[A-ZÀÉÈÌÎÓÒÙ]+$/i,
+  'ja-JP': /^[ぁ-んァ-ヶｦ-ﾟ一-龠ー・。、]+$/i,
   'nb-NO': /^[A-ZÆØÅ]+$/i,
   'nl-NL': /^[A-ZÁÉËÏÓÖÜÚ]+$/i,
   'nn-NO': /^[A-ZÆØÅ]+$/i,
@@ -27113,11 +27139,14 @@ var alpha = {
   'tr-TR': /^[A-ZÇĞİıÖŞÜ]+$/i,
   'uk-UA': /^[А-ЩЬЮЯЄIЇҐі]+$/i,
   'vi-VN': /^[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ]+$/i,
+  'ko-KR': /^[ㄱ-ㅎㅏ-ㅣ가-힣]*$/,
   'ku-IQ': /^[ئابپتجچحخدرڕزژسشعغفڤقکگلڵمنوۆھەیێيطؤثآإأكضصةظذ]+$/i,
   ar: /^[ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/,
   he: /^[א-ת]+$/,
   fa: /^['آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی']+$/i,
-  'hi-IN': /^[\u0900-\u0961]+[\u0972-\u097F]*$/i
+  bn: /^['ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣৰৱ৲৳৴৵৶৷৸৹৺৻']+$/,
+  'hi-IN': /^[\u0900-\u0961]+[\u0972-\u097F]*$/i,
+  'si-LK': /^[\u0D80-\u0DFF]+$/
 };
 exports.alpha = alpha;
 var alphanumeric = {
@@ -27132,6 +27161,7 @@ var alphanumeric = {
   'fi-FI': /^[0-9A-ZÅÄÖ]+$/i,
   'fr-FR': /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   'it-IT': /^[0-9A-ZÀÉÈÌÎÓÒÙ]+$/i,
+  'ja-JP': /^[0-9０-９ぁ-んァ-ヶｦ-ﾟ一-龠ー・。、]+$/i,
   'hu-HU': /^[0-9A-ZÁÉÍÓÖŐÚÜŰ]+$/i,
   'nb-NO': /^[0-9A-ZÆØÅ]+$/i,
   'nl-NL': /^[0-9A-ZÁÉËÏÓÖÜÚ]+$/i,
@@ -27147,12 +27177,15 @@ var alphanumeric = {
   'th-TH': /^[ก-๙\s]+$/i,
   'tr-TR': /^[0-9A-ZÇĞİıÖŞÜ]+$/i,
   'uk-UA': /^[0-9А-ЩЬЮЯЄIЇҐі]+$/i,
+  'ko-KR': /^[0-9ㄱ-ㅎㅏ-ㅣ가-힣]*$/,
   'ku-IQ': /^[٠١٢٣٤٥٦٧٨٩0-9ئابپتجچحخدرڕزژسشعغفڤقکگلڵمنوۆھەیێيطؤثآإأكضصةظذ]+$/i,
   'vi-VN': /^[0-9A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ]+$/i,
   ar: /^[٠١٢٣٤٥٦٧٨٩0-9ءآأؤإئابةتثجحخدذرزسشصضطظعغفقكلمنهوىيًٌٍَُِّْٰ]+$/,
   he: /^[0-9א-ת]+$/,
   fa: /^['0-9آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی۱۲۳۴۵۶۷۸۹۰']+$/i,
-  'hi-IN': /^[\u0900-\u0963]+[\u0966-\u097F]*$/i
+  bn: /^['ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻']+$/,
+  'hi-IN': /^[\u0900-\u0963]+[\u0966-\u097F]*$/i,
+  'si-LK': /^[0-9\u0D80-\u0DFF]+$/
 };
 exports.alphanumeric = alphanumeric;
 var decimal = {
@@ -27188,20 +27221,30 @@ for (var _locale2, _i2 = 0; _i2 < farsiLocales.length; _i2++) {
   _locale2 = "fa-".concat(farsiLocales[_i2]);
   alphanumeric[_locale2] = alphanumeric.fa;
   decimal[_locale2] = decimal.ar;
+}
+
+var bengaliLocales = ['BD', 'IN'];
+exports.bengaliLocales = bengaliLocales;
+
+for (var _locale3, _i3 = 0; _i3 < bengaliLocales.length; _i3++) {
+  _locale3 = "bn-".concat(bengaliLocales[_i3]);
+  alpha[_locale3] = alpha.bn;
+  alphanumeric[_locale3] = alphanumeric.bn;
+  decimal[_locale3] = decimal['en-US'];
 } // Source: https://en.wikipedia.org/wiki/Decimal_mark
 
 
 var dotDecimal = ['ar-EG', 'ar-LB', 'ar-LY'];
 exports.dotDecimal = dotDecimal;
-var commaDecimal = ['bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-ZM', 'es-ES', 'fr-CA', 'fr-FR', 'id-ID', 'it-IT', 'ku-IQ', 'hi-IN', 'hu-HU', 'nb-NO', 'nn-NO', 'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'sl-SI', 'sr-RS@latin', 'sr-RS', 'sv-SE', 'tr-TR', 'uk-UA', 'vi-VN'];
+var commaDecimal = ['bg-BG', 'cs-CZ', 'da-DK', 'de-DE', 'el-GR', 'en-ZM', 'es-ES', 'fr-CA', 'fr-FR', 'id-ID', 'it-IT', 'ku-IQ', 'hi-IN', 'hu-HU', 'nb-NO', 'nn-NO', 'nl-NL', 'pl-PL', 'pt-PT', 'ru-RU', 'si-LK', 'sl-SI', 'sr-RS@latin', 'sr-RS', 'sv-SE', 'tr-TR', 'uk-UA', 'vi-VN'];
 exports.commaDecimal = commaDecimal;
 
-for (var _i3 = 0; _i3 < dotDecimal.length; _i3++) {
-  decimal[dotDecimal[_i3]] = decimal['en-US'];
+for (var _i4 = 0; _i4 < dotDecimal.length; _i4++) {
+  decimal[dotDecimal[_i4]] = decimal['en-US'];
 }
 
-for (var _i4 = 0; _i4 < commaDecimal.length; _i4++) {
-  decimal[commaDecimal[_i4]] = ',';
+for (var _i5 = 0; _i5 < commaDecimal.length; _i5++) {
+  decimal[commaDecimal[_i5]] = ',';
 }
 
 alpha['fr-CA'] = alpha['fr-FR'];
@@ -27344,17 +27387,16 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports["default"] = isAfter;
 
-var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
-
 var _toDate = _interopRequireDefault(__nccwpck_require__(3834));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function isAfter(str) {
-  var date = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : String(new Date());
-  (0, _assertString.default)(str);
-  var comparison = (0, _toDate.default)(date);
-  var original = (0, _toDate.default)(str);
+function isAfter(date, options) {
+  // For backwards compatibility:
+  // isAfter(str [, date]), i.e. `options` could be used as argument for the legacy `date`
+  var comparisonDate = (options === null || options === void 0 ? void 0 : options.comparisonDate) || options || Date().toString();
+  var comparison = (0, _toDate.default)(comparisonDate);
+  var original = (0, _toDate.default)(date);
   return !!(original && comparison && original > comparison);
 }
 
@@ -27510,7 +27552,9 @@ function isBIC(str) {
   (0, _assertString.default)(str); // toUpperCase() should be removed when a new major version goes out that changes
   // the regex to [A-Z] (per the spec).
 
-  if (!_isISO31661Alpha.CountryCodes.has(str.slice(4, 6).toUpperCase())) {
+  var countryCode = str.slice(4, 6).toUpperCase();
+
+  if (!_isISO31661Alpha.CountryCodes.has(countryCode) && countryCode !== 'XK') {
     return false;
   }
 
@@ -27535,12 +27579,24 @@ exports["default"] = isBase32;
 
 var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
+var _merge = _interopRequireDefault(__nccwpck_require__(9956));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var base32 = /^[A-Z2-7]+=*$/;
+var crockfordBase32 = /^[A-HJKMNP-TV-Z0-9]+$/;
+var defaultBase32Options = {
+  crockford: false
+};
 
-function isBase32(str) {
+function isBase32(str, options) {
   (0, _assertString.default)(str);
+  options = (0, _merge.default)(options, defaultBase32Options);
+
+  if (options.crockford) {
+    return crockfordBase32.test(str);
+  }
+
   var len = str.length;
 
   if (len % 8 === 0 && base32.test(str)) {
@@ -27715,18 +27771,12 @@ var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// supports Bech32 addresses
 var bech32 = /^(bc1)[a-z0-9]{25,39}$/;
 var base58 = /^(1|3)[A-HJ-NP-Za-km-z1-9]{25,39}$/;
 
 function isBtcAddress(str) {
-  (0, _assertString.default)(str); // check for bech32
-
-  if (str.startsWith('bc1')) {
-    return bech32.test(str);
-  }
-
-  return base58.test(str);
+  (0, _assertString.default)(str);
+  return bech32.test(str) || base58.test(str);
 }
 
 module.exports = exports.default;
@@ -27788,45 +27838,45 @@ exports["default"] = isCreditCard;
 
 var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
+var _isLuhnNumber = _interopRequireDefault(__nccwpck_require__(5912));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var cards = {
+  amex: /^3[47][0-9]{13}$/,
+  dinersclub: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/,
+  discover: /^6(?:011|5[0-9][0-9])[0-9]{12,15}$/,
+  jcb: /^(?:2131|1800|35\d{3})\d{11}$/,
+  mastercard: /^5[1-5][0-9]{2}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$/,
+  // /^[25][1-7][0-9]{14}$/;
+  unionpay: /^(6[27][0-9]{14}|^(81[0-9]{14,17}))$/,
+  visa: /^(?:4[0-9]{12})(?:[0-9]{3,6})?$/
+};
 /* eslint-disable max-len */
-var creditCard = /^(?:4[0-9]{12}(?:[0-9]{3,6})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12,15}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11}|6[27][0-9]{14}|^(81[0-9]{14,17}))$/;
+
+var allCards = /^(?:4[0-9]{12}(?:[0-9]{3,6})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12,15}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11}|6[27][0-9]{14}|^(81[0-9]{14,17}))$/;
 /* eslint-enable max-len */
 
-function isCreditCard(str) {
-  (0, _assertString.default)(str);
-  var sanitized = str.replace(/[- ]+/g, '');
+function isCreditCard(card) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  (0, _assertString.default)(card);
+  var provider = options.provider;
+  var sanitized = card.replace(/[- ]+/g, '');
 
-  if (!creditCard.test(sanitized)) {
+  if (provider && provider.toLowerCase() in cards) {
+    // specific provider in the list
+    if (!cards[provider.toLowerCase()].test(sanitized)) {
+      return false;
+    }
+  } else if (provider && !(provider.toLowerCase() in cards)) {
+    /* specific provider not in the list */
+    throw new Error("".concat(provider, " is not a valid credit card provider."));
+  } else if (!allCards.test(sanitized)) {
+    // no specific provider
     return false;
   }
 
-  var sum = 0;
-  var digit;
-  var tmpNum;
-  var shouldDouble;
-
-  for (var i = sanitized.length - 1; i >= 0; i--) {
-    digit = sanitized.substring(i, i + 1);
-    tmpNum = parseInt(digit, 10);
-
-    if (shouldDouble) {
-      tmpNum *= 2;
-
-      if (tmpNum >= 10) {
-        sum += tmpNum % 10 + 1;
-      } else {
-        sum += tmpNum;
-      }
-    } else {
-      sum += tmpNum;
-    }
-
-    shouldDouble = !shouldDouble;
-  }
-
-  return !!(sum % 10 === 0 ? sanitized : false);
+  return (0, _isLuhnNumber.default)(card);
 }
 
 module.exports = exports.default;
@@ -27947,7 +27997,7 @@ var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var validMediaType = /^[a-z]+\/[a-z0-9\-\+]+$/i;
+var validMediaType = /^[a-z]+\/[a-z0-9\-\+\._]+$/i;
 var validAttribute = /^[a-z\-]+=[a-z0-9\-]+$/i;
 var validData = /^[a-z0-9!\$&'\(\)\*\+,;=\-\._~:@\/\?%\s]*$/i;
 
@@ -27962,11 +28012,11 @@ function isDataURI(str) {
   var attributes = data.shift().trim().split(';');
   var schemeAndMediaType = attributes.shift();
 
-  if (schemeAndMediaType.substr(0, 5) !== 'data:') {
+  if (schemeAndMediaType.slice(0, 5) !== 'data:') {
     return false;
   }
 
-  var mediaType = schemeAndMediaType.substr(5);
+  var mediaType = schemeAndMediaType.slice(5);
 
   if (mediaType !== '' && !validMediaType.test(mediaType)) {
     return false;
@@ -28296,7 +28346,8 @@ var default_email_options = {
   require_tld: true,
   blacklisted_chars: '',
   ignore_max_length: false,
-  host_blacklist: []
+  host_blacklist: [],
+  host_whitelist: []
 };
 /* eslint-disable max-len */
 
@@ -28363,7 +28414,7 @@ function isEmail(str, options) {
       // the display name is `myname` instead of `myname `, so need to trim the last space
 
       if (display_name.endsWith(' ')) {
-        display_name = display_name.substr(0, display_name.length - 1);
+        display_name = display_name.slice(0, -1);
       }
 
       if (!validateDisplayName(display_name)) {
@@ -28383,6 +28434,10 @@ function isEmail(str, options) {
   var lower_domain = domain.toLowerCase();
 
   if (options.host_blacklist.includes(lower_domain)) {
+    return false;
+  }
+
+  if (options.host_whitelist.length > 0 && !options.host_whitelist.includes(lower_domain)) {
     return false;
   }
 
@@ -28425,7 +28480,8 @@ function isEmail(str, options) {
   }
 
   if (!(0, _isFQDN.default)(domain, {
-    require_tld: options.require_tld
+    require_tld: options.require_tld,
+    ignore_max_length: options.ignore_max_length
   })) {
     if (!options.allow_ip_domain) {
       return false;
@@ -28436,7 +28492,7 @@ function isEmail(str, options) {
         return false;
       }
 
-      var noBracketdomain = domain.substr(1, domain.length - 2);
+      var noBracketdomain = domain.slice(1, -1);
 
       if (noBracketdomain.length === 0 || !(0, _isIP.default)(noBracketdomain)) {
         return false;
@@ -28551,7 +28607,8 @@ var default_fqdn_options = {
   allow_underscores: false,
   allow_trailing_dot: false,
   allow_numeric_tld: false,
-  allow_wildcard: false
+  allow_wildcard: false,
+  ignore_max_length: false
 };
 
 function isFQDN(str, options) {
@@ -28578,7 +28635,7 @@ function isFQDN(str, options) {
       return false;
     }
 
-    if (!/^([a-z\u00A1-\u00A8\u00AA-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
+    if (!options.allow_numeric_tld && !/^([a-z\u00A1-\u00A8\u00AA-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
       return false;
     } // disallow spaces
 
@@ -28594,7 +28651,7 @@ function isFQDN(str, options) {
   }
 
   return parts.every(function (part) {
-    if (part.length > 63) {
+    if (part.length > 63 && !options.ignore_max_length) {
       return false;
     }
 
@@ -28648,7 +28705,7 @@ function isFloat(str, options) {
   options = options || {};
   var float = new RegExp("^(?:[-+])?(?:[0-9]+)?(?:\\".concat(options.locale ? _alpha.decimal[options.locale] : '.', "[0-9]*)?(?:[eE][\\+\\-]?(?:[0-9]+))?$"));
 
-  if (str === '' || str === '.' || str === '-' || str === '+') {
+  if (str === '' || str === '.' || str === ',' || str === '-' || str === '+') {
     return false;
   }
 
@@ -29129,18 +29186,11 @@ function isIP(str) {
   }
 
   if (version === '4') {
-    if (!IPv4AddressRegExp.test(str)) {
-      return false;
-    }
-
-    var parts = str.split('.').sort(function (a, b) {
-      return a - b;
-    });
-    return parts[3] <= 255;
+    return IPv4AddressRegExp.test(str);
   }
 
   if (version === '6') {
-    return !!IPv6AddressRegExp.test(str);
+    return IPv6AddressRegExp.test(str);
   }
 
   return false;
@@ -29235,52 +29285,56 @@ var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var isbn10Maybe = /^(?:[0-9]{9}X|[0-9]{10})$/;
-var isbn13Maybe = /^(?:[0-9]{13})$/;
+var possibleIsbn10 = /^(?:[0-9]{9}X|[0-9]{10})$/;
+var possibleIsbn13 = /^(?:[0-9]{13})$/;
 var factor = [1, 3];
 
-function isISBN(str) {
-  var version = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-  (0, _assertString.default)(str);
-  version = String(version);
+function isISBN(isbn, options) {
+  (0, _assertString.default)(isbn); // For backwards compatibility:
+  // isISBN(str [, version]), i.e. `options` could be used as argument for the legacy `version`
 
-  if (!version) {
-    return isISBN(str, 10) || isISBN(str, 13);
+  var version = String((options === null || options === void 0 ? void 0 : options.version) || options);
+
+  if (!(options !== null && options !== void 0 && options.version || options)) {
+    return isISBN(isbn, {
+      version: 10
+    }) || isISBN(isbn, {
+      version: 13
+    });
   }
 
-  var sanitized = str.replace(/[\s-]+/g, '');
+  var sanitizedIsbn = isbn.replace(/[\s-]+/g, '');
   var checksum = 0;
-  var i;
 
   if (version === '10') {
-    if (!isbn10Maybe.test(sanitized)) {
+    if (!possibleIsbn10.test(sanitizedIsbn)) {
       return false;
     }
 
-    for (i = 0; i < 9; i++) {
-      checksum += (i + 1) * sanitized.charAt(i);
+    for (var i = 0; i < version - 1; i++) {
+      checksum += (i + 1) * sanitizedIsbn.charAt(i);
     }
 
-    if (sanitized.charAt(9) === 'X') {
+    if (sanitizedIsbn.charAt(9) === 'X') {
       checksum += 10 * 10;
     } else {
-      checksum += 10 * sanitized.charAt(9);
+      checksum += 10 * sanitizedIsbn.charAt(9);
     }
 
     if (checksum % 11 === 0) {
-      return !!sanitized;
+      return true;
     }
   } else if (version === '13') {
-    if (!isbn13Maybe.test(sanitized)) {
+    if (!possibleIsbn13.test(sanitizedIsbn)) {
       return false;
     }
 
-    for (i = 0; i < 12; i++) {
-      checksum += factor[i % 2] * sanitized.charAt(i);
+    for (var _i = 0; _i < 12; _i++) {
+      checksum += factor[_i % 2] * sanitizedIsbn.charAt(_i);
     }
 
-    if (sanitized.charAt(12) - (10 - checksum % 10) % 10 === 0) {
-      return !!sanitized;
+    if (sanitizedIsbn.charAt(12) - (10 - checksum % 10) % 10 === 0) {
+      return true;
     }
   }
 
@@ -29455,6 +29509,33 @@ function isISO4217(str) {
 
 var CurrencyCodes = validISO4217CurrencyCodes;
 exports.CurrencyCodes = CurrencyCodes;
+
+/***/ }),
+
+/***/ 7242:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = isISO6391;
+
+var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var isISO6391Set = new Set(['aa', 'ab', 'ae', 'af', 'ak', 'am', 'an', 'ar', 'as', 'av', 'ay', 'az', 'az', 'ba', 'be', 'bg', 'bh', 'bi', 'bm', 'bn', 'bo', 'br', 'bs', 'ca', 'ce', 'ch', 'co', 'cr', 'cs', 'cu', 'cv', 'cy', 'da', 'de', 'dv', 'dz', 'ee', 'el', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'ff', 'fi', 'fj', 'fo', 'fr', 'fy', 'ga', 'gd', 'gl', 'gn', 'gu', 'gv', 'ha', 'he', 'hi', 'ho', 'hr', 'ht', 'hu', 'hy', 'hz', 'ia', 'id', 'ie', 'ig', 'ii', 'ik', 'io', 'is', 'it', 'iu', 'ja', 'jv', 'ka', 'kg', 'ki', 'kj', 'kk', 'kl', 'km', 'kn', 'ko', 'kr', 'ks', 'ku', 'kv', 'kw', 'ky', 'la', 'lb', 'lg', 'li', 'ln', 'lo', 'lt', 'lu', 'lv', 'mg', 'mh', 'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'na', 'nb', 'nd', 'ne', 'ng', 'nl', 'nn', 'no', 'nr', 'nv', 'ny', 'oc', 'oj', 'om', 'or', 'os', 'pa', 'pi', 'pl', 'ps', 'pt', 'qu', 'rm', 'rn', 'ro', 'ru', 'rw', 'sa', 'sc', 'sd', 'se', 'sg', 'si', 'sk', 'sl', 'sm', 'sn', 'so', 'sq', 'sr', 'ss', 'st', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'ti', 'tk', 'tl', 'tn', 'to', 'tr', 'ts', 'tt', 'tw', 'ty', 'ug', 'uk', 'ur', 'uz', 've', 'vi', 'vo', 'wa', 'wo', 'xh', 'yi', 'yo', 'za', 'zh', 'zu']);
+
+function isISO6391(str) {
+  (0, _assertString.default)(str);
+  return isISO6391Set.has(str);
+}
+
+module.exports = exports.default;
+module.exports["default"] = exports.default;
 
 /***/ }),
 
@@ -29709,13 +29790,13 @@ var validators = {
   },
   IR: function IR(str) {
     if (!str.match(/^\d{10}$/)) return false;
-    str = "0000".concat(str).substr(str.length - 6);
-    if (parseInt(str.substr(3, 6), 10) === 0) return false;
-    var lastNumber = parseInt(str.substr(9, 1), 10);
+    str = "0000".concat(str).slice(str.length - 6);
+    if (parseInt(str.slice(3, 9), 10) === 0) return false;
+    var lastNumber = parseInt(str.slice(9, 10), 10);
     var sum = 0;
 
     for (var i = 0; i < 9; i++) {
-      sum += parseInt(str.substr(i, 1), 10) * (10 - i);
+      sum += parseInt(str.slice(i, i + 1), 10) * (10 - i);
     }
 
     sum %= 11;
@@ -29911,6 +29992,32 @@ var validators = {
     };
 
     return checkIdCardNo(str);
+  },
+  'zh-HK': function zhHK(str) {
+    // sanitize user input
+    str = str.trim(); // HKID number starts with 1 or 2 letters, followed by 6 digits,
+    // then a checksum contained in square / round brackets or nothing
+
+    var regexHKID = /^[A-Z]{1,2}[0-9]{6}((\([0-9A]\))|(\[[0-9A]\])|([0-9A]))$/;
+    var regexIsDigit = /^[0-9]$/; // convert the user input to all uppercase and apply regex
+
+    str = str.toUpperCase();
+    if (!regexHKID.test(str)) return false;
+    str = str.replace(/\[|\]|\(|\)/g, '');
+    if (str.length === 8) str = "3".concat(str);
+    var checkSumVal = 0;
+
+    for (var i = 0; i <= 7; i++) {
+      var convertedChar = void 0;
+      if (!regexIsDigit.test(str[i])) convertedChar = (str[i].charCodeAt(0) - 55) % 11;else convertedChar = str[i];
+      checkSumVal += convertedChar * (9 - i);
+    }
+
+    checkSumVal %= 11;
+    var checkSumConverted;
+    if (checkSumVal === 0) checkSumConverted = '0';else if (checkSumVal === 1) checkSumConverted = 'A';else checkSumConverted = String(11 - checkSumVal);
+    if (checkSumConverted === str[str.length - 1]) return true;
+    return false;
   },
   'zh-TW': function zhTW(str) {
     var ALPHABET_CODES = {
@@ -30235,8 +30342,9 @@ function isLength(str, options) {
     max = arguments[2];
   }
 
+  var presentationSequences = str.match(/(\uFE0F|\uFE0E)/g) || [];
   var surrogatePairs = str.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g) || [];
-  var len = str.length - surrogatePairs.length;
+  var len = str.length - presentationSequences.length - surrogatePairs.length;
   return len >= min && (typeof max === 'undefined' || len <= max);
 }
 
@@ -30262,16 +30370,28 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var validators = {
   'cs-CZ': function csCZ(str) {
-    return /^(([ABCDEFHKIJKLMNPRSTUVXYZ]|[0-9])-?){5,8}$/.test(str);
+    return /^(([ABCDEFHIJKLMNPRSTUVXYZ]|[0-9])-?){5,8}$/.test(str);
   },
   'de-DE': function deDE(str) {
-    return /^((AW|UL|AK|GA|AÖ|LF|AZ|AM|AS|ZE|AN|AB|A|KG|KH|BA|EW|BZ|HY|KM|BT|HP|B|BC|BI|BO|FN|TT|ÜB|BN|AH|BS|FR|HB|ZZ|BB|BK|BÖ|OC|OK|CW|CE|C|CO|LH|CB|KW|LC|LN|DA|DI|DE|DH|SY|NÖ|DO|DD|DU|DN|D|EI|EA|EE|FI|EM|EL|EN|PF|ED|EF|ER|AU|ZP|E|ES|NT|EU|FL|FO|FT|FF|F|FS|FD|FÜ|GE|G|GI|GF|GS|ZR|GG|GP|GR|NY|ZI|GÖ|GZ|GT|HA|HH|HM|HU|WL|HZ|WR|RN|HK|HD|HN|HS|GK|HE|HF|RZ|HI|HG|HO|HX|IK|IL|IN|J|JL|KL|KA|KS|KF|KE|KI|KT|KO|KN|KR|KC|KU|K|LD|LL|LA|L|OP|LM|LI|LB|LU|LÖ|HL|LG|MD|GN|MZ|MA|ML|MR|MY|AT|DM|MC|NZ|RM|RG|MM|ME|MB|MI|FG|DL|HC|MW|RL|MK|MG|MÜ|WS|MH|M|MS|NU|NB|ND|NM|NK|NW|NR|NI|NF|DZ|EB|OZ|TG|TO|N|OA|GM|OB|CA|EH|FW|OF|OL|OE|OG|BH|LR|OS|AA|GD|OH|KY|NP|WK|PB|PA|PE|PI|PS|P|PM|PR|RA|RV|RE|R|H|SB|WN|RS|RD|RT|BM|NE|GV|RP|SU|GL|RO|GÜ|RH|EG|RW|PN|SK|MQ|RU|SZ|RI|SL|SM|SC|HR|FZ|VS|SW|SN|CR|SE|SI|SO|LP|SG|NH|SP|IZ|ST|BF|TE|HV|OD|SR|S|AC|DW|ZW|TF|TS|TR|TÜ|UM|PZ|TP|UE|UN|UH|MN|KK|VB|V|AE|PL|RC|VG|GW|PW|VR|VK|KB|WA|WT|BE|WM|WE|AP|MO|WW|FB|WZ|WI|WB|JE|WF|WO|W|WÜ|BL|Z|GC)[- ]?[A-Z]{1,2}[- ]?\d{1,4}|(AIC|FDB|ABG|SLN|SAW|KLZ|BUL|ESB|NAB|SUL|WST|ABI|AZE|BTF|KÖT|DKB|FEU|ROT|ALZ|SMÜ|WER|AUR|NOR|DÜW|BRK|HAB|TÖL|WOR|BAD|BAR|BER|BIW|EBS|KEM|MÜB|PEG|BGL|BGD|REI|WIL|BKS|BIR|WAT|BOR|BOH|BOT|BRB|BLK|HHM|NEB|NMB|WSF|LEO|HDL|WMS|WZL|BÜS|CHA|KÖZ|ROD|WÜM|CLP|NEC|COC|ZEL|COE|CUX|DAH|LDS|DEG|DEL|RSL|DLG|DGF|LAN|HEI|MED|DON|KIB|ROK|JÜL|MON|SLE|EBE|EIC|HIG|WBS|BIT|PRÜ|LIB|EMD|WIT|ERH|HÖS|ERZ|ANA|ASZ|MAB|MEK|STL|SZB|FDS|HCH|HOR|WOL|FRG|GRA|WOS|FRI|FFB|GAP|GER|BRL|CLZ|GTH|NOH|HGW|GRZ|LÖB|NOL|WSW|DUD|HMÜ|OHA|KRU|HAL|HAM|HBS|QLB|HVL|NAU|HAS|EBN|GEO|HOH|HDH|ERK|HER|WAN|HEF|ROF|HBN|ALF|HSK|USI|NAI|REH|SAN|KÜN|ÖHR|HOL|WAR|ARN|BRG|GNT|HOG|WOH|KEH|MAI|PAR|RID|ROL|KLE|GEL|KUS|KYF|ART|SDH|LDK|DIL|MAL|VIB|LER|BNA|GHA|GRM|MTL|WUR|LEV|LIF|STE|WEL|LIP|VAI|LUP|HGN|LBZ|LWL|PCH|STB|DAN|MKK|SLÜ|MSP|TBB|MGH|MTK|BIN|MSH|EIL|HET|SGH|BID|MYK|MSE|MST|MÜR|WRN|MEI|GRH|RIE|MZG|MIL|OBB|BED|FLÖ|MOL|FRW|SEE|SRB|AIB|MOS|BCH|ILL|SOB|NMS|NEA|SEF|UFF|NEW|VOH|NDH|TDO|NWM|GDB|GVM|WIS|NOM|EIN|GAN|LAU|HEB|OHV|OSL|SFB|ERB|LOS|BSK|KEL|BSB|MEL|WTL|OAL|FÜS|MOD|OHZ|OPR|BÜR|PAF|PLÖ|CAS|GLA|REG|VIT|ECK|SIM|GOA|EMS|DIZ|GOH|RÜD|SWA|NES|KÖN|MET|LRO|BÜZ|DBR|ROS|TET|HRO|ROW|BRV|HIP|PAN|GRI|SHK|EIS|SRO|SOK|LBS|SCZ|MER|QFT|SLF|SLS|HOM|SLK|ASL|BBG|SBK|SFT|SHG|MGN|MEG|ZIG|SAD|NEN|OVI|SHA|BLB|SIG|SON|SPN|FOR|GUB|SPB|IGB|WND|STD|STA|SDL|OBG|HST|BOG|SHL|PIR|FTL|SEB|SÖM|SÜW|TIR|SAB|TUT|ANG|SDT|LÜN|LSZ|MHL|VEC|VER|VIE|OVL|ANK|OVP|SBG|UEM|UER|WLG|GMN|NVP|RDG|RÜG|DAU|FKB|WAF|WAK|SLZ|WEN|SOG|APD|WUG|GUN|ESW|WIZ|WES|DIN|BRA|BÜD|WHV|HWI|GHC|WTM|WOB|WUN|MAK|SEL|OCH|HOT|WDA)[- ]?(([A-Z][- ]?\d{1,4})|([A-Z]{2}[- ]?\d{1,3})))[- ]?(E|H)?$/.test(str);
+    return /^((A|AA|AB|AC|AE|AH|AK|AM|AN|AÖ|AP|AS|AT|AU|AW|AZ|B|BA|BB|BC|BE|BF|BH|BI|BK|BL|BM|BN|BO|BÖ|BS|BT|BZ|C|CA|CB|CE|CO|CR|CW|D|DA|DD|DE|DH|DI|DL|DM|DN|DO|DU|DW|DZ|E|EA|EB|ED|EE|EF|EG|EH|EI|EL|EM|EN|ER|ES|EU|EW|F|FB|FD|FF|FG|FI|FL|FN|FO|FR|FS|FT|FÜ|FW|FZ|G|GA|GC|GD|GE|GF|GG|GI|GK|GL|GM|GN|GÖ|GP|GR|GS|GT|GÜ|GV|GW|GZ|H|HA|HB|HC|HD|HE|HF|HG|HH|HI|HK|HL|HM|HN|HO|HP|HR|HS|HU|HV|HX|HY|HZ|IK|IL|IN|IZ|J|JE|JL|K|KA|KB|KC|KE|KF|KG|KH|KI|KK|KL|KM|KN|KO|KR|KS|KT|KU|KW|KY|L|LA|LB|LC|LD|LF|LG|LH|LI|LL|LM|LN|LÖ|LP|LR|LU|M|MA|MB|MC|MD|ME|MG|MH|MI|MK|ML|MM|MN|MO|MQ|MR|MS|MÜ|MW|MY|MZ|N|NB|ND|NE|NF|NH|NI|NK|NM|NÖ|NP|NR|NT|NU|NW|NY|NZ|OA|OB|OC|OD|OE|OF|OG|OH|OK|OL|OP|OS|OZ|P|PA|PB|PE|PF|PI|PL|PM|PN|PR|PS|PW|PZ|R|RA|RC|RD|RE|RG|RH|RI|RL|RM|RN|RO|RP|RS|RT|RU|RV|RW|RZ|S|SB|SC|SE|SG|SI|SK|SL|SM|SN|SO|SP|SR|ST|SU|SW|SY|SZ|TE|TF|TG|TO|TP|TR|TS|TT|TÜ|ÜB|UE|UH|UL|UM|UN|V|VB|VG|VK|VR|VS|W|WA|WB|WE|WF|WI|WK|WL|WM|WN|WO|WR|WS|WT|WÜ|WW|WZ|Z|ZE|ZI|ZP|ZR|ZW|ZZ)[- ]?[A-Z]{1,2}[- ]?\d{1,4}|(ABG|ABI|AIB|AIC|ALF|ALZ|ANA|ANG|ANK|APD|ARN|ART|ASL|ASZ|AUR|AZE|BAD|BAR|BBG|BCH|BED|BER|BGD|BGL|BID|BIN|BIR|BIT|BIW|BKS|BLB|BLK|BNA|BOG|BOH|BOR|BOT|BRA|BRB|BRG|BRK|BRL|BRV|BSB|BSK|BTF|BÜD|BUL|BÜR|BÜS|BÜZ|CAS|CHA|CLP|CLZ|COC|COE|CUX|DAH|DAN|DAU|DBR|DEG|DEL|DGF|DIL|DIN|DIZ|DKB|DLG|DON|DUD|DÜW|EBE|EBN|EBS|ECK|EIC|EIL|EIN|EIS|EMD|EMS|ERB|ERH|ERK|ERZ|ESB|ESW|FDB|FDS|FEU|FFB|FKB|FLÖ|FOR|FRG|FRI|FRW|FTL|FÜS|GAN|GAP|GDB|GEL|GEO|GER|GHA|GHC|GLA|GMN|GNT|GOA|GOH|GRA|GRH|GRI|GRM|GRZ|GTH|GUB|GUN|GVM|HAB|HAL|HAM|HAS|HBN|HBS|HCH|HDH|HDL|HEB|HEF|HEI|HER|HET|HGN|HGW|HHM|HIG|HIP|HMÜ|HOG|HOH|HOL|HOM|HOR|HÖS|HOT|HRO|HSK|HST|HVL|HWI|IGB|ILL|JÜL|KEH|KEL|KEM|KIB|KLE|KLZ|KÖN|KÖT|KÖZ|KRU|KÜN|KUS|KYF|LAN|LAU|LBS|LBZ|LDK|LDS|LEO|LER|LEV|LIB|LIF|LIP|LÖB|LOS|LRO|LSZ|LÜN|LUP|LWL|MAB|MAI|MAK|MAL|MED|MEG|MEI|MEK|MEL|MER|MET|MGH|MGN|MHL|MIL|MKK|MOD|MOL|MON|MOS|MSE|MSH|MSP|MST|MTK|MTL|MÜB|MÜR|MYK|MZG|NAB|NAI|NAU|NDH|NEA|NEB|NEC|NEN|NES|NEW|NMB|NMS|NOH|NOL|NOM|NOR|NVP|NWM|OAL|OBB|OBG|OCH|OHA|ÖHR|OHV|OHZ|OPR|OSL|OVI|OVL|OVP|PAF|PAN|PAR|PCH|PEG|PIR|PLÖ|PRÜ|QFT|QLB|RDG|REG|REH|REI|RID|RIE|ROD|ROF|ROK|ROL|ROS|ROT|ROW|RSL|RÜD|RÜG|SAB|SAD|SAN|SAW|SBG|SBK|SCZ|SDH|SDL|SDT|SEB|SEE|SEF|SEL|SFB|SFT|SGH|SHA|SHG|SHK|SHL|SIG|SIM|SLE|SLF|SLK|SLN|SLS|SLÜ|SLZ|SMÜ|SOB|SOG|SOK|SÖM|SON|SPB|SPN|SRB|SRO|STA|STB|STD|STE|STL|SUL|SÜW|SWA|SZB|TBB|TDO|TET|TIR|TÖL|TUT|UEM|UER|UFF|USI|VAI|VEC|VER|VIB|VIE|VIT|VOH|WAF|WAK|WAN|WAR|WAT|WBS|WDA|WEL|WEN|WER|WES|WHV|WIL|WIS|WIT|WIZ|WLG|WMS|WND|WOB|WOH|WOL|WOR|WOS|WRN|WSF|WST|WSW|WTL|WTM|WUG|WÜM|WUN|WUR|WZL|ZEL|ZIG)[- ]?(([A-Z][- ]?\d{1,4})|([A-Z]{2}[- ]?\d{1,3})))[- ]?(E|H)?$/.test(str);
   },
   'de-LI': function deLI(str) {
     return /^FL[- ]?\d{1,5}[UZ]?$/.test(str);
   },
+  'en-IN': function enIN(str) {
+    return /^[A-Z]{2}[ -]?[0-9]{1,2}(?:[ -]?[A-Z])(?:[ -]?[A-Z]*)?[ -]?[0-9]{4}$/.test(str);
+  },
+  'es-AR': function esAR(str) {
+    return /^(([A-Z]{2} ?[0-9]{3} ?[A-Z]{2})|([A-Z]{3} ?[0-9]{3}))$/.test(str);
+  },
   'fi-FI': function fiFI(str) {
     return /^(?=.{4,7})(([A-Z]{1,3}|[0-9]{1,3})[\s-]?([A-Z]{1,3}|[0-9]{1,5}))$/.test(str);
+  },
+  'hu-HU': function huHU(str) {
+    return /^((((?!AAA)(([A-NPRSTVZWXY]{1})([A-PR-Z]{1})([A-HJ-NPR-Z]))|(A[ABC]I)|A[ABC]O|A[A-W]Q|BPI|BPO|UCO|UDO|XAO)-(?!000)\d{3})|(M\d{6})|((CK|DT|CD|HC|H[ABEFIKLMNPRSTVX]|MA|OT|R[A-Z]) \d{2}-\d{2})|(CD \d{3}-\d{3})|(C-(C|X) \d{4})|(X-(A|B|C) \d{4})|(([EPVZ]-\d{5}))|(S A[A-Z]{2} \d{2})|(SP \d{2}-\d{2}))$/.test(str);
+  },
+  'pt-BR': function ptBR(str) {
+    return /^[A-Z]{3}[ -]?[0-9][A-Z][0-9]{2}|[A-Z]{3}[ -]?[0-9]{4}$/.test(str);
   },
   'pt-PT': function ptPT(str) {
     return /^([A-Z]{2}|[0-9]{2})[ -·]?([A-Z]{2}|[0-9]{2})[ -·]?([A-Z]{2}|[0-9]{2})$/.test(str);
@@ -30279,8 +30399,8 @@ var validators = {
   'sq-AL': function sqAL(str) {
     return /^[A-Z]{2}[- ]?((\d{3}[- ]?(([A-Z]{2})|T))|(R[- ]?\d{3}))$/.test(str);
   },
-  'pt-BR': function ptBR(str) {
-    return /^[A-Z]{3}[ -]?[0-9][A-Z][0-9]{2}|[A-Z]{3}[ -]?[0-9]{4}$/.test(str);
+  'sv-SE': function svSE(str) {
+    return /^[A-HJ-PR-UW-Z]{3} ?[\d]{2}[A-HJ-PR-UW-Z1-9]$|(^[A-ZÅÄÖ ]{2,7}$)/.test(str.trim());
   }
 };
 
@@ -30367,6 +30487,56 @@ module.exports["default"] = exports.default;
 
 /***/ }),
 
+/***/ 5912:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = isLuhnNumber;
+
+var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function isLuhnNumber(str) {
+  (0, _assertString.default)(str);
+  var sanitized = str.replace(/[- ]+/g, '');
+  var sum = 0;
+  var digit;
+  var tmpNum;
+  var shouldDouble;
+
+  for (var i = sanitized.length - 1; i >= 0; i--) {
+    digit = sanitized.substring(i, i + 1);
+    tmpNum = parseInt(digit, 10);
+
+    if (shouldDouble) {
+      tmpNum *= 2;
+
+      if (tmpNum >= 10) {
+        sum += tmpNum % 10 + 1;
+      } else {
+        sum += tmpNum;
+      }
+    } else {
+      sum += tmpNum;
+    }
+
+    shouldDouble = !shouldDouble;
+  }
+
+  return !!(sum % 10 === 0 ? sanitized : false);
+}
+
+module.exports = exports.default;
+module.exports["default"] = exports.default;
+
+/***/ }),
+
 /***/ 7912:
 /***/ ((module, exports, __nccwpck_require__) => {
 
@@ -30382,21 +30552,49 @@ var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var macAddress = /^(?:[0-9a-fA-F]{2}([-:\s]))([0-9a-fA-F]{2}\1){4}([0-9a-fA-F]{2})$/;
-var macAddressNoSeparators = /^([0-9a-fA-F]){12}$/;
-var macAddressWithDots = /^([0-9a-fA-F]{4}\.){2}([0-9a-fA-F]{4})$/;
+var macAddress48 = /^(?:[0-9a-fA-F]{2}([-:\s]))([0-9a-fA-F]{2}\1){4}([0-9a-fA-F]{2})$/;
+var macAddress48NoSeparators = /^([0-9a-fA-F]){12}$/;
+var macAddress48WithDots = /^([0-9a-fA-F]{4}\.){2}([0-9a-fA-F]{4})$/;
+var macAddress64 = /^(?:[0-9a-fA-F]{2}([-:\s]))([0-9a-fA-F]{2}\1){6}([0-9a-fA-F]{2})$/;
+var macAddress64NoSeparators = /^([0-9a-fA-F]){16}$/;
+var macAddress64WithDots = /^([0-9a-fA-F]{4}\.){3}([0-9a-fA-F]{4})$/;
 
 function isMACAddress(str, options) {
   (0, _assertString.default)(str);
+
+  if (options !== null && options !== void 0 && options.eui) {
+    options.eui = String(options.eui);
+  }
   /**
    * @deprecated `no_colons` TODO: remove it in the next major
   */
 
-  if (options && (options.no_colons || options.no_separators)) {
-    return macAddressNoSeparators.test(str);
+
+  if (options !== null && options !== void 0 && options.no_colons || options !== null && options !== void 0 && options.no_separators) {
+    if (options.eui === '48') {
+      return macAddress48NoSeparators.test(str);
+    }
+
+    if (options.eui === '64') {
+      return macAddress64NoSeparators.test(str);
+    }
+
+    return macAddress48NoSeparators.test(str) || macAddress64NoSeparators.test(str);
   }
 
-  return macAddress.test(str) || macAddressWithDots.test(str);
+  if ((options === null || options === void 0 ? void 0 : options.eui) === '48') {
+    return macAddress48.test(str) || macAddress48WithDots.test(str);
+  }
+
+  if ((options === null || options === void 0 ? void 0 : options.eui) === '64') {
+    return macAddress64.test(str) || macAddress64WithDots.test(str);
+  }
+
+  return isMACAddress(str, {
+    eui: '48'
+  }) || isMACAddress(str, {
+    eui: '64'
+  });
 }
 
 module.exports = exports.default;
@@ -30446,11 +30644,16 @@ var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var magnetURI = /^magnet:\?xt(?:\.1)?=urn:(?:aich|bitprint|btih|ed2k|ed2khash|kzhash|md5|sha1|tree:tiger):[a-z0-9]{32}(?:[a-z0-9]{8})?($|&)/i;
+var magnetURIComponent = /(?:^magnet:\?|[^?&]&)xt(?:\.1)?=urn:(?:(?:aich|bitprint|btih|ed2k|ed2khash|kzhash|md5|sha1|tree:tiger):[a-z0-9]{32}(?:[a-z0-9]{8})?|btmh:1220[a-z0-9]{64})(?:$|&)/i;
 
 function isMagnetURI(url) {
   (0, _assertString.default)(url);
-  return magnetURI.test(url.trim());
+
+  if (url.indexOf('magnet:?') !== 0) {
+    return false;
+  }
+
+  return magnetURIComponent.test(url);
 }
 
 module.exports = exports.default;
@@ -30498,7 +30701,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // NB :
 //   Subtype length must not exceed 100 characters.
 //   This rule does not comply to the RFC specs (what is the max length ?).
-var mimeTypeSimple = /^(application|audio|font|image|message|model|multipart|text|video)\/[a-zA-Z0-9\.\-\+]{1,100}$/i; // eslint-disable-line max-len
+var mimeTypeSimple = /^(application|audio|font|image|message|model|multipart|text|video)\/[a-zA-Z0-9\.\-\+_]{1,100}$/i; // eslint-disable-line max-len
 // Handle "charset" in "text/*"
 
 var mimeTypeText = /^text\/[a-zA-Z0-9\.\-\+]{1,100};\s?charset=("[a-zA-Z0-9\.\-\+\s]{0,70}"|[a-zA-Z0-9\.\-\+]{0,70})(\s?\([a-zA-Z0-9\.\-\+\s]{1,20}\))?$/i; // eslint-disable-line max-len
@@ -30542,7 +30745,7 @@ var phones = {
   'ar-EG': /^((\+?20)|0)?1[0125]\d{8}$/,
   'ar-IQ': /^(\+?964|0)?7[0-9]\d{8}$/,
   'ar-JO': /^(\+?962|0)?7[789]\d{7}$/,
-  'ar-KW': /^(\+?965)[569]\d{7}$/,
+  'ar-KW': /^(\+?965)([569]\d{7}|41\d{6})$/,
   'ar-LY': /^((\+?218)|0)?(9[1-6]\d{7}|[1-8]\d{7,9})$/,
   'ar-MA': /^(?:(?:\+|00)212|0)[5-7]\d{8}$/,
   'ar-OM': /^((\+|00)968)?(9[1-9])\d{6}$/,
@@ -30550,7 +30753,7 @@ var phones = {
   'ar-SA': /^(!?(\+?966)|0)?5\d{8}$/,
   'ar-SY': /^(!?(\+?963)|0)?9\d{8}$/,
   'ar-TN': /^(\+?216)?[2459]\d{7}$/,
-  'az-AZ': /^(\+994|0)(5[015]|7[07]|99)\d{7}$/,
+  'az-AZ': /^(\+994|0)(10|5[015]|7[07]|99)\d{7}$/,
   'bs-BA': /^((((\+|00)3876)|06))((([0-3]|[5-6])\d{6})|(4\d{7}))$/,
   'be-BY': /^(\+?375)?(24|25|29|33|44)\d{7}$/,
   'bg-BG': /^(\+?359|0)?8[789]\d{7}$/,
@@ -30558,14 +30761,18 @@ var phones = {
   'ca-AD': /^(\+376)?[346]\d{5}$/,
   'cs-CZ': /^(\+?420)? ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/,
   'da-DK': /^(\+?45)?\s?\d{2}\s?\d{2}\s?\d{2}\s?\d{2}$/,
-  'de-DE': /^((\+49|0)[1|3])([0|5][0-45-9]\d|6([23]|0\d?)|7([0-57-9]|6\d))\d{7,9}$/,
+  'de-DE': /^((\+49|0)1)(5[0-25-9]\d|6([23]|0\d?)|7([0-57-9]|6\d))\d{7,9}$/,
   'de-AT': /^(\+43|0)\d{1,4}\d{3,12}$/,
   'de-CH': /^(\+41|0)([1-9])\d{1,9}$/,
   'de-LU': /^(\+352)?((6\d1)\d{6})$/,
-  'dv-MV': /^(\+?960)?(7[2-9]|91|9[3-9])\d{7}$/,
-  'el-GR': /^(\+?30|0)?(69\d{8})$/,
+  'dv-MV': /^(\+?960)?(7[2-9]|9[1-9])\d{5}$/,
+  'el-GR': /^(\+?30|0)?6(8[5-9]|9(?![26])[0-9])\d{7}$/,
+  'el-CY': /^(\+?357?)?(9(9|6)\d{6})$/,
+  'en-AI': /^(\+?1|0)264(?:2(35|92)|4(?:6[1-2]|76|97)|5(?:3[6-9]|8[1-4])|7(?:2(4|9)|72))\d{4}$/,
   'en-AU': /^(\+?61|0)4\d{8}$/,
-  'en-BM': /^(\+?1)?441(((3|7)\d{6}$)|(5[0-3][0-9]\d{4}$)|(59\d{5}))/,
+  'en-AG': /^(?:\+1|1)268(?:464|7(?:1[3-9]|[28]\d|3[0246]|64|7[0-689]))\d{4}$/,
+  'en-BM': /^(\+?1)?441(((3|7)\d{6}$)|(5[0-3][0-9]\d{4}$)|(59\d{5}$))/,
+  'en-BS': /^(\+?1[-\s]?|0)?\(?242\)?[-\s]?\d{3}[-\s]?\d{4}$/,
   'en-GB': /^(\+?44|0)7\d{9}$/,
   'en-GG': /^(\+?44|0)1481\d{6}$/,
   'en-GH': /^(\+233|0)(20|50|24|54|27|57|26|56|23|28|55|59)\d{7}$/,
@@ -30574,13 +30781,18 @@ var phones = {
   'en-MO': /^(\+?853[-\s]?)?[6]\d{3}[-\s]?\d{4}$/,
   'en-IE': /^(\+?353|0)8[356789]\d{7}$/,
   'en-IN': /^(\+?91|0)?[6789]\d{9}$/,
+  'en-JM': /^(\+?876)?\d{7}$/,
   'en-KE': /^(\+?254|0)(7|1)\d{8}$/,
+  'en-SS': /^(\+?211|0)(9[1257])\d{7}$/,
   'en-KI': /^((\+686|686)?)?( )?((6|7)(2|3|8)[0-9]{6})$/,
+  'en-KN': /^(?:\+1|1)869(?:46\d|48[89]|55[6-8]|66\d|76[02-7])\d{4}$/,
+  'en-LS': /^(\+?266)(22|28|57|58|59|27|52)\d{6}$/,
   'en-MT': /^(\+?356|0)?(99|79|77|21|27|22|25)[0-9]{6}$/,
   'en-MU': /^(\+?230|0)?\d{8}$/,
   'en-NA': /^(\+?264|0)(6|8)\d{7}$/,
   'en-NG': /^(\+?234|0)?[789]\d{9}$/,
   'en-NZ': /^(\+?64|0)[28]\d{7,9}$/,
+  'en-PG': /^(\+?675|0)?(7\d|8[18])\d{6}$/,
   'en-PK': /^((00|\+)?92|0)3[0-6]\d{8}$/,
   'en-PH': /^(09|\+639)\d{9}$/,
   'en-RW': /^(\+?250|0)?[7]\d{8}$/,
@@ -30600,11 +30812,12 @@ var phones = {
   'es-CR': /^(\+506)?[2-8]\d{7}$/,
   'es-CU': /^(\+53|0053)?5\d{7}/,
   'es-DO': /^(\+?1)?8[024]9\d{7}$/,
-  'es-HN': /^(\+?504)?[9|8]\d{7}$/,
+  'es-HN': /^(\+?504)?[9|8|3|2]\d{7}$/,
   'es-EC': /^(\+?593|0)([2-7]|9[2-9])\d{7}$/,
   'es-ES': /^(\+?34)?[6|7]\d{8}$/,
   'es-PE': /^(\+?51)?9\d{8}$/,
   'es-MX': /^(\+?52)?(1|01)?\d{10,11}$/,
+  'es-NI': /^(\+?505)\d{7,8}$/,
   'es-PA': /^(\+?507)\d{7,8}$/,
   'es-PY': /^(\+?595|0)9[9876]\d{7}$/,
   'es-SV': /^(\+?503)?[67]\d{7}$/,
@@ -30612,10 +30825,12 @@ var phones = {
   'es-VE': /^(\+?58)?(2|4)\d{9}$/,
   'et-EE': /^(\+?372)?\s?(5|8[1-4])\s?([0-9]\s?){6,7}$/,
   'fa-IR': /^(\+?98[\-\s]?|0)9[0-39]\d[\-\s]?\d{3}[\-\s]?\d{4}$/,
-  'fi-FI': /^(\+?358|0)\s?(4(0|1|2|4|5|6)?|50)\s?(\d\s?){4,8}\d$/,
+  'fi-FI': /^(\+?358|0)\s?(4[0-6]|50)\s?(\d\s?){4,8}$/,
   'fj-FJ': /^(\+?679)?\s?\d{3}\s?\d{4}$/,
   'fo-FO': /^(\+?298)?\s?\d{2}\s?\d{2}\s?\d{2}$/,
   'fr-BF': /^(\+226|0)[67]\d{7}$/,
+  'fr-BJ': /^(\+229)\d{8}$/,
+  'fr-CD': /^(\+?243|0)?(8|9)\d{8}$/,
   'fr-CM': /^(\+?237)6[0-9]{8}$/,
   'fr-FR': /^(\+?33|0)[67]\d{8}$/,
   'fr-GF': /^(\+?594|0|00594)[67]\d{8}$/,
@@ -30626,27 +30841,34 @@ var phones = {
   'he-IL': /^(\+972|0)([23489]|5[012345689]|77)[1-9]\d{6}$/,
   'hu-HU': /^(\+?36|06)(20|30|31|50|70)\d{7}$/,
   'id-ID': /^(\+?62|0)8(1[123456789]|2[1238]|3[1238]|5[12356789]|7[78]|9[56789]|8[123456789])([\s?|\d]{5,11})$/,
+  'ir-IR': /^(\+98|0)?9\d{9}$/,
   'it-IT': /^(\+?39)?\s?3\d{2} ?\d{6,7}$/,
   'it-SM': /^((\+378)|(0549)|(\+390549)|(\+3780549))?6\d{5,9}$/,
   'ja-JP': /^(\+81[ \-]?(\(0\))?|0)[6789]0[ \-]?\d{4}[ \-]?\d{4}$/,
-  'ka-GE': /^(\+?995)?(5|79)\d{7}$/,
+  'ka-GE': /^(\+?995)?(79\d{7}|5\d{8})$/,
   'kk-KZ': /^(\+?7|8)?7\d{9}$/,
   'kl-GL': /^(\+?299)?\s?\d{2}\s?\d{2}\s?\d{2}$/,
   'ko-KR': /^((\+?82)[ \-]?)?0?1([0|1|6|7|8|9]{1})[ \-]?\d{3,4}[ \-]?\d{4}$/,
+  'ky-KG': /^(\+?7\s?\+?7|0)\s?\d{2}\s?\d{3}\s?\d{4}$/,
   'lt-LT': /^(\+370|8)\d{8}$/,
   'lv-LV': /^(\+?371)2\d{7}$/,
-  'ms-MY': /^(\+?6?01){1}(([0145]{1}(\-|\s)?\d{7,8})|([236789]{1}(\s|\-)?\d{7}))$/,
+  'mg-MG': /^((\+?261|0)(2|3)\d)?\d{7}$/,
+  'mn-MN': /^(\+|00|011)?976(77|81|88|91|94|95|96|99)\d{6}$/,
+  'my-MM': /^(\+?959|09|9)(2[5-7]|3[1-2]|4[0-5]|6[6-9]|7[5-9]|9[6-9])[0-9]{7}$/,
+  'ms-MY': /^(\+?60|0)1(([0145](-|\s)?\d{7,8})|([236-9](-|\s)?\d{7}))$/,
   'mz-MZ': /^(\+?258)?8[234567]\d{7}$/,
   'nb-NO': /^(\+?47)?[49]\d{7}$/,
   'ne-NP': /^(\+?977)?9[78]\d{8}$/,
   'nl-BE': /^(\+?32|0)4\d{8}$/,
   'nl-NL': /^(((\+|00)?31\(0\))|((\+|00)?31)|0)6{1}\d{8}$/,
+  'nl-AW': /^(\+)?297(56|59|64|73|74|99)\d{5}$/,
   'nn-NO': /^(\+?47)?[49]\d{7}$/,
   'pl-PL': /^(\+?48)? ?[5-8]\d ?\d{3} ?\d{2} ?\d{2}$/,
-  'pt-BR': /^((\+?55\ ?[1-9]{2}\ ?)|(\+?55\ ?\([1-9]{2}\)\ ?)|(0[1-9]{2}\ ?)|(\([1-9]{2}\)\ ?)|([1-9]{2}\ ?))((\d{4}\-?\d{4})|(9[2-9]{1}\d{3}\-?\d{4}))$/,
+  'pt-BR': /^((\+?55\ ?[1-9]{2}\ ?)|(\+?55\ ?\([1-9]{2}\)\ ?)|(0[1-9]{2}\ ?)|(\([1-9]{2}\)\ ?)|([1-9]{2}\ ?))((\d{4}\-?\d{4})|(9[1-9]{1}\d{3}\-?\d{4}))$/,
   'pt-PT': /^(\+?351)?9[1236]\d{7}$/,
   'pt-AO': /^(\+244)\d{9}$/,
-  'ro-RO': /^(\+?4?0)\s?7\d{2}(\/|\s|\.|\-)?\d{3}(\s|\.|\-)?\d{3}$/,
+  'ro-MD': /^(\+?373|0)((6(0|1|2|6|7|8|9))|(7(6|7|8|9)))\d{6}$/,
+  'ro-RO': /^(\+?40|0)\s?7\d{2}(\/|\s|\.|-)?\d{3}(\s|\.|-)?\d{3}$/,
   'ru-RU': /^(\+?7|8)?9\d{9}$/,
   'si-LK': /^(?:0|94|\+94)?(7(0|1|2|4|5|6|7|8)( |-)?)\d{7}$/,
   'sl-SI': /^(\+386\s?|0)(\d{1}\s?\d{3}\s?\d{2}\s?\d{2}|\d{2}\s?\d{3}\s?\d{3})$/,
@@ -30663,7 +30885,10 @@ var phones = {
   'vi-VN': /^((\+?84)|0)((3([2-9]))|(5([25689]))|(7([0|6-9]))|(8([1-9]))|(9([0-9])))([0-9]{7})$/,
   'zh-CN': /^((\+|00)86)?(1[3-9]|9[28])\d{9}$/,
   'zh-TW': /^(\+?886\-?|0)?9\d{8}$/,
-  'dz-BT': /^(\+?975|0)?(17|16|77|02)\d{6}$/
+  'dz-BT': /^(\+?975|0)?(17|16|77|02)\d{6}$/,
+  'ar-YE': /^(((\+|00)9677|0?7)[0137]\d{7}|((\+|00)967|0)[1-7]\d{6})$/,
+  'ar-EH': /^(\+?212|0)[\s\-]?(5288|5289)[\s\-]?\d{5}$/,
+  'fa-AF': /^(\+93|0)?(2{1}[0-8]{1}|[3-5]{1}[0-4]{1})(\d{7})$/
 };
 /* eslint-enable max-len */
 // aliases
@@ -30870,6 +31095,8 @@ var passportRegexByCountryCode = {
   // AUSTRIA
   AU: /^[A-Z]\d{7}$/,
   // AUSTRALIA
+  AZ: /^[A-Z]{2,3}\d{7,8}$/,
+  // AZERBAIJAN
   BE: /^[A-Z]{2}\d{6}$/,
   // BELGIUM
   BG: /^\d{9}$/,
@@ -30922,10 +31149,16 @@ var passportRegexByCountryCode = {
   // ICELAND
   IT: /^[A-Z0-9]{2}\d{7}$/,
   // ITALY
+  JM: /^[Aa]\d{7}$/,
+  // JAMAICA
   JP: /^[A-Z]{2}\d{7}$/,
   // JAPAN
   KR: /^[MS]\d{8}$/,
   // SOUTH KOREA, REPUBLIC OF KOREA, [S=PS Passports, M=PM Passports]
+  KZ: /^[a-zA-Z]\d{7}$/,
+  // KAZAKHSTAN
+  LI: /^[a-zA-Z]\d{5}$/,
+  // LIECHTENSTEIN
   LT: /^[A-Z0-9]{8}$/,
   // LITHUANIA
   LU: /^[A-Z0-9]{8}$/,
@@ -30940,8 +31173,16 @@ var passportRegexByCountryCode = {
   // MOZAMBIQUE
   MY: /^[AHK]\d{8}$/,
   // MALAYSIA
+  MX: /^\d{10,11}$/,
+  // MEXICO
   NL: /^[A-Z]{2}[A-Z0-9]{6}\d$/,
   // NETHERLANDS
+  NZ: /^([Ll]([Aa]|[Dd]|[Ff]|[Hh])|[Ee]([Aa]|[Pp])|[Nn])\d{6}$/,
+  // NEW ZEALAND
+  PH: /^([A-Z](\d{6}|\d{7}[A-Z]))|([A-Z]{2}(\d{6}|\d{7}))$/,
+  // PHILIPPINES
+  PK: /^[A-Z]{2}\d{7}$/,
+  // PAKISTAN
   PL: /^[A-Z]{2}\d{7}$/,
   // POLAND
   PT: /^[A-Z]\d{6}$/,
@@ -30953,9 +31194,11 @@ var passportRegexByCountryCode = {
   SE: /^\d{8}$/,
   // SWEDEN
   SL: /^(P)[A-Z]\d{7}$/,
-  // SLOVANIA
+  // SLOVENIA
   SK: /^[0-9A-Z]\d{7}$/,
   // SLOVAKIA
+  TH: /^[A-Z]{1,2}\d{6,7}$/,
+  // THAILAND
   TR: /^[A-Z]\d{8}$/,
   // TURKEY
   UA: /^[A-Z]{2}\d{6}$/,
@@ -31038,10 +31281,11 @@ var patterns = {
   AT: fourDigit,
   AU: fourDigit,
   AZ: /^AZ\d{4}$/,
+  BA: /^([7-8]\d{4}$)/,
   BE: fourDigit,
   BG: fourDigit,
   BR: /^\d{5}-\d{3}$/,
-  BY: /2[1-4]{1}\d{4}$/,
+  BY: /^2[1-4]\d{4}$/,
   CA: /^[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][\s\-]?\d[ABCEGHJ-NPRSTV-Z]\d$/i,
   CH: fourDigit,
   CN: /^(0[1-7]|1[012356]|2[0-7]|3[0-6]|4[0-7]|5[1-7]|6[1-7]|7[1-5]|8[1345]|9[09])\d{4}$/,
@@ -31063,7 +31307,7 @@ var patterns = {
   IE: /^(?!.*(?:o))[A-Za-z]\d[\dw]\s\w{4}$/i,
   IL: /^(\d{5}|\d{7})$/,
   IN: /^((?!10|29|35|54|55|65|66|86|87|88|89)[1-9][0-9]{5})$/,
-  IR: /\b(?!(\d)\1{3})[13-9]{4}[1346-9][013-9]{5}\b/,
+  IR: /^(?!(\d)\1{3})[13-9]{4}[1346-9][013-9]{5}$/,
   IS: threeDigit,
   IT: fiveDigit,
   JP: /^\d{3}\-\d{4}$/,
@@ -31074,6 +31318,7 @@ var patterns = {
   LU: fourDigit,
   LV: /^LV\-\d{4}$/,
   LK: fiveDigit,
+  MG: threeDigit,
   MX: fiveDigit,
   MT: /^[A-Za-z]{3}\s{0,1}\d{4}$/,
   MY: fiveDigit,
@@ -31185,8 +31430,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var rgbColor = /^rgb\((([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),){2}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\)$/;
 var rgbaColor = /^rgba\((([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5]),){3}(0?\.\d|1(\.0)?|0(\.0)?)\)$/;
-var rgbColorPercent = /^rgb\((([0-9]%|[1-9][0-9]%|100%),){2}([0-9]%|[1-9][0-9]%|100%)\)/;
-var rgbaColorPercent = /^rgba\((([0-9]%|[1-9][0-9]%|100%),){3}(0?\.\d|1(\.0)?|0(\.0)?)\)/;
+var rgbColorPercent = /^rgb\((([0-9]%|[1-9][0-9]%|100%),){2}([0-9]%|[1-9][0-9]%|100%)\)$/;
+var rgbaColorPercent = /^rgba\((([0-9]%|[1-9][0-9]%|100%),){3}(0?\.\d|1(\.0)?|0(\.0)?)\)$/;
 
 function isRgbColor(str) {
   var includePercentValues = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
@@ -31286,7 +31531,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var upperCaseRegex = /^[A-Z]$/;
 var lowerCaseRegex = /^[a-z]$/;
 var numberRegex = /^[0-9]$/;
-var symbolRegex = /^[-#!$@%^&*()_+|~=`{}\[\]:";'<>?,.\/ ]$/;
+var symbolRegex = /^[-#!$@£%^&*()_+|~=`{}\[\]:";'<>?,.\/ ]$/;
 var defaultOptions = {
   minLength: 8,
   minLowercase: 1,
@@ -31518,6 +31763,37 @@ function bgBgCheck(tin) {
 
   checksum = checksum % 11 === 10 ? 0 : checksum % 11;
   return checksum === digits[9];
+}
+/**
+ * Check if an input is a valid Canadian SIN (Social Insurance Number)
+ *
+ * The Social Insurance Number (SIN) is a 9 digit number that
+ * you need to work in Canada or to have access to government programs and benefits.
+ *
+ * https://en.wikipedia.org/wiki/Social_Insurance_Number
+ * https://www.canada.ca/en/employment-social-development/services/sin.html
+ * https://www.codercrunch.com/challenge/819302488/sin-validator
+ *
+ * @param {string} input
+ * @return {boolean}
+ */
+
+
+function isCanadianSIN(input) {
+  var digitsArray = input.split('');
+  var even = digitsArray.filter(function (_, idx) {
+    return idx % 2;
+  }).map(function (i) {
+    return Number(i) * 2;
+  }).join('').split('');
+  var total = digitsArray.filter(function (_, idx) {
+    return !(idx % 2);
+  }).concat(even).map(function (i) {
+    return Number(i);
+  }).reduce(function (acc, cur) {
+    return acc + cur;
+  });
+  return total % 10 === 0;
 }
 /*
  * cs-CZ validation function
@@ -31871,7 +32147,7 @@ function enUsGetPrefixes() {
 
 
 function enUsCheck(tin) {
-  return enUsGetPrefixes().indexOf(tin.substr(0, 2)) !== -1;
+  return enUsGetPrefixes().indexOf(tin.slice(0, 2)) !== -1;
 }
 /*
  * es-ES validation function
@@ -32839,6 +33115,7 @@ var taxIdFormat = {
   'dk-DK': /^\d{6}-{0,1}\d{4}$/,
   'el-CY': /^[09]\d{7}[A-Z]$/,
   'el-GR': /^([0-4]|[7-9])\d{8}$/,
+  'en-CA': /^\d{9}$/,
   'en-GB': /^\d{10}$|^(?!GB|NK|TN|ZZ)(?![DFIQUV])[A-Z](?![DFIQUVO])[A-Z]\d{6}[ABCD ]$/i,
   'en-IE': /^\d{7}[A-W][A-IW]{0,1}$/i,
   'en-US': /^\d{2}[- ]{0,1}\d{7}$/,
@@ -32867,7 +33144,8 @@ var taxIdFormat = {
 
 taxIdFormat['lb-LU'] = taxIdFormat['fr-LU'];
 taxIdFormat['lt-LT'] = taxIdFormat['et-EE'];
-taxIdFormat['nl-BE'] = taxIdFormat['fr-BE']; // Algorithmic tax id check functions for various locales
+taxIdFormat['nl-BE'] = taxIdFormat['fr-BE'];
+taxIdFormat['fr-CA'] = taxIdFormat['en-CA']; // Algorithmic tax id check functions for various locales
 
 var taxIdCheck = {
   'bg-BG': bgBgCheck,
@@ -32877,6 +33155,7 @@ var taxIdCheck = {
   'dk-DK': dkDkCheck,
   'el-CY': elCyCheck,
   'el-GR': elGrCheck,
+  'en-CA': isCanadianSIN,
   'en-IE': enIeCheck,
   'en-US': enUsCheck,
   'es-ES': esEsCheck,
@@ -32902,7 +33181,8 @@ var taxIdCheck = {
 
 taxIdCheck['lb-LU'] = taxIdCheck['fr-LU'];
 taxIdCheck['lt-LT'] = taxIdCheck['et-EE'];
-taxIdCheck['nl-BE'] = taxIdCheck['fr-BE']; // Regexes for locales where characters should be omitted before checking format
+taxIdCheck['nl-BE'] = taxIdCheck['fr-BE'];
+taxIdCheck['fr-CA'] = taxIdCheck['en-CA']; // Regexes for locales where characters should be omitted before checking format
 
 var allsymbols = /[-\\\/!@#$%\^&\*\(\)\+\=\[\]]+/g;
 var sanitizeRegexes = {
@@ -32943,6 +33223,47 @@ function isTaxID(str) {
   }
 
   throw new Error("Invalid locale '".concat(locale, "'"));
+}
+
+module.exports = exports.default;
+module.exports["default"] = exports.default;
+
+/***/ }),
+
+/***/ 9527:
+/***/ ((module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = isTime;
+
+var _merge = _interopRequireDefault(__nccwpck_require__(9956));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var default_time_options = {
+  hourFormat: 'hour24',
+  mode: 'default'
+};
+var formats = {
+  hour24: {
+    default: /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/,
+    withSeconds: /^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/
+  },
+  hour12: {
+    default: /^(0?[1-9]|1[0-2]):([0-5][0-9]) (A|P)M$/,
+    withSeconds: /^(0?[1-9]|1[0-2]):([0-5][0-9]):([0-5][0-9]) (A|P)M$/
+  }
+};
+
+function isTime(input, options) {
+  options = (0, _merge.default)(options, default_time_options);
+  if (typeof input !== 'string') return false;
+  return formats[options.hourFormat][options.mode].test(input);
 }
 
 module.exports = exports.default;
@@ -33067,12 +33388,12 @@ function isURL(url, options) {
     }
   } else if (options.require_protocol) {
     return false;
-  } else if (url.substr(0, 2) === '//') {
+  } else if (url.slice(0, 2) === '//') {
     if (!options.allow_protocol_relative_urls) {
       return false;
     }
 
-    split[0] = url.substr(2);
+    split[0] = url.slice(2);
   }
 
   url = split.join('://');
@@ -33145,6 +33466,10 @@ function isURL(url, options) {
 
   if (options.host_whitelist) {
     return checkHost(host, options.host_whitelist);
+  }
+
+  if (host === '' && !options.require_host) {
+    return true;
   }
 
   if (!(0, _isIP.default)(host) && !(0, _isFQDN.default)(host, options) && (!ipv6 || !(0, _isIP.default)(ipv6, 6))) {
@@ -33231,6 +33556,8 @@ module.exports["default"] = exports.default;
 "use strict";
 
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
@@ -33239,12 +33566,247 @@ exports.vatMatchers = void 0;
 
 var _assertString = _interopRequireDefault(__nccwpck_require__(1420));
 
+var algorithms = _interopRequireWildcard(__nccwpck_require__(4134));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var PT = function PT(str) {
+  var match = str.match(/^(PT)?(\d{9})$/);
+
+  if (!match) {
+    return false;
+  }
+
+  var tin = match[2];
+  var checksum = 11 - algorithms.reverseMultiplyAndSum(tin.split('').slice(0, 8).map(function (a) {
+    return parseInt(a, 10);
+  }), 9) % 11;
+
+  if (checksum > 9) {
+    return parseInt(tin[8], 10) === 0;
+  }
+
+  return checksum === parseInt(tin[8], 10);
+};
+
 var vatMatchers = {
-  GB: /^GB((\d{3} \d{4} ([0-8][0-9]|9[0-6]))|(\d{9} \d{3})|(((GD[0-4])|(HA[5-9]))[0-9]{2}))$/,
-  IT: /^(IT)?[0-9]{11}$/,
-  NL: /^(NL)?[0-9]{9}B[0-9]{2}$/
+  /**
+   * European Union VAT identification numbers
+   */
+  AT: function AT(str) {
+    return /^(AT)?U\d{8}$/.test(str);
+  },
+  BE: function BE(str) {
+    return /^(BE)?\d{10}$/.test(str);
+  },
+  BG: function BG(str) {
+    return /^(BG)?\d{9,10}$/.test(str);
+  },
+  HR: function HR(str) {
+    return /^(HR)?\d{11}$/.test(str);
+  },
+  CY: function CY(str) {
+    return /^(CY)?\w{9}$/.test(str);
+  },
+  CZ: function CZ(str) {
+    return /^(CZ)?\d{8,10}$/.test(str);
+  },
+  DK: function DK(str) {
+    return /^(DK)?\d{8}$/.test(str);
+  },
+  EE: function EE(str) {
+    return /^(EE)?\d{9}$/.test(str);
+  },
+  FI: function FI(str) {
+    return /^(FI)?\d{8}$/.test(str);
+  },
+  FR: function FR(str) {
+    return /^(FR)?\w{2}\d{9}$/.test(str);
+  },
+  DE: function DE(str) {
+    return /^(DE)?\d{9}$/.test(str);
+  },
+  EL: function EL(str) {
+    return /^(EL)?\d{9}$/.test(str);
+  },
+  HU: function HU(str) {
+    return /^(HU)?\d{8}$/.test(str);
+  },
+  IE: function IE(str) {
+    return /^(IE)?\d{7}\w{1}(W)?$/.test(str);
+  },
+  IT: function IT(str) {
+    return /^(IT)?\d{11}$/.test(str);
+  },
+  LV: function LV(str) {
+    return /^(LV)?\d{11}$/.test(str);
+  },
+  LT: function LT(str) {
+    return /^(LT)?\d{9,12}$/.test(str);
+  },
+  LU: function LU(str) {
+    return /^(LU)?\d{8}$/.test(str);
+  },
+  MT: function MT(str) {
+    return /^(MT)?\d{8}$/.test(str);
+  },
+  NL: function NL(str) {
+    return /^(NL)?\d{9}B\d{2}$/.test(str);
+  },
+  PL: function PL(str) {
+    return /^(PL)?(\d{10}|(\d{3}-\d{3}-\d{2}-\d{2})|(\d{3}-\d{2}-\d{2}-\d{3}))$/.test(str);
+  },
+  PT: PT,
+  RO: function RO(str) {
+    return /^(RO)?\d{2,10}$/.test(str);
+  },
+  SK: function SK(str) {
+    return /^(SK)?\d{10}$/.test(str);
+  },
+  SI: function SI(str) {
+    return /^(SI)?\d{8}$/.test(str);
+  },
+  ES: function ES(str) {
+    return /^(ES)?\w\d{7}[A-Z]$/.test(str);
+  },
+  SE: function SE(str) {
+    return /^(SE)?\d{12}$/.test(str);
+  },
+
+  /**
+   * VAT numbers of non-EU countries
+   */
+  AL: function AL(str) {
+    return /^(AL)?\w{9}[A-Z]$/.test(str);
+  },
+  MK: function MK(str) {
+    return /^(MK)?\d{13}$/.test(str);
+  },
+  AU: function AU(str) {
+    return /^(AU)?\d{11}$/.test(str);
+  },
+  BY: function BY(str) {
+    return /^(УНП )?\d{9}$/.test(str);
+  },
+  CA: function CA(str) {
+    return /^(CA)?\d{9}$/.test(str);
+  },
+  IS: function IS(str) {
+    return /^(IS)?\d{5,6}$/.test(str);
+  },
+  IN: function IN(str) {
+    return /^(IN)?\d{15}$/.test(str);
+  },
+  ID: function ID(str) {
+    return /^(ID)?(\d{15}|(\d{2}.\d{3}.\d{3}.\d{1}-\d{3}.\d{3}))$/.test(str);
+  },
+  IL: function IL(str) {
+    return /^(IL)?\d{9}$/.test(str);
+  },
+  KZ: function KZ(str) {
+    return /^(KZ)?\d{9}$/.test(str);
+  },
+  NZ: function NZ(str) {
+    return /^(NZ)?\d{9}$/.test(str);
+  },
+  NG: function NG(str) {
+    return /^(NG)?(\d{12}|(\d{8}-\d{4}))$/.test(str);
+  },
+  NO: function NO(str) {
+    return /^(NO)?\d{9}MVA$/.test(str);
+  },
+  PH: function PH(str) {
+    return /^(PH)?(\d{12}|\d{3} \d{3} \d{3} \d{3})$/.test(str);
+  },
+  RU: function RU(str) {
+    return /^(RU)?(\d{10}|\d{12})$/.test(str);
+  },
+  SM: function SM(str) {
+    return /^(SM)?\d{5}$/.test(str);
+  },
+  SA: function SA(str) {
+    return /^(SA)?\d{15}$/.test(str);
+  },
+  RS: function RS(str) {
+    return /^(RS)?\d{9}$/.test(str);
+  },
+  CH: function CH(str) {
+    return /^(CH)?(\d{6}|\d{9}|(\d{3}.\d{3})|(\d{3}.\d{3}.\d{3}))(TVA|MWST|IVA)$/.test(str);
+  },
+  TR: function TR(str) {
+    return /^(TR)?\d{10}$/.test(str);
+  },
+  UA: function UA(str) {
+    return /^(UA)?\d{12}$/.test(str);
+  },
+  GB: function GB(str) {
+    return /^GB((\d{3} \d{4} ([0-8][0-9]|9[0-6]))|(\d{9} \d{3})|(((GD[0-4])|(HA[5-9]))[0-9]{2}))$/.test(str);
+  },
+  UZ: function UZ(str) {
+    return /^(UZ)?\d{9}$/.test(str);
+  },
+
+  /**
+   * VAT numbers of Latin American countries
+   */
+  AR: function AR(str) {
+    return /^(AR)?\d{11}$/.test(str);
+  },
+  BO: function BO(str) {
+    return /^(BO)?\d{7}$/.test(str);
+  },
+  BR: function BR(str) {
+    return /^(BR)?((\d{2}.\d{3}.\d{3}\/\d{4}-\d{2})|(\d{3}.\d{3}.\d{3}-\d{2}))$/.test(str);
+  },
+  CL: function CL(str) {
+    return /^(CL)?\d{8}-\d{1}$/.test(str);
+  },
+  CO: function CO(str) {
+    return /^(CO)?\d{10}$/.test(str);
+  },
+  CR: function CR(str) {
+    return /^(CR)?\d{9,12}$/.test(str);
+  },
+  EC: function EC(str) {
+    return /^(EC)?\d{13}$/.test(str);
+  },
+  SV: function SV(str) {
+    return /^(SV)?\d{4}-\d{6}-\d{3}-\d{1}$/.test(str);
+  },
+  GT: function GT(str) {
+    return /^(GT)?\d{7}-\d{1}$/.test(str);
+  },
+  HN: function HN(str) {
+    return /^(HN)?$/.test(str);
+  },
+  MX: function MX(str) {
+    return /^(MX)?\w{3,4}\d{6}\w{3}$/.test(str);
+  },
+  NI: function NI(str) {
+    return /^(NI)?\d{3}-\d{6}-\d{4}\w{1}$/.test(str);
+  },
+  PA: function PA(str) {
+    return /^(PA)?$/.test(str);
+  },
+  PY: function PY(str) {
+    return /^(PY)?\d{6,8}-\d{1}$/.test(str);
+  },
+  PE: function PE(str) {
+    return /^(PE)?\d{11}$/.test(str);
+  },
+  DO: function DO(str) {
+    return /^(DO)?(\d{11}|(\d{3}-\d{7}-\d{1})|[1,4,5]{1}\d{8}|([1,4,5]{1})-\d{2}-\d{5}-\d{1})$/.test(str);
+  },
+  UY: function UY(str) {
+    return /^(UY)?\d{12}$/.test(str);
+  },
+  VE: function VE(str) {
+    return /^(VE)?[J,G,V,E]{1}-(\d{9}|(\d{8}-\d{1}))$/.test(str);
+  }
 };
 exports.vatMatchers = vatMatchers;
 
@@ -33253,7 +33815,7 @@ function isVAT(str, countryCode) {
   (0, _assertString.default)(countryCode);
 
   if (countryCode in vatMatchers) {
-    return vatMatchers[countryCode].test(str);
+    return vatMatchers[countryCode](str);
   }
 
   throw new Error("Invalid country code: '".concat(countryCode, "'"));
@@ -33371,7 +33933,7 @@ function matches(str, pattern, modifiers) {
     pattern = new RegExp(pattern, modifiers);
   }
 
-  return pattern.test(str);
+  return !!str.match(pattern);
 }
 
 module.exports = exports.default;
