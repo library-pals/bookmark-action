@@ -32,7 +32,7 @@ on:
         type: string
 
 jobs:
-  add_bookmark:
+  add-bookmark:
     runs-on: macOS-latest
     name: Add bookmark
     steps:
