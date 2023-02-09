@@ -6,9 +6,9 @@ runs:
   main: dist/index.js
 
 inputs:
-  fileName:
+  filename:
     description: "The filename to save your bookmarks."
     default: "_data/bookmarks.json"
-  getImage:
+  export-image:
     description: "Export the URL's `image` to download later and set `image` property."
     default: "true"

@@ -39,9 +39,9 @@ describe("bookmark", () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
     jest.spyOn(core, "getInput").mockImplementation((v) => {
       switch (v) {
-        case "fileName":
+        case "filename":
           return "_data/recipes.json";
-        case "getImage":
+        case "export-image":
           return "true";
         default:
           return "";
@@ -122,9 +122,9 @@ describe("bookmark", () => {
     ogs.mockResolvedValueOnce({ result: jsn });
     jest.spyOn(core, "getInput").mockImplementation((v) => {
       switch (v) {
-        case "fileName":
+        case "filename":
           return "_data/sites.json";
-        case "getImage":
+        case "export-image":
           return "true";
         default:
           return "";

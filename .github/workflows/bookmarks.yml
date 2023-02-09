@@ -28,7 +28,7 @@ jobs:
       - name: Bookmark action
         uses: ./
         with:
-          fileName: _data/recipes.json
+          filename: _data/recipes.json
       - name: Download the thumbnail image
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files

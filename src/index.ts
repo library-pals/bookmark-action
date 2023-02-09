@@ -35,15 +35,15 @@ export async function action() {
     const date = payload.date || new Date().toISOString().slice(0, 10);
     exportVariable("DateBookmarked", date);
 
-    const fileName = getInput("fileName");
+    const filename = getInput("filename");
 
     const page = (await getMetadata({ url, notes, date, tags })) as Bookmark;
-    const bookmarks = await addBookmark(fileName, page);
+    const bookmarks = await addBookmark(filename, page);
     if (!bookmarks) {
       setFailed(`Unable to add bookmark`);
       return;
     }
-    await saveBookmarks({ fileName, bookmarks });
+    await saveBookmarks({ filename, bookmarks });
   } catch (error) {
     setFailed(error.message);
   }
