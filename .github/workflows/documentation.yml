@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  document_action:
+  documentation:
     runs-on: macOS-latest
     name: Write documentation
     steps:
