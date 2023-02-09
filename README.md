@@ -41,7 +41,7 @@ jobs:
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v5.2.0
         with:
-          fileName: _data/recipes.json
+          filename: _data/recipes.json
       - name: Download the thumbnail image
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
       - name: Commit files
@@ -55,9 +55,9 @@ jobs:
 
 ## Action options
 
-- `fileName`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
+- `filename`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
-- `getImage`: Export the URL's `image` to download later and set `image` property. Default: `true`.
+- `export-image`: Export the URL's `image` to download later and set `image` property. Default: `true`.
 
 ## Trigger the action
 
