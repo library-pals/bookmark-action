@@ -3,15 +3,15 @@ import { writeFile } from "fs/promises";
 import { Bookmark } from "./add-bookmark";
 
 export async function saveBookmarks({
-  fileName,
+  filename,
   bookmarks,
 }: {
-  fileName: string;
+  filename: string;
   bookmarks: Bookmark[];
 }) {
   try {
     return await writeFile(
-      fileName,
+      filename,
       JSON.stringify(bookmarks, null, 2),
       "utf-8"
     );

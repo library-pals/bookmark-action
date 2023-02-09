@@ -7,7 +7,7 @@ jest.mock("@actions/core");
 
 describe("saveBookmarks", () => {
   test("works", async () => {
-    const fileName = "my-file.json";
+    const filename = "my-file.json";
     const bookmarks = [
       {
         title: "bookmark1",
@@ -17,15 +17,15 @@ describe("saveBookmarks", () => {
       },
     ];
     const writeSpy = jest.spyOn(promises, "writeFile").mockResolvedValueOnce();
-    await saveBookmarks({ fileName, bookmarks });
+    await saveBookmarks({ filename, bookmarks });
     expect(writeSpy).toHaveBeenCalledWith(
-      fileName,
+      filename,
       JSON.stringify(bookmarks, null, 2),
       "utf-8"
     );
   });
   test("fails", async () => {
-    const fileName = "my-file.json";
+    const filename = "my-file.json";
     const bookmarks = [
       {
         title: "bookmark1",
@@ -35,7 +35,7 @@ describe("saveBookmarks", () => {
       },
     ];
     jest.spyOn(promises, "writeFile").mockRejectedValue({ message: "Error" });
-    await saveBookmarks({ fileName, bookmarks });
+    await saveBookmarks({ filename, bookmarks });
     expect(setFailed).toHaveBeenCalledWith("Error");
   });
 });

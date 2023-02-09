@@ -43554,10 +43554,10 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
 };
 
 
-function saveBookmarks({ fileName, bookmarks, }) {
+function saveBookmarks({ filename, bookmarks, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            return yield (0,promises_namespaceObject.writeFile)(fileName, JSON.stringify(bookmarks, null, 2), "utf-8");
+            return yield (0,promises_namespaceObject.writeFile)(filename, JSON.stringify(bookmarks, null, 2), "utf-8");
         }
         catch (error) {
             (0,core.setFailed)(error.message);
@@ -43577,10 +43577,10 @@ var add_bookmark_awaiter = (undefined && undefined.__awaiter) || function (thisA
 };
 
 
-function addBookmark(fileName, bookmark) {
+function addBookmark(filename, bookmark) {
     return add_bookmark_awaiter(this, void 0, void 0, function* () {
         try {
-            const currentBookmarks = yield (0,promises_namespaceObject.readFile)(fileName, "utf-8");
+            const currentBookmarks = yield (0,promises_namespaceObject.readFile)(filename, "utf-8");
             const currentJson = currentBookmarks
                 ? JSON.parse(currentBookmarks)
                 : [];
@@ -43640,7 +43640,7 @@ function getMetadata({ url, notes, date, tags, }) {
         }
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
         (0,core.exportVariable)("DateBookmarked", date);
-        const image = (0,core.getInput)("getImage") === "true" ? setImage(result) : "";
+        const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
         return Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) }));
     });
 }
@@ -43683,14 +43683,14 @@ function action() {
             }
             const date = payload.date || new Date().toISOString().slice(0, 10);
             (0,core.exportVariable)("DateBookmarked", date);
-            const fileName = (0,core.getInput)("fileName");
+            const filename = (0,core.getInput)("filename");
             const page = (yield getMetadata({ url, notes, date, tags }));
-            const bookmarks = yield addBookmark(fileName, page);
+            const bookmarks = yield addBookmark(filename, page);
             if (!bookmarks) {
                 (0,core.setFailed)(`Unable to add bookmark`);
                 return;
             }
-            yield saveBookmarks({ fileName, bookmarks });
+            yield saveBookmarks({ filename, bookmarks });
         }
         catch (error) {
             (0,core.setFailed)(error.message);

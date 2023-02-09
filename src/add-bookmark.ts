@@ -2,11 +2,11 @@ import { setFailed } from "@actions/core";
 import { readFile } from "fs/promises";
 
 export async function addBookmark(
-  fileName: string,
+  filename: string,
   bookmark: Bookmark
 ): Promise<Bookmark[] | undefined> {
   try {
-    const currentBookmarks = await readFile(fileName, "utf-8");
+    const currentBookmarks = await readFile(filename, "utf-8");
     const currentJson = currentBookmarks
       ? (JSON.parse(currentBookmarks) as Bookmark[])
       : [];

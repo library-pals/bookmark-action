@@ -21,7 +21,7 @@ export async function getMetadata({
   }
   exportVariable("BookmarkTitle", result.ogTitle);
   exportVariable("DateBookmarked", date);
-  const image = getInput("getImage") === "true" ? setImage(result) : "";
+  const image = getInput("export-image") === "true" ? setImage(result) : "";
   return {
     title: result.ogTitle || "",
     site: result.ogSiteName || "",
