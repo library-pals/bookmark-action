@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v5.2.0
+        uses: katydecorah/bookmark-action@v6.0.0
         with:
           filename: _data/recipes.json
       - name: Download the thumbnail image
