@@ -5466,6 +5466,7 @@ class CacheableRequest {
                     const cachek = this.cache;
                     cachek.once('error', errorHandler);
                     ee.on('error', () => cachek.removeListener('error', errorHandler));
+                    ee.on('response', () => cachek.removeListener('error', errorHandler));
                 }
                 try {
                     await get(options);
@@ -7282,7 +7283,6 @@ class Options {
         const urlString = `${this.prefixUrl}${value.toString()}`;
         const url = new external_node_url_.URL(urlString);
         this._internals.url = url;
-        decodeURI(urlString);
         if (url.protocol === 'unix:') {
             url.href = `http://unix${url.pathname}${url.search}`;
         }
@@ -8875,7 +8875,7 @@ class Request extends external_node_stream_.Duplex {
         }
         const statusCode = response.statusCode;
         const typedResponse = response;
-        typedResponse.statusMessage = typedResponse.statusMessage ? typedResponse.statusMessage : external_node_http_.STATUS_CODES[statusCode];
+        typedResponse.statusMessage = typedResponse.statusMessage ?? external_node_http_.STATUS_CODES[statusCode];
         typedResponse.url = options.url.toString();
         typedResponse.requestUrl = this.requestUrl;
         typedResponse.redirectUrls = this.redirectUrls;
