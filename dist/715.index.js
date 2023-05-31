@@ -4066,20 +4066,27 @@ function is(value) {
         return 'null';
     }
     switch (typeof value) {
-        case 'undefined':
+        case 'undefined': {
             return 'undefined';
-        case 'string':
+        }
+        case 'string': {
             return 'string';
-        case 'number':
+        }
+        case 'number': {
             return Number.isNaN(value) ? 'NaN' : 'number';
-        case 'boolean':
+        }
+        case 'boolean': {
             return 'boolean';
-        case 'function':
+        }
+        case 'function': {
             return 'Function';
-        case 'bigint':
+        }
+        case 'bigint': {
             return 'bigint';
-        case 'symbol':
+        }
+        case 'symbol': {
             return 'symbol';
+        }
         default:
     }
     if (is.observable(value)) {
@@ -4120,6 +4127,7 @@ is.array = (value, assertion) => {
     if (!is.function_(assertion)) {
         return true;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return value.every(element => assertion(element));
 };
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
@@ -4162,6 +4170,7 @@ is.bigUint64Array = isObjectOfType('BigUint64Array');
 is.arrayBuffer = isObjectOfType('ArrayBuffer');
 is.sharedArrayBuffer = isObjectOfType('SharedArrayBuffer');
 is.dataView = isObjectOfType('DataView');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 is.enumCase = (value, targetEnum) => Object.values(targetEnum).includes(value);
 is.directInstanceOf = (instance, class_) => Object.getPrototypeOf(instance) === class_.prototype;
 is.urlInstance = (value) => isObjectOfType('URL')(value);
@@ -5435,7 +5444,7 @@ class CacheableRequest {
                 const get = async (options_) => {
                     await Promise.resolve();
                     const cacheEntry = options_.cache ? await this.cache.get(key) : undefined;
-                    if (typeof cacheEntry === 'undefined' && !options_.forceRefresh) {
+                    if (cacheEntry === undefined && !options_.forceRefresh) {
                         makeRequest(options_);
                         return;
                     }
@@ -8321,6 +8330,7 @@ function isUnixSocketURL(url) {
 
 
 
+const { buffer: getBuffer } = get_stream;
 const supportsBrotli = dist.string(external_node_process_.versions.brotli);
 const methodsWithoutBody = new Set(['GET', 'HEAD']);
 const cacheableStore = new WeakableMap();
@@ -8510,8 +8520,8 @@ class Request extends external_node_stream_.Duplex {
         this.redirectUrls = [];
         this.retryCount = 0;
         this._stopRetry = core_noop;
-        this.on('pipe', source => {
-            if (source.headers) {
+        this.on('pipe', (source) => {
+            if (source?.headers) {
                 Object.assign(this.options.headers, source.headers);
             }
         });
@@ -9049,7 +9059,7 @@ class Request extends external_node_stream_.Duplex {
         }
         try {
             // Errors are emitted via the `error` event
-            const rawBody = await (0,get_stream.buffer)(from);
+            const rawBody = await getBuffer(from);
             // On retry Request is destroyed with no error, therefore the above will successfully resolve.
             // So in order to check if this was really successfull, we need to check if it has been properly ended.
             if (!this.isAborted) {
