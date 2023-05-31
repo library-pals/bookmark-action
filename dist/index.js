@@ -43634,7 +43634,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 function getMetadata({ url, notes, date, tags, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
         try {
-            const { result } = yield open_graph_scraper_default()({ url });
+            const { result } = yield open_graph_scraper_default()({ url, downloadLimit: false });
             (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
             (0,core.exportVariable)("DateBookmarked", date);
             const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
