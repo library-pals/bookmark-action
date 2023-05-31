@@ -43633,9 +43633,9 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 function getMetadata({ url, notes, date, tags, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
-        const { result, error } = yield open_graph_scraper_default()({ url, downloadLimit: false });
+        const { result, error } = yield open_graph_scraper_default()({ url });
         if (error) {
-            (0,core.setFailed)(`${result}`);
+            (0,core.setFailed)(`${result.error}`);
             return;
         }
         (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
