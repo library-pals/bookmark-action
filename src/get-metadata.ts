@@ -14,7 +14,7 @@ export async function getMetadata({
   date: string;
   tags?: string;
 }): Promise<Bookmark | undefined> {
-  const { result, error } = await ogs({ url });
+  const { result, error } = await ogs({ url, downloadLimit: false });
   if (error) {
     setFailed(`${result}`);
     return;
