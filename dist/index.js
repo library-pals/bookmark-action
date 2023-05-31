@@ -43633,15 +43633,16 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 function getMetadata({ url, notes, date, tags, }) {
     return get_metadata_awaiter(this, void 0, void 0, function* () {
-        const { result, error } = yield open_graph_scraper_default()({ url });
-        if (error) {
-            (0,core.setFailed)(`${result.error}`);
-            return;
+        try {
+            const { result } = yield open_graph_scraper_default()({ url });
+            (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
+            (0,core.exportVariable)("DateBookmarked", date);
+            const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
+            return Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) }));
         }
-        (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
-        (0,core.exportVariable)("DateBookmarked", date);
-        const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
-        return Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) }));
+        catch (error) {
+            throw new Error(`Error getting metadata for ${url}: ${error.result.error}`);
+        }
     });
 }
 function toArray(tags) {

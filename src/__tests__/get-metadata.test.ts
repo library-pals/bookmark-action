@@ -4,7 +4,6 @@ import fullstack from "./fixtures/fullstackdev.json";
 import ogs from "open-graph-scraper";
 import { getMetadata } from "../get-metadata";
 import * as core from "@actions/core";
-import { setFailed } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("@actions/core");
@@ -62,7 +61,7 @@ describe("getMetadata", () => {
     `);
   });
   test("fails", async () => {
-    ogs.mockResolvedValueOnce({
+    ogs.mockRejectedValueOnce({
       error: true,
       result: {
         success: false,
@@ -72,13 +71,15 @@ describe("getMetadata", () => {
         errorDetails: new Error("Page not found"),
       },
     });
-    expect(
-      await getMetadata({
+
+    await expect(
+      getMetadata({
         url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
         date: "2022-01-01",
       })
-    ).toMatchInlineSnapshot(`undefined`);
-    expect(setFailed).toHaveBeenCalledWith("Page not found");
+    ).rejects.toMatchInlineSnapshot(
+      `[Error: Error getting metadata for https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d: Page not found]`
+    );
   });
   test("recipe, with note", async () => {
     ogs.mockResolvedValueOnce({ result: soup });
