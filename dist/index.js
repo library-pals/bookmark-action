@@ -43344,6 +43344,29 @@ function setImage(result) {
     return imageName;
 }
 
+;// CONCATENATED MODULE: ./src/wayback.ts
+var wayback_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+function checkWaybackStatus(url) {
+    return wayback_awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield fetch(`http://archive.org/wayback/available?url=${url}`);
+            return yield response.json();
+        }
+        catch (error) {
+            (0,core.warning)(`Error checking wayback status for ${url}: ${error}`);
+        }
+    });
+}
+
 ;// CONCATENATED MODULE: ./src/get-metadata.ts
 var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -43357,14 +43380,20 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 
+
 function getMetadata({ url, notes, date, tags, }) {
+    var _a, _b;
     return get_metadata_awaiter(this, void 0, void 0, function* () {
         try {
             const { result } = yield open_graph_scraper_default()({ url, downloadLimit: false });
             (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
             (0,core.exportVariable)("DateBookmarked", date);
             const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
-            return Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) }));
+            const waybackResponse = yield checkWaybackStatus(url);
+            const waybackUrl = (_b = (_a = waybackResponse === null || waybackResponse === void 0 ? void 0 : waybackResponse.archived_snapshots) === null || _a === void 0 ? void 0 : _a.closest) === null || _b === void 0 ? void 0 : _b.url;
+            return Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
+                waybackUrl,
+            }));
         }
         catch (error) {
             throw new Error(`Error getting metadata for ${url}: ${error.result.error}`);
