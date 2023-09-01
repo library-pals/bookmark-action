@@ -9,6 +9,10 @@ import { promises } from "fs";
 
 jest.mock("@actions/core");
 jest.mock("open-graph-scraper");
+jest.mock("node-fetch");
+
+import fetch from "node-fetch";
+const { Response } = jest.requireActual("node-fetch");
 
 // h/t https://github.com/actions/toolkit/issues/71#issuecomment-984111601
 // Shallow clone original @actions/github context
@@ -18,6 +22,25 @@ afterEach(() => {
   Object.defineProperty(github, "context", {
     value: originalContext,
   });
+});
+
+beforeEach(() => {
+  (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+    Promise.resolve(
+      new Response(
+        JSON.stringify({
+          archived_snapshots: {
+            closest: {
+              available: true,
+              url: "https://web.archive.org/web/20210101000000/https://example.com",
+              timestamp: "20210101000000",
+              status: "200",
+            },
+          },
+        })
+      )
+    )
+  );
 });
 
 describe("bookmark", () => {
@@ -98,7 +121,7 @@ describe("bookmark", () => {
     "image": "bookmark-pen15.jpg",
     "type": "tv_show",
     "notes": "note",
-    "waybackUrl": "http://web.archive.org/web/20230602134158/https://katydecorah.com/"
+    "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com"
   }
 ]",
   "utf-8",
@@ -153,7 +176,7 @@ describe("bookmark", () => {
     "description": "This is the personal website of Jason Morris — an accessibility engineer and a dialer from upstate New York",
     "url": "https://jasonmorris.com/",
     "type": "",
-    "waybackUrl": "http://web.archive.org/web/20230602212748/https://jasonmorris.com"
+    "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com"
   }
 ]",
   "utf-8",

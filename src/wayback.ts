@@ -1,23 +1,25 @@
 import { warning } from "@actions/core";
+import fetch from "node-fetch";
 
-export async function checkWaybackStatus(url: string): Promise<
-  | {
-      archived_snapshots: {
-        closest?: {
-          available: boolean;
-          url: string;
-          timestamp: string;
-          status: string;
-        };
-      };
-    }
-  | undefined
-> {
+type WayBackResponse = {
+  archived_snapshots: {
+    closest?: {
+      available: boolean;
+      url: string;
+      timestamp: string;
+      status: string;
+    };
+  };
+};
+
+export async function checkWaybackStatus(
+  url: string
+): Promise<WayBackResponse | undefined> {
   try {
     const response = await fetch(
       `http://archive.org/wayback/available?url=${url}`
     );
-    return await response.json();
+    return (await response.json()) as WayBackResponse;
   } catch (error) {
     warning(`Error checking wayback status for ${url}: ${error}`);
   }

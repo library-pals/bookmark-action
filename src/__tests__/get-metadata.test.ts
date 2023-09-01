@@ -7,10 +7,30 @@ import * as core from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("@actions/core");
+jest.mock("node-fetch");
+
+import fetch from "node-fetch";
+const { Response } = jest.requireActual("node-fetch");
 
 describe("getMetadata", () => {
   beforeEach(() => {
     jest.spyOn(core, "getInput").mockImplementation(() => "true");
+    (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
+      Promise.resolve(
+        new Response(
+          JSON.stringify({
+            archived_snapshots: {
+              closest: {
+                available: true,
+                url: "https://web.archive.org/web/20210101000000/https://example.com",
+                timestamp: "20210101000000",
+                status: "200",
+              },
+            },
+          })
+        )
+      )
+    );
   });
   test("tv show", async () => {
     ogs.mockResolvedValueOnce({ result: pen15 });
@@ -34,7 +54,7 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "http://web.archive.org/web/20230829141001/https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -58,7 +78,7 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "http://web.archive.org/web/20230829141001/https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -102,7 +122,7 @@ describe("getMetadata", () => {
   "title": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe",
   "type": "article",
   "url": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-  "waybackUrl": "http://web.archive.org/web/20230328043246/https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -128,7 +148,7 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "http://web.archive.org/web/20230829141001/https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -154,7 +174,7 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "http://web.archive.org/web/20230829141001/https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -182,7 +202,7 @@ describe("getMetadata", () => {
   "title": "",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "http://web.archive.org/web/20230829141001/https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -205,7 +225,7 @@ describe("getMetadata", () => {
   "title": "You can create a great looking website while sucking at design",
   "type": "",
   "url": "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
-  "waybackUrl": "http://web.archive.org/web/20221007200448/https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
+  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
