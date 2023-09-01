@@ -1,4 +1,4 @@
-import { exportVariable, getInput } from "@actions/core";
+import { exportVariable, getInput, warning } from "@actions/core";
 import ogs from "open-graph-scraper";
 import { Bookmark } from "./add-bookmark";
 import { setImage } from "./set-image";
@@ -22,7 +22,9 @@ export async function getMetadata({
     const image = getInput("export-image") === "true" ? setImage(result) : "";
     const waybackResponse = await checkWaybackStatus(url);
     const waybackUrl = waybackResponse?.archived_snapshots?.closest?.url;
-
+    if (!waybackUrl) {
+      warning(`No wayback url found for ${url}`);
+    }
     return {
       title: result.ogTitle || "",
       site: result.ogSiteName || "",

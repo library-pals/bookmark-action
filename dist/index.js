@@ -43485,6 +43485,9 @@ function getMetadata({ url, notes, date, tags, }) {
             const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
             const waybackResponse = yield checkWaybackStatus(url);
             const waybackUrl = (_b = (_a = waybackResponse === null || waybackResponse === void 0 ? void 0 : waybackResponse.archived_snapshots) === null || _a === void 0 ? void 0 : _a.closest) === null || _b === void 0 ? void 0 : _b.url;
+            if (!waybackUrl) {
+                (0,core.warning)(`No wayback url found for ${url}`);
+            }
             return Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
                 waybackUrl,
             }));

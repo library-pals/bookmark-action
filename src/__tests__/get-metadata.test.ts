@@ -15,6 +15,14 @@ const { Response } = jest.requireActual("node-fetch");
 describe("getMetadata", () => {
   beforeEach(() => {
     jest.spyOn(core, "getInput").mockImplementation(() => "true");
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("tv show", async () => {
+    ogs.mockResolvedValueOnce({ result: pen15 });
     (fetch as jest.MockedFunction<typeof fetch>).mockResolvedValueOnce(
       Promise.resolve(
         new Response(
@@ -31,16 +39,13 @@ describe("getMetadata", () => {
         )
       )
     );
-  });
-  test("tv show", async () => {
-    ogs.mockResolvedValueOnce({ result: pen15 });
     expect(
-  await getMetadata({
-    url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-    date: "2022-01-01",
-    tags: "show,new"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+        tags: "show,new",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -60,15 +65,16 @@ describe("getMetadata", () => {
   });
 
   test("tv show, don't get image", async () => {
+    const warningSpy = jest.spyOn(core, "warning");
     jest.spyOn(core, "getInput").mockImplementation(() => "false");
     ogs.mockResolvedValueOnce({ result: pen15 });
     expect(
-  await getMetadata({
-    url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
 
-    date: "2022-01-01"
-  })
-).toMatchInlineSnapshot(`
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -78,9 +84,11 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
+    expect(warningSpy).toHaveBeenCalledWith(
+      "No wayback url found for https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d"
+    );
   });
   test("fails", async () => {
     ogs.mockRejectedValueOnce({
@@ -106,12 +114,12 @@ describe("getMetadata", () => {
   test("recipe, with note", async () => {
     ogs.mockResolvedValueOnce({ result: soup });
     expect(
-  await getMetadata({
-    url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-    notes: "Delicious!",
-    date: "2022-01-01"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
+        notes: "Delicious!",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -122,7 +130,6 @@ describe("getMetadata", () => {
   "title": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe",
   "type": "article",
   "url": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -134,11 +141,11 @@ describe("getMetadata", () => {
       },
     });
     expect(
-  await getMetadata({
-    url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-    date: "2022-01-01"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -148,7 +155,6 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -160,11 +166,11 @@ describe("getMetadata", () => {
       },
     });
     expect(
-  await getMetadata({
-    url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-    date: "2022-01-01"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -174,7 +180,6 @@ describe("getMetadata", () => {
   "title": "PEN15",
   "type": "",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -188,11 +193,11 @@ describe("getMetadata", () => {
       },
     });
     expect(
-  await getMetadata({
-    url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-    date: "2022-01-01"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+        date: "2022-01-01",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-01-01",
@@ -202,7 +207,6 @@ describe("getMetadata", () => {
   "title": "",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
@@ -211,11 +215,11 @@ describe("getMetadata", () => {
       result: fullstack,
     });
     expect(
-  await getMetadata({
-    url: "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
-    date: "2022-08-03"
-  })
-).toMatchInlineSnapshot(`
+      await getMetadata({
+        url: "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
+        date: "2022-08-03",
+      })
+    ).toMatchInlineSnapshot(`
 {
   "author": "",
   "date": "2022-08-03",
@@ -225,7 +229,6 @@ describe("getMetadata", () => {
   "title": "You can create a great looking website while sucking at design",
   "type": "",
   "url": "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
-  "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com",
 }
 `);
   });
