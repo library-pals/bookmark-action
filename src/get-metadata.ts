@@ -16,7 +16,7 @@ export async function getMetadata({
   tags?: string;
 }): Promise<Bookmark | undefined> {
   try {
-    const { result } = await ogs({ url, downloadLimit: false });
+    const { result } = await ogs({ url });
     exportVariable("BookmarkTitle", result.ogTitle);
     exportVariable("DateBookmarked", date);
     const image = getInput("export-image") === "true" ? setImage(result) : "";
@@ -31,7 +31,7 @@ export async function getMetadata({
       author: result.author || "",
       date,
       description: result.ogDescription || "",
-      url: result.ogUrl || result.requestUrl,
+      url: result.ogUrl || result.requestUrl || url,
       image,
       type: result.ogType || "",
       ...(notes && { notes }),
