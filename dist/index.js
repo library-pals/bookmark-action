@@ -43452,7 +43452,7 @@ var wayback_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _
 function checkWaybackStatus(url) {
     return wayback_awaiter(this, void 0, void 0, function* () {
         try {
-            const response = yield lib_default()(`http://archive.org/wayback/available?url=${url}`);
+            const response = yield lib_default()(`https://archive.org/wayback/available?url=${url}`);
             return (yield response.json());
         }
         catch (error) {

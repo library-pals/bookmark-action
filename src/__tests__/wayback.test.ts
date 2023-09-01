@@ -18,7 +18,7 @@ describe("checkWaybackStatus", () => {
 
     expect(result).toBeUndefined();
     expect(fetch).toHaveBeenCalledWith(
-      "http://archive.org/wayback/available?url=https://example.com"
+      "https://archive.org/wayback/available?url=https://example.com"
     );
   });
 
@@ -40,9 +40,7 @@ describe("checkWaybackStatus", () => {
       )
     );
 
-    const result = await checkWaybackStatus(
-      "https://web.archive.org/web/20210101000000/https://example.com"
-    );
+    const result = await checkWaybackStatus("https://example.com");
 
     expect(result).toEqual({
       archived_snapshots: {
@@ -55,7 +53,7 @@ describe("checkWaybackStatus", () => {
       },
     });
     expect(fetch).toHaveBeenCalledWith(
-      "http://archive.org/wayback/available?url=https://web.archive.org/web/20210101000000/https://example.com"
+      "https://archive.org/wayback/available?url=https://example.com"
     );
   });
 

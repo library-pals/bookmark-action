@@ -17,7 +17,7 @@ export async function checkWaybackStatus(
 ): Promise<WayBackResponse | undefined> {
   try {
     const response = await fetch(
-      `http://archive.org/wayback/available?url=${url}`
+      `https://archive.org/wayback/available?url=${url}`
     );
     return (await response.json()) as WayBackResponse;
   } catch (error) {
