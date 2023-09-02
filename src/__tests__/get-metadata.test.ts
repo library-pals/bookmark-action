@@ -232,4 +232,33 @@ describe("getMetadata", () => {
 }
 `);
   });
+
+  test("no result url", async () => {
+    ogs.mockResolvedValueOnce({
+      result: {
+        ogTitle: "My title",
+        ogLocale: "en",
+        favicon: "/favicon.png",
+        charset: "utf8",
+        success: true,
+      },
+    });
+    expect(
+  await getMetadata({
+    url: "https://website.gov",
+    date: "2022-08-03"
+  })
+).toMatchInlineSnapshot(`
+{
+  "author": "",
+  "date": "2022-08-03",
+  "description": "",
+  "image": undefined,
+  "site": "",
+  "title": "My title",
+  "type": "",
+  "url": "https://website.gov",
+}
+`);
+  });
 });
