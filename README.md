@@ -37,7 +37,7 @@ jobs:
     name: Add bookmark
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Bookmark action
         uses: katydecorah/bookmark-action@v6.2.0
         with:
