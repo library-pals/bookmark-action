@@ -5,6 +5,7 @@ const config: Config = {
   moduleNameMapper: {
     "^./utils.js$": "<rootDir>/src/utils.ts",
   },
+  transformIgnorePatterns: [],
   coverageThreshold: {
     global: {
       branches: 100,
