@@ -2,7 +2,7 @@ name: Bookmark
 author: "@katydecorah"
 description: "Bookmark websites to a JSON file."
 runs:
-  using: "node16"
+  using: node20
   main: dist/index.js
 
 inputs:
