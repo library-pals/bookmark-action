@@ -1,6 +1,6 @@
 {
   "name": "bookmark-action",
-  "version": "6.2.0",
+  "version": "6.3.0",
   "description": "Save website metadata to a JSON file.",
   "main": "dist/index.js",
   "type": "module",
