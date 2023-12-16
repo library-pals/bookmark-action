@@ -1,5 +1,6 @@
-import { exportVariable } from "@actions/core";
+import { exportVariable, warning } from "@actions/core";
 import { slugify } from "./utils";
+import fetch from "node-fetch";
 
 function handleMimeType(type: string) {
   const matches = type.match("(jpe?g)|(png)");
@@ -7,7 +8,7 @@ function handleMimeType(type: string) {
   return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
 }
 
-export function setImage(result) {
+export async function setImage(result) {
   if (!result.ogImage || !result.ogTitle) return;
   const image = Array.isArray(result.ogImage)
     ? result.ogImage[0]
@@ -15,7 +16,28 @@ export function setImage(result) {
   if (!image.url) return;
   const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
   const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
+
+  const isValid = await isImagePathValid(image.url);
+
+  if (!isValid) {
+    return;
+  }
+
   exportVariable("BookmarkImageOutput", imageName);
   exportVariable("BookmarkImage", image.url);
   return imageName;
+}
+
+async function isImagePathValid(path: string): Promise<boolean> {
+  try {
+    const response = await fetch(path);
+    if (response.ok) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    warning(`Unable to access image ${path}: ${error.message}`);
+    return false;
+  }
 }
