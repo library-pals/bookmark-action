@@ -68110,13 +68110,17 @@ function handleMimeType(type) {
 }
 function setImage(result) {
     return set_image_awaiter(this, void 0, void 0, function* () {
-        if (!result.ogImage || !result.ogTitle)
+        if (!result.ogImage || !result.ogTitle) {
+            (0,core.warning)("Unable to get a thumbnail image for this bookmark");
             return;
+        }
         const image = Array.isArray(result.ogImage)
             ? result.ogImage[0]
             : result.ogImage;
-        if (!image.url)
+        if (!image.url) {
+            (0,core.warning)("Unable to get a thumbnail image for this bookmark");
             return;
+        }
         const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
         const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
         const isValid = yield isImagePathValid(image.url);

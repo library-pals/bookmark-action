@@ -9,11 +9,17 @@ function handleMimeType(type: string) {
 }
 
 export async function setImage(result) {
-  if (!result.ogImage || !result.ogTitle) return;
+  if (!result.ogImage || !result.ogTitle) {
+    warning("Unable to get a thumbnail image for this bookmark");
+    return;
+  }
   const image = Array.isArray(result.ogImage)
     ? result.ogImage[0]
     : result.ogImage;
-  if (!image.url) return;
+  if (!image.url) {
+    warning("Unable to get a thumbnail image for this bookmark");
+    return;
+  }
   const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
   const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
 

@@ -30,6 +30,9 @@ describe("setImage", () => {
         },
       })
     ).toBeUndefined();
+    expect(warning).toHaveBeenCalledWith(
+      "Unable to get a thumbnail image for this bookmark"
+    );
   });
 
   test("skip, if no ogImage", async () => {
@@ -41,6 +44,9 @@ describe("setImage", () => {
         },
       })
     ).toBeUndefined();
+    expect(warning).toHaveBeenCalledWith(
+      "Unable to get a thumbnail image for this bookmark"
+    );
   });
 
   test("image is invalid", async () => {
