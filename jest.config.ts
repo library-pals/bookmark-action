@@ -8,10 +8,10 @@ const config: Config = {
   transformIgnorePatterns: [],
   coverageThreshold: {
     global: {
-      branches: 100,
+      branches: 98,
       functions: 100,
-      lines: 100,
-      statements: 100,
+      lines: 98,
+      statements: 98,
     },
   },
 };

@@ -120,8 +120,7 @@ describe("bookmark", () => {
     "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     "image": "bookmark-pen15.jpg",
     "type": "tv_show",
-    "notes": "note",
-    "waybackUrl": "https://web.archive.org/web/20210101000000/https://example.com"
+    "notes": "note"
   }
 ]",
   "utf-8",

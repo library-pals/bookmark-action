@@ -65945,29 +65945,6 @@ function addBookmark(filename, bookmark) {
 // EXTERNAL MODULE: ./node_modules/open-graph-scraper/dist/index.js
 var dist = __nccwpck_require__(4514);
 var dist_default = /*#__PURE__*/__nccwpck_require__.n(dist);
-;// CONCATENATED MODULE: ./src/set-image.ts
-
-
-function handleMimeType(type) {
-    const matches = type.match("(jpe?g)|(png)");
-    // TO DO: Refactor
-    return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
-}
-function setImage(result) {
-    if (!result.ogImage || !result.ogTitle)
-        return;
-    const image = Array.isArray(result.ogImage)
-        ? result.ogImage[0]
-        : result.ogImage;
-    if (!image.url)
-        return;
-    const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
-    const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
-    (0,core.exportVariable)("BookmarkImageOutput", imageName);
-    (0,core.exportVariable)("BookmarkImage", image.url);
-    return imageName;
-}
-
 ;// CONCATENATED MODULE: external "node:http"
 const external_node_http_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:http");
 ;// CONCATENATED MODULE: external "node:https"
@@ -68113,6 +68090,66 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 	});
 }
 
+;// CONCATENATED MODULE: ./src/set-image.ts
+var set_image_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+
+function handleMimeType(type) {
+    const matches = type.match("(jpe?g)|(png)");
+    // TO DO: Refactor
+    return matches ? matches[0].replace("jpeg", "jpg") : "jpg";
+}
+function setImage(result) {
+    return set_image_awaiter(this, void 0, void 0, function* () {
+        if (!result.ogImage || !result.ogTitle) {
+            (0,core.warning)("Unable to get a thumbnail image for this bookmark");
+            return;
+        }
+        const image = Array.isArray(result.ogImage)
+            ? result.ogImage[0]
+            : result.ogImage;
+        if (!image.url) {
+            (0,core.warning)("Unable to get a thumbnail image for this bookmark");
+            return;
+        }
+        const imageType = image.type ? `.${handleMimeType(image.type)}` : ".jpg";
+        const imageName = `bookmark-${slugify(result.ogTitle)}${imageType}`;
+        const isValid = yield isImagePathValid(image.url);
+        if (!isValid) {
+            return;
+        }
+        (0,core.exportVariable)("BookmarkImageOutput", imageName);
+        (0,core.exportVariable)("BookmarkImage", image.url);
+        return imageName;
+    });
+}
+function isImagePathValid(path) {
+    return set_image_awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield fetch(path);
+            if (response.ok) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (error) {
+            (0,core.warning)(`Unable to access image ${path}: ${error.message}`);
+            return false;
+        }
+    });
+}
+
 ;// CONCATENATED MODULE: ./src/wayback.ts
 var wayback_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -68158,7 +68195,7 @@ function getMetadata({ url, notes, date, tags, }) {
             const { result } = yield dist_default()({ url });
             (0,core.exportVariable)("BookmarkTitle", result.ogTitle);
             (0,core.exportVariable)("DateBookmarked", date);
-            const image = (0,core.getInput)("export-image") === "true" ? setImage(result) : "";
+            const image = (0,core.getInput)("export-image") === "true" ? yield setImage(result) : "";
             const waybackResponse = yield checkWaybackStatus(url);
             const waybackUrl = (_b = (_a = waybackResponse === null || waybackResponse === void 0 ? void 0 : waybackResponse.archived_snapshots) === null || _a === void 0 ? void 0 : _a.closest) === null || _b === void 0 ? void 0 : _b.url;
             if (!waybackUrl) {

@@ -19,7 +19,8 @@ export async function getMetadata({
     const { result } = await ogs({ url });
     exportVariable("BookmarkTitle", result.ogTitle);
     exportVariable("DateBookmarked", date);
-    const image = getInput("export-image") === "true" ? setImage(result) : "";
+    const image =
+      getInput("export-image") === "true" ? await setImage(result) : "";
     const waybackResponse = await checkWaybackStatus(url);
     const waybackUrl = waybackResponse?.archived_snapshots?.closest?.url;
     if (!waybackUrl) {

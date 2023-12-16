@@ -1,7 +1,7 @@
 import pen15 from "./fixtures/pen15.json";
 import soup from "./fixtures/slow-cooker-soup.json";
 import { setImage } from "../set-image";
-import { exportVariable } from "@actions/core";
+import { warning, exportVariable } from "@actions/core";
 
 jest.mock("open-graph-scraper");
 jest.mock("fs", () => ({
@@ -12,40 +12,61 @@ jest.mock("fs", () => ({
 jest.mock("@actions/core");
 
 describe("setImage", () => {
-  test("set image without type", () => {
-    expect(setImage(pen15)).toEqual("bookmark-pen15.jpg");
+  test("set image without type", async () => {
+    expect(await setImage(pen15)).toEqual("bookmark-pen15.jpg");
   });
 
-  test("set image with type", () => {
-    expect(setImage(soup)).toEqual(
+  test("set image with type", async () => {
+    expect(await setImage(soup)).toEqual(
       "bookmark-slow-cooker-cauliflower-potato-and-white-bean-soup-recipe.jpg"
     );
   });
 
-  test("skip, if no title", () => {
+  test("skip, if no title", async () => {
     expect(
-      setImage({
+      await setImage({
         ogImage: {
           url: "my-image.jpg",
         },
       })
     ).toBeUndefined();
+    expect(warning).toHaveBeenCalledWith(
+      "Unable to get a thumbnail image for this bookmark"
+    );
   });
 
-  test("skip, if no ogImage", () => {
+  test("skip, if no ogImage", async () => {
     expect(
-      setImage({
+      await setImage({
         ogTitle: "Good soup",
         ogImage: {
           type: "jpg",
         },
       })
     ).toBeUndefined();
+    expect(warning).toHaveBeenCalledWith(
+      "Unable to get a thumbnail image for this bookmark"
+    );
   });
 
-  test("handle mime type, jpeg", () => {
+  test("image is invalid", async () => {
     expect(
-      setImage({
+      await setImage({
+        ogTitle: "Good soup",
+        ogImage: {
+          url: "my-image.jpg",
+          type: "jpg",
+        },
+      })
+    ).toBeUndefined();
+    expect(warning).toHaveBeenCalledWith(
+      "Unable to access image my-image.jpg: Invalid URL"
+    );
+  });
+
+  test("handle mime type, jpeg", async () => {
+    expect(
+      await setImage({
         ogTitle: "The Best Chia Pudding Recipe - 5 Delicious Flavors!",
         ogImage: {
           url: "https://chocolatecoveredkatie.com/wp-content/uploads/2018/07/Vegan-Banana-Chia-Pudding.jpg",
@@ -65,9 +86,9 @@ describe("setImage", () => {
     );
   });
 
-  test("handle mime type, jpg", () => {
+  test("handle mime type, jpg", async () => {
     expect(
-      setImage({
+      await setImage({
         ogTitle: "The Best Chia Pudding Recipe - 5 Delicious Flavors!",
         ogImage: {
           url: "https://chocolatecoveredkatie.com/wp-content/uploads/2018/07/Vegan-Banana-Chia-Pudding.jpg",
@@ -87,9 +108,9 @@ describe("setImage", () => {
     );
   });
 
-  test("handle unmatched mime type", () => {
+  test("handle unmatched mime type", async () => {
     expect(
-      setImage({
+      await setImage({
         ogTitle: "The Best Chia Pudding Recipe - 5 Delicious Flavors!",
         ogImage: {
           url: "https://chocolatecoveredkatie.com/wp-content/uploads/2018/07/Vegan-Banana-Chia-Pudding.jpg",
