@@ -60,6 +60,8 @@ jobs:
 
 - `export-image`: Export the URL's `image` to download later and set `image` property. Default: `true`.
 
+- `additional-properties`: Additional properties to add to the bookmark from the workflow payload formatted as a comma delimited string.
+
 ## Trigger the action
 
 To trigger the action, [create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event) with the following body parameters:
