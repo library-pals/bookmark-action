@@ -79,6 +79,7 @@ on:
       tags:
         description: Add tags to categorize the bookmark. Separate each tag with a comma. Optional.
         type: string
+      # The following property names are defined by "additional-properties"
       rating:
         description: Rate the bookmark from 1 to 5. Optional.
         type: string
@@ -97,6 +98,7 @@ jobs:
         uses: katydecorah/bookmark-action@v6.3.0
         with:
           filename: _data/recipes.json
+          # You can define additional properties you want to pass through
           additional-properties: rating,quote
       - name: Download the thumbnail image
         run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
