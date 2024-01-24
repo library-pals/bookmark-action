@@ -68210,8 +68210,23 @@ function getMetadata({ url, notes, date, tags, additionalProperties, }) {
         }
     });
 }
-function toArray(tags) {
-    return tags.split(",").map((f) => f.trim());
+function toArray(string) {
+    if (!string || string == "")
+        return [];
+    return string.split(",").map((f) => f.trim());
+}
+
+;// CONCATENATED MODULE: ./src/set-additional-properties.ts
+
+
+function setAdditionalProperties(payload) {
+    const additionalPropertiesList = toArray((0,core.getInput)("additional-properties"));
+    if (!additionalPropertiesList.length)
+        return undefined;
+    return additionalPropertiesList.reduce((acc, property) => {
+        acc[property] = payload[property];
+        return acc;
+    }, {});
 }
 
 ;// CONCATENATED MODULE: ./src/index.ts
@@ -68224,6 +68239,7 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -68250,13 +68266,7 @@ function action() {
             const date = payload.date || new Date().toISOString().slice(0, 10);
             (0,core.exportVariable)("DateBookmarked", date);
             const filename = (0,core.getInput)("filename");
-            const additionalPropertiesList = (0,core.getInput)("additional-properties")
-                ? toArray((0,core.getInput)("additional-properties"))
-                : undefined;
-            const additionalProperties = additionalPropertiesList === null || additionalPropertiesList === void 0 ? void 0 : additionalPropertiesList.reduce((acc, property) => {
-                acc[property] = payload[property];
-                return acc;
-            }, {});
+            const additionalProperties = setAdditionalProperties(payload);
             const page = (yield getMetadata({
                 url,
                 notes,

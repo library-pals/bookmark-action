@@ -49,6 +49,7 @@ export async function getMetadata({
   }
 }
 
-export function toArray(tags: string): string[] {
-  return tags.split(",").map((f) => f.trim());
+export function toArray(string: string): string[] {
+  if (!string || string == "") return [];
+  return string.split(",").map((f) => f.trim());
 }

@@ -3,7 +3,8 @@ import * as github from "@actions/github";
 import { isUrl, isDate } from "./utils.js";
 import { saveBookmarks } from "./save-bookmarks";
 import { addBookmark, Bookmark } from "./add-bookmark";
-import { getMetadata, toArray } from "./get-metadata";
+import { getMetadata } from "./get-metadata";
+import { setAdditionalProperties } from "./set-additional-properties";
 
 type Payload = {
   url: string;
@@ -36,18 +37,7 @@ export async function action() {
     exportVariable("DateBookmarked", date);
 
     const filename = getInput("filename");
-
-    const additionalPropertiesList = getInput("additional-properties")
-      ? toArray(getInput("additional-properties"))
-      : undefined;
-
-    const additionalProperties = additionalPropertiesList?.reduce(
-      (acc, property) => {
-        acc[property] = payload[property];
-        return acc;
-      },
-      {}
-    );
+    const additionalProperties = setAdditionalProperties(payload);
 
     const page = (await getMetadata({
       url,
