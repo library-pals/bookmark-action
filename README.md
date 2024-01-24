@@ -79,7 +79,7 @@ on:
       tags:
         description: Add tags to categorize the bookmark. Separate each tag with a comma. Optional.
         type: string
-      # The following property names are defined by "additional-properties"
+      # The following property names are defined by the task input "additional-properties"
       rating:
         description: Rate the bookmark from 1 to 5. Optional.
         type: string
