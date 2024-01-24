@@ -1,0 +1,48 @@
+name: Add bookmark with additional properties
+run-name: Add bookmark (${{ inputs.url }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: The URL to bookmark.
+        required: true
+        type: string
+      notes:
+        description: Notes about the bookmark.
+        type: string
+      date:
+        description: Date (YYYY-MM-DD). The default date is today.
+        type: string
+      tags:
+        description: Add tags to categorize the bookmark. Separate each tag with a comma. Optional.
+        type: string
+      rating:
+        description: Rate the bookmark from 1 to 5. Optional.
+        type: string
+      quote:
+        description: Add a quote from the bookmark. Optional.
+        type: string
+
+jobs:
+  add-bookmark:
+    runs-on: macOS-latest
+    name: Add bookmark
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Bookmark action
+        uses: ./
+        with:
+          filename: _data/recipes.json
+          additional-properties: rating,quote
+      - name: Download the thumbnail image
+        run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
+        if: env.BookmarkImage != ''
+      - name: Commit files
+        run: |
+          git pull
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A && git commit -m  "Bookmark ${{ env.BookmarkTitle }}"
+          git push

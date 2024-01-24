@@ -12,3 +12,6 @@ inputs:
   export-image:
     description: "Export the URL's `image` to download later and set `image` property."
     default: "true"
+  additional-properties:
+    description: "Additional properties to add to the bookmark from the workflow payload formatted as a comma delimited string."
+    default: ""

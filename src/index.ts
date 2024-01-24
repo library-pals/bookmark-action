@@ -3,7 +3,7 @@ import * as github from "@actions/github";
 import { isUrl, isDate } from "./utils.js";
 import { saveBookmarks } from "./save-bookmarks";
 import { addBookmark, Bookmark } from "./add-bookmark";
-import { getMetadata } from "./get-metadata";
+import { getMetadata, toArray } from "./get-metadata";
 
 type Payload = {
   url: string;
@@ -37,7 +37,25 @@ export async function action() {
 
     const filename = getInput("filename");
 
-    const page = (await getMetadata({ url, notes, date, tags })) as Bookmark;
+    const additionalPropertiesList = getInput("additional-properties")
+      ? toArray(getInput("additional-properties"))
+      : undefined;
+
+    const additionalProperties = additionalPropertiesList?.reduce(
+      (acc, property) => {
+        acc[property] = payload[property];
+        return acc;
+      },
+      {}
+    );
+
+    const page = (await getMetadata({
+      url,
+      notes,
+      date,
+      tags,
+      additionalProperties,
+    })) as Bookmark;
     const bookmarks = await addBookmark(filename, page);
     if (!bookmarks) {
       setFailed(`Unable to add bookmark`);
