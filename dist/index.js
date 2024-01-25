@@ -68219,8 +68219,29 @@ function toArray(string) {
 ;// CONCATENATED MODULE: ./src/set-additional-properties.ts
 
 
+const reservedKeys = [
+    "title",
+    "site",
+    "date",
+    "description",
+    "url",
+    "author",
+    "type",
+    "image",
+    "notes",
+    "tags",
+];
 function setAdditionalProperties(payload) {
-    const additionalPropertiesList = toArray((0,core.getInput)("additional-properties"));
+    let additionalPropertiesList = toArray((0,core.getInput)("additional-properties"));
+    if (!additionalPropertiesList.length)
+        return undefined;
+    additionalPropertiesList = additionalPropertiesList.filter((property) => {
+        if (reservedKeys.includes(property)) {
+            (0,core.warning)(`The additional property "${property}" is reserved and cannot be used`);
+            return false;
+        }
+        return true;
+    });
     if (!additionalPropertiesList.length)
         return undefined;
     return additionalPropertiesList.reduce((acc, property) => {
