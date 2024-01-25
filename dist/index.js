@@ -68210,10 +68210,10 @@ function getMetadata({ url, notes, date, tags, additionalProperties, }) {
         }
     });
 }
-function toArray(string) {
-    if (!string || string == "")
+function toArray(input) {
+    if (!(input === null || input === void 0 ? void 0 : input.trim()))
         return [];
-    return string.split(",").map((f) => f.trim());
+    return input.split(",").map((item) => item.trim());
 }
 
 ;// CONCATENATED MODULE: ./src/set-additional-properties.ts
