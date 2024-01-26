@@ -3,6 +3,9 @@ import { toArray } from "./get-metadata";
 import { Bookmark } from "./add-bookmark";
 
 type BookmarkKeys = keyof Bookmark;
+type Payload = { [key: string]: string };
+
+const MAX_ADDITIONAL_PROPERTIES = 5;
 
 const reservedKeys: BookmarkKeys[] = [
   "title",
@@ -17,9 +20,7 @@ const reservedKeys: BookmarkKeys[] = [
   "tags",
 ];
 
-export function setAdditionalProperties(payload: {
-  [key: string]: string;
-}): { [key: string]: string } | undefined {
+export function setAdditionalProperties(payload: Payload): Payload | undefined {
   let additionalPropertiesList = toArray(getInput("additional-properties"));
 
   if (!additionalPropertiesList.length) return undefined;
@@ -36,7 +37,15 @@ export function setAdditionalProperties(payload: {
 
   if (!additionalPropertiesList.length) return undefined;
 
-  return additionalPropertiesList.reduce((acc, property: string) => {
+  if (additionalPropertiesList.length > MAX_ADDITIONAL_PROPERTIES) {
+    throw new Error(
+      `You can only set ${MAX_ADDITIONAL_PROPERTIES} additional properties. You tried to set ${
+        additionalPropertiesList.length
+      }: ${additionalPropertiesList.join(", ")}`
+    );
+  }
+
+  return additionalPropertiesList.reduce((acc: Payload, property: string) => {
     acc[property] = payload[property];
     return acc;
   }, {});

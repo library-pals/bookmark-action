@@ -68219,6 +68219,7 @@ function toArray(input) {
 ;// CONCATENATED MODULE: ./src/set-additional-properties.ts
 
 
+const MAX_ADDITIONAL_PROPERTIES = 5;
 const reservedKeys = [
     "title",
     "site",
@@ -68244,6 +68245,9 @@ function setAdditionalProperties(payload) {
     });
     if (!additionalPropertiesList.length)
         return undefined;
+    if (additionalPropertiesList.length > MAX_ADDITIONAL_PROPERTIES) {
+        throw new Error(`You can only set ${MAX_ADDITIONAL_PROPERTIES} additional properties. You tried to set ${additionalPropertiesList.length}: ${additionalPropertiesList.join(", ")}`);
+    }
     return additionalPropertiesList.reduce((acc, property) => {
         acc[property] = payload[property];
         return acc;

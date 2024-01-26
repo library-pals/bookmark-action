@@ -56,4 +56,23 @@ describe("setAdditionalProperties", () => {
 
     expect(result).toBeUndefined();
   });
+
+  it("throws an error when trying to set more than 5 additional properties", () => {
+    (getInput as jest.MockedFunction<typeof getInput>).mockReturnValueOnce(
+      "prop1,prop2,prop3,prop4,prop5,prop6"
+    );
+
+    const payload = {
+      prop1: "value1",
+      prop2: "value2",
+      prop3: "value3",
+      prop4: "value4",
+      prop5: "value5",
+      prop6: "value6",
+    };
+
+    expect(() => setAdditionalProperties(payload)).toThrow(
+      "You can only set 5 additional properties. You tried to set 6: prop1, prop2, prop3, prop4, prop5, prop6"
+    );
+  });
 });
