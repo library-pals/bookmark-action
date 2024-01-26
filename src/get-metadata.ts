@@ -9,11 +9,13 @@ export async function getMetadata({
   notes,
   date,
   tags,
+  additionalProperties,
 }: {
   url: string;
   notes?: string;
   date: string;
   tags?: string;
+  additionalProperties?: Record<string, string>;
 }): Promise<Bookmark | undefined> {
   try {
     const { result } = await ogs({ url });
@@ -40,12 +42,14 @@ export async function getMetadata({
       ...(waybackUrl && {
         waybackUrl,
       }),
+      ...additionalProperties,
     };
   } catch (error) {
     throw new Error(`Error getting metadata for ${url}: ${error.result.error}`);
   }
 }
 
-function toArray(tags: string): string[] {
-  return tags.split(",").map((f) => f.trim());
+export function toArray(input: string): string[] {
+  if (!input?.trim()) return [];
+  return input.split(",").map((item) => item.trim());
 }

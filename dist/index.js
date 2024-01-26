@@ -68188,7 +68188,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 
-function getMetadata({ url, notes, date, tags, }) {
+function getMetadata({ url, notes, date, tags, additionalProperties, }) {
     var _a, _b;
     return get_metadata_awaiter(this, void 0, void 0, function* () {
         try {
@@ -68201,17 +68201,57 @@ function getMetadata({ url, notes, date, tags, }) {
             if (!waybackUrl) {
                 (0,core.warning)(`No wayback url found for ${url}`);
             }
-            return Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl || url, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
+            return Object.assign(Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl || url, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
                 waybackUrl,
-            }));
+            })), additionalProperties);
         }
         catch (error) {
             throw new Error(`Error getting metadata for ${url}: ${error.result.error}`);
         }
     });
 }
-function toArray(tags) {
-    return tags.split(",").map((f) => f.trim());
+function toArray(input) {
+    if (!(input === null || input === void 0 ? void 0 : input.trim()))
+        return [];
+    return input.split(",").map((item) => item.trim());
+}
+
+;// CONCATENATED MODULE: ./src/set-additional-properties.ts
+
+
+const MAX_ADDITIONAL_PROPERTIES = 5;
+const reservedKeys = [
+    "title",
+    "site",
+    "date",
+    "description",
+    "url",
+    "author",
+    "type",
+    "image",
+    "notes",
+    "tags",
+];
+function setAdditionalProperties(payload) {
+    let additionalPropertiesList = toArray((0,core.getInput)("additional-properties"));
+    if (!additionalPropertiesList.length)
+        return undefined;
+    additionalPropertiesList = additionalPropertiesList.filter((property) => {
+        if (reservedKeys.includes(property)) {
+            (0,core.warning)(`The additional property "${property}" is reserved and cannot be used`);
+            return false;
+        }
+        return true;
+    });
+    if (!additionalPropertiesList.length)
+        return undefined;
+    if (additionalPropertiesList.length > MAX_ADDITIONAL_PROPERTIES) {
+        throw new Error(`You can only set ${MAX_ADDITIONAL_PROPERTIES} additional properties. You tried to set ${additionalPropertiesList.length}: ${additionalPropertiesList.join(", ")}`);
+    }
+    return additionalPropertiesList.reduce((acc, property) => {
+        acc[property] = payload[property];
+        return acc;
+    }, {});
 }
 
 ;// CONCATENATED MODULE: ./src/index.ts
@@ -68224,6 +68264,7 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -68250,7 +68291,14 @@ function action() {
             const date = payload.date || new Date().toISOString().slice(0, 10);
             (0,core.exportVariable)("DateBookmarked", date);
             const filename = (0,core.getInput)("filename");
-            const page = (yield getMetadata({ url, notes, date, tags }));
+            const additionalProperties = setAdditionalProperties(payload);
+            const page = (yield getMetadata({
+                url,
+                notes,
+                date,
+                tags,
+                additionalProperties,
+            }));
             const bookmarks = yield addBookmark(filename, page);
             if (!bookmarks) {
                 (0,core.setFailed)(`Unable to add bookmark`);

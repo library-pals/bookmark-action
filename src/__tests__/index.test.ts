@@ -183,6 +183,69 @@ describe("bookmark", () => {
 `);
   });
 
+  test("works, additional properties", async () => {
+    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+
+    // eslint-disable-next-line no-import-assign
+    Object.defineProperty(github, "context", {
+      value: {
+        payload: {
+          inputs: {
+            url: "https://katydecorah.com",
+            notes: "note",
+            prop1: "my property",
+            anotherProp: "another property",
+          },
+        },
+      },
+    });
+
+    ogs.mockResolvedValueOnce({ result: pen15 });
+    jest.spyOn(core, "getInput").mockImplementation((v) => {
+      switch (v) {
+        case "filename":
+          return "_data/recipes.json";
+        case "additional-properties":
+          return "prop1, anotherProp";
+        case "export-image":
+          return "true";
+        default:
+          return "";
+      }
+    });
+    jest.spyOn(promises, "readFile").mockResolvedValueOnce(JSON.stringify([]));
+    const writeFileSpy = jest.spyOn(promises, "writeFile").mockImplementation();
+
+    await action();
+    expect(exportVariable).toHaveBeenNthCalledWith(
+      1,
+      "DateBookmarked",
+      new Date().toISOString().slice(0, 10)
+    );
+    expect(setFailed).not.toHaveBeenCalled();
+    expect(writeFileSpy.mock.calls[0]).toMatchInlineSnapshot(`
+[
+  "_data/recipes.json",
+  "[
+  {
+    "title": "PEN15",
+    "site": "Hulu",
+    "author": "",
+    "date": "2022-09-11",
+    "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
+    "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
+    "image": "bookmark-pen15.jpg",
+    "type": "tv_show",
+    "notes": "note",
+    "prop1": "my property",
+    "anotherProp": "another property"
+  }
+]",
+  "utf-8",
+]
+`);
+  });
+
   test("cannot get bookmarks", async () => {
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {

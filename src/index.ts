@@ -4,6 +4,7 @@ import { isUrl, isDate } from "./utils.js";
 import { saveBookmarks } from "./save-bookmarks";
 import { addBookmark, Bookmark } from "./add-bookmark";
 import { getMetadata } from "./get-metadata";
+import { setAdditionalProperties } from "./set-additional-properties";
 
 type Payload = {
   url: string;
@@ -36,8 +37,15 @@ export async function action() {
     exportVariable("DateBookmarked", date);
 
     const filename = getInput("filename");
+    const additionalProperties = setAdditionalProperties(payload);
 
-    const page = (await getMetadata({ url, notes, date, tags })) as Bookmark;
+    const page = (await getMetadata({
+      url,
+      notes,
+      date,
+      tags,
+      additionalProperties,
+    })) as Bookmark;
     const bookmarks = await addBookmark(filename, page);
     if (!bookmarks) {
       setFailed(`Unable to add bookmark`);

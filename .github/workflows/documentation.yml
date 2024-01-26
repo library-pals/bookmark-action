@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - ".github/workflows/bookmarks.yml"
+      - ".github/workflows/bookmarks-advanced.yml"
       - ".github/workflows/documentation.yml"
       - "action.yml"
       - "package.json"
@@ -24,6 +25,7 @@ jobs:
         uses: katydecorah/documentation-action@v1.3.0
         with:
           example-workflow-file: "bookmarks.yml"
+          additional-workflow-file-prefix: "bookmarks"
       - name: Commit files
         if: steps.documentation.outputs.update == 'true'
         run: |

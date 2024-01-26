@@ -54,11 +54,73 @@ jobs:
           git push
 ```
 
+### Additional example workflows
+
+<details>
+<summary>Add bookmark with additional properties</summary>
+
+```yml
+name: Add bookmark with additional properties
+run-name: Add bookmark (${{ inputs.url }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: The URL to bookmark.
+        required: true
+        type: string
+      notes:
+        description: Notes about the bookmark.
+        type: string
+      date:
+        description: Date (YYYY-MM-DD). The default date is today.
+        type: string
+      tags:
+        description: Add tags to categorize the bookmark. Separate each tag with a comma. Optional.
+        type: string
+      # The following property names are defined by the task input "additional-properties"
+      rating:
+        description: Rate the bookmark from 1 to 5. Optional.
+        type: string
+      quote:
+        description: Add a quote from the bookmark. Optional.
+        type: string
+
+jobs:
+  add-bookmark:
+    runs-on: macOS-latest
+    name: Add bookmark
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Bookmark action
+        uses: katydecorah/bookmark-action@v6.3.0
+        with:
+          filename: _data/recipes.json
+          # You can define additional properties you want to pass through
+          additional-properties: rating,quote
+      - name: Download the thumbnail image
+        run: curl "${{ env.BookmarkImage }}" -o "img/${{ env.BookmarkImageOutput }}"
+        if: env.BookmarkImage != ''
+      - name: Commit files
+        run: |
+          git pull
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A && git commit -m  "Bookmark ${{ env.BookmarkTitle }}"
+          git push
+```
+
+</details>
+
 ## Action options
 
 - `filename`: The filename to save your bookmarks. Default: `_data/bookmarks.json`.
 
 - `export-image`: Export the URL's `image` to download later and set `image` property. Default: `true`.
+
+- `additional-properties`: Additional properties to add to the bookmark from the workflow payload formatted as a comma delimited string.
 
 ## Trigger the action
 
