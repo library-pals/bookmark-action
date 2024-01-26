@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v6.3.0
+        uses: katydecorah/bookmark-action@v6.4.0
         with:
           filename: _data/recipes.json
       - name: Download the thumbnail image
@@ -95,7 +95,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v6.3.0
+        uses: katydecorah/bookmark-action@v6.4.0
         with:
           filename: _data/recipes.json
           # You can define additional properties you want to pass through
