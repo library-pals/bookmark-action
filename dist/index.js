@@ -24686,7 +24686,7 @@ function setupTimeout (onConnectTimeout, timeout) {
 function onConnectTimeout (socket) {
   let message = 'Connect Timeout Error'
   if (Array.isArray(socket.autoSelectFamilyAttemptedAddresses)) {
-    message = +` (attempted addresses: ${socket.autoSelectFamilyAttemptedAddresses.join(', ')})`
+    message += ` (attempted addresses: ${socket.autoSelectFamilyAttemptedAddresses.join(', ')})`
   }
   util.destroy(socket, new ConnectTimeoutError(message))
 }
@@ -26152,9 +26152,6 @@ function bufferToLowerCasedHeaderName (value) {
  * @returns {Record<string, string | string[]>}
  */
 function parseHeaders (headers, obj) {
-  // For H2 support
-  if (!Array.isArray(headers)) return headers
-
   if (obj === undefined) obj = {}
   for (let i = 0; i < headers.length; i += 2) {
     const key = headerNameToString(headers[i])
@@ -28242,6 +28239,20 @@ const {
   }
 } = http2
 
+function parseH2Headers (headers) {
+  // set-cookie is always an array. Duplicates are added to the array.
+  // For duplicate cookie headers, the values are joined together with '; '.
+  headers = Object.entries(headers).flat(2)
+
+  const result = []
+
+  for (const header of headers) {
+    result.push(Buffer.from(header))
+  }
+
+  return result
+}
+
 async function connectH2 (client, socket) {
   client[kSocket] = socket
 
@@ -28579,9 +28590,27 @@ function writeH2 (client, request) {
     const { [HTTP2_HEADER_STATUS]: statusCode, ...realHeaders } = headers
     request.onResponseStarted()
 
-    if (request.onHeaders(Number(statusCode), realHeaders, stream.resume.bind(stream), '') === false) {
+    // Due to the stream nature, it is possible we face a race condition
+    // where the stream has been assigned, but the request has been aborted
+    // the request remains in-flight and headers hasn't been received yet
+    // for those scenarios, best effort is to destroy the stream immediately
+    // as there's no value to keep it open.
+    if (request.aborted || request.completed) {
+      const err = new RequestAbortedError()
+      errorRequest(client, request, err)
+      util.destroy(stream, err)
+      return
+    }
+
+    if (request.onHeaders(Number(statusCode), parseH2Headers(realHeaders), stream.resume.bind(stream), '') === false) {
       stream.pause()
     }
+
+    stream.on('data', (chunk) => {
+      if (request.onData(chunk) === false) {
+        stream.pause()
+      }
+    })
   })
 
   stream.once('end', () => {
@@ -28604,12 +28633,6 @@ function writeH2 (client, request) {
     const err = new InformationalError('HTTP/2: stream half-closed (remote)')
     errorRequest(client, request, err)
     util.destroy(stream, err)
-  })
-
-  stream.on('data', (chunk) => {
-    if (request.onData(chunk) === false) {
-      stream.pause()
-    }
   })
 
   stream.once('close', () => {
@@ -30718,9 +30741,9 @@ function shouldRemoveHeader (header, removeContent, unknownOrigin) {
   if (removeContent && util.headerNameToString(header).startsWith('content-')) {
     return true
   }
-  if (unknownOrigin && (header.length === 13 || header.length === 6)) {
+  if (unknownOrigin && (header.length === 13 || header.length === 6 || header.length === 19)) {
     const name = util.headerNameToString(header)
-    return name === 'authorization' || name === 'cookie'
+    return name === 'authorization' || name === 'cookie' || name === 'proxy-authorization'
   }
   return false
 }
@@ -30998,14 +31021,12 @@ class RetryHandler {
         }
 
         const { start, size, end = size } = range
-
         assert(
-          start != null && Number.isFinite(start) && this.start !== start,
+          start != null && Number.isFinite(start),
           'content-range mismatch'
         )
-        assert(Number.isFinite(start))
         assert(
-          end != null && Number.isFinite(end) && this.end !== end,
+          end != null && Number.isFinite(end),
           'invalid content-length'
         )
 
@@ -32464,6 +32485,9 @@ module.exports = {
 const { Transform } = __nccwpck_require__(84492)
 const { Console } = __nccwpck_require__(40027)
 
+const PERSISTENT = process.versions.icu ? '✅' : 'Y '
+const NOT_PERSISTENT = process.versions.icu ? '❌' : 'N '
+
 /**
  * Gets the output of `console.table(…)` as a string.
  */
@@ -32490,7 +32514,7 @@ module.exports = class PendingInterceptorsFormatter {
         Origin: origin,
         Path: path,
         'Status code': statusCode,
-        Persistent: persist ? '✅' : '❌',
+        Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
         Invocations: timesInvoked,
         Remaining: persist ? Infinity : times - timesInvoked
       }))
@@ -33837,7 +33861,7 @@ function setCookie (headers, cookie) {
   const str = stringify(cookie)
 
   if (str) {
-    headers.append('Set-Cookie', stringify(cookie))
+    headers.append('Set-Cookie', str)
   }
 }
 
@@ -34979,6 +35003,7 @@ const { parseMIMEType } = __nccwpck_require__(72400)
 const { MessageEvent } = __nccwpck_require__(59939)
 const { isNetworkError } = __nccwpck_require__(75994)
 const { delay } = __nccwpck_require__(86740)
+const { kEnumerableProperty } = __nccwpck_require__(81899)
 
 let experimentalWarned = false
 
@@ -35427,6 +35452,16 @@ const constantsPropertyDescriptors = {
 
 Object.defineProperties(EventSource, constantsPropertyDescriptors)
 Object.defineProperties(EventSource.prototype, constantsPropertyDescriptors)
+
+Object.defineProperties(EventSource.prototype, {
+  close: kEnumerableProperty,
+  onerror: kEnumerableProperty,
+  onmessage: kEnumerableProperty,
+  onopen: kEnumerableProperty,
+  readyState: kEnumerableProperty,
+  url: kEnumerableProperty,
+  withCredentials: kEnumerableProperty
+})
 
 webidl.converters.EventSourceInitDict = webidl.dictionaryConverter([
   { key: 'withCredentials', converter: webidl.converters.boolean, defaultValue: false }
@@ -36117,12 +36152,12 @@ const encoder = new TextEncoder()
  * @see https://mimesniff.spec.whatwg.org/#http-token-code-point
  */
 const HTTP_TOKEN_CODEPOINTS = /^[!#$%&'*+-.^_|~A-Za-z0-9]+$/
-const HTTP_WHITESPACE_REGEX = /[\u000A|\u000D|\u0009|\u0020]/ // eslint-disable-line
+const HTTP_WHITESPACE_REGEX = /[\u000A\u000D\u0009\u0020]/ // eslint-disable-line
 const ASCII_WHITESPACE_REPLACE_REGEX = /[\u0009\u000A\u000C\u000D\u0020]/g // eslint-disable-line
 /**
  * @see https://mimesniff.spec.whatwg.org/#http-quoted-string-token-code-point
  */
-const HTTP_QUOTED_STRING_TOKENS = /[\u0009|\u0020-\u007E|\u0080-\u00FF]/ // eslint-disable-line
+const HTTP_QUOTED_STRING_TOKENS = /[\u0009\u0020-\u007E\u0080-\u00FF]/ // eslint-disable-line
 
 // https://fetch.spec.whatwg.org/#data-url-processor
 /** @param {URL} dataURL */
@@ -38074,7 +38109,7 @@ const {
 } = __nccwpck_require__(1044)
 const { webidl } = __nccwpck_require__(34859)
 const assert = __nccwpck_require__(98061)
-const util = __nccwpck_require__(73837)
+const util = __nccwpck_require__(47261)
 
 const kHeadersMap = Symbol('headers map')
 const kHeadersSortedMap = Symbol('headers map sorted')
@@ -40835,29 +40870,6 @@ async function httpNetworkFetch (
               codings = contentEncoding.toLowerCase().split(',').map((x) => x.trim())
             }
             location = headersList.get('location', true)
-          } else {
-            const keys = Object.keys(rawHeaders)
-            for (let i = 0; i < keys.length; ++i) {
-              // The header names are already in lowercase.
-              const key = keys[i]
-              const value = rawHeaders[key]
-              if (key === 'set-cookie') {
-                for (let j = 0; j < value.length; ++j) {
-                  headersList.append(key, value[j], true)
-                }
-              } else {
-                headersList.append(key, value, true)
-              }
-            }
-            // For H2, The header names are already in lowercase,
-            // so we can avoid the `HeadersList#get` call here.
-            const contentEncoding = rawHeaders['content-encoding']
-            if (contentEncoding) {
-              // https://www.rfc-editor.org/rfc/rfc7231#section-3.1.2.1
-              // "All content-coding values are case-insensitive..."
-              codings = contentEncoding.toLowerCase().split(',').map((x) => x.trim()).reverse()
-            }
-            location = rawHeaders.location
           }
 
           this.body = new Readable({ read: resume })
@@ -42665,11 +42677,15 @@ const assert = __nccwpck_require__(98061)
 const { isUint8Array } = __nccwpck_require__(93746)
 const { webidl } = __nccwpck_require__(34859)
 
+let supportedHashes = []
+
 // https://nodejs.org/api/crypto.html#determining-if-crypto-support-is-unavailable
 /** @type {import('crypto')} */
 let crypto
 try {
   crypto = __nccwpck_require__(6005)
+  const possibleRelevantHashes = ['sha256', 'sha384', 'sha512']
+  supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash))
 /* c8 ignore next 3 */
 } catch {
 
@@ -42698,6 +42714,12 @@ function responseLocationURL (response, requestFragment) {
   // 3. If location is a header value, then set location to the result of
   //    parsing location with response’s URL.
   if (location !== null && isValidHeaderValue(location)) {
+    if (!isValidEncodedURL(location)) {
+      // Some websites respond location header in UTF-8 form without encoding them as ASCII
+      // and major browsers redirect them to correctly UTF-8 encoded addresses.
+      // Here, we handle that behavior in the same way.
+      location = normalizeBinaryStringToUtf8(location)
+    }
     location = new URL(location, responseURL(response))
   }
 
@@ -42709,6 +42731,36 @@ function responseLocationURL (response, requestFragment) {
 
   // 5. Return location.
   return location
+}
+
+/**
+ * @see https://www.rfc-editor.org/rfc/rfc1738#section-2.2
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isValidEncodedURL (url) {
+  for (const c of url) {
+    const code = c.charCodeAt(0)
+    // Not used in US-ASCII
+    if (code >= 0x80) {
+      return false
+    }
+    // Control characters
+    if ((code >= 0x00 && code <= 0x1F) || code === 0x7F) {
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * If string contains non-ASCII characters, assumes it's UTF-8 encoded and decodes it.
+ * Since UTF-8 is a superset of ASCII, this will work for ASCII strings as well.
+ * @param {string} value
+ * @returns {string}
+ */
+function normalizeBinaryStringToUtf8 (value) {
+  return Buffer.from(value, 'binary').toString('utf8')
 }
 
 /** @returns {URL} */
@@ -43183,66 +43235,56 @@ function bytesMatch (bytes, metadataList) {
     return true
   }
 
-  // 3. If parsedMetadata is the empty set, return true.
+  // 3. If response is not eligible for integrity validation, return false.
+  // TODO
+
+  // 4. If parsedMetadata is the empty set, return true.
   if (parsedMetadata.length === 0) {
     return true
   }
 
-  // 4. Let metadata be the result of getting the strongest
+  // 5. Let metadata be the result of getting the strongest
   //    metadata from parsedMetadata.
-  const list = parsedMetadata.sort((c, d) => d.algo.localeCompare(c.algo))
-  // get the strongest algorithm
-  const strongest = list[0].algo
-  // get all entries that use the strongest algorithm; ignore weaker
-  const metadata = list.filter((item) => item.algo === strongest)
+  const strongest = getStrongestMetadata(parsedMetadata)
+  const metadata = filterMetadataListByAlgorithm(parsedMetadata, strongest)
 
-  // 5. For each item in metadata:
+  // 6. For each item in metadata:
   for (const item of metadata) {
     // 1. Let algorithm be the alg component of item.
     const algorithm = item.algo
 
     // 2. Let expectedValue be the val component of item.
-    let expectedValue = item.hash
+    const expectedValue = item.hash
 
     // See https://github.com/web-platform-tests/wpt/commit/e4c5cc7a5e48093220528dfdd1c4012dc3837a0e
     // "be liberal with padding". This is annoying, and it's not even in the spec.
 
-    if (expectedValue.endsWith('==')) {
-      expectedValue = expectedValue.slice(0, -2)
-    }
-
     // 3. Let actualValue be the result of applying algorithm to bytes.
     let actualValue = crypto.createHash(algorithm).update(bytes).digest('base64')
 
-    if (actualValue.endsWith('==')) {
-      actualValue = actualValue.slice(0, -2)
+    if (actualValue[actualValue.length - 1] === '=') {
+      if (actualValue[actualValue.length - 2] === '=') {
+        actualValue = actualValue.slice(0, -2)
+      } else {
+        actualValue = actualValue.slice(0, -1)
+      }
     }
 
     // 4. If actualValue is a case-sensitive match for expectedValue,
     //    return true.
-    if (actualValue === expectedValue) {
-      return true
-    }
-
-    let actualBase64URL = crypto.createHash(algorithm).update(bytes).digest('base64url')
-
-    if (actualBase64URL.endsWith('==')) {
-      actualBase64URL = actualBase64URL.slice(0, -2)
-    }
-
-    if (actualBase64URL === expectedValue) {
+    if (compareBase64Mixed(actualValue, expectedValue)) {
       return true
     }
   }
 
-  // 6. Return false.
+  // 7. Return false.
   return false
 }
 
 // https://w3c.github.io/webappsec-subresource-integrity/#grammardef-hash-with-options
 // https://www.w3.org/TR/CSP2/#source-list-syntax
 // https://www.rfc-editor.org/rfc/rfc5234#appendix-B.1
-const parseHashWithOptions = /(?<algo>sha256|sha384|sha512)-(?<hash>[A-Za-z0-9+/]+={0,2}(?=\s|$))( +[!-~]*)?/i
+const parseHashWithOptions = /(?<algo>sha256|sha384|sha512)-((?<hash>[A-Za-z0-9+/]+|[A-Za-z0-9_-]+)={0,2}(?:\s|$)( +[!-~]*)?)?/i
 
 /**
  * @see https://w3c.github.io/webappsec-subresource-integrity/#parse-metadata
@@ -43256,8 +43298,6 @@ function parseMetadata (metadata) {
   // 2. Let empty be equal to true.
   let empty = true
 
-  const supportedHashes = crypto.getHashes()
-
   // 3. For each token returned by splitting metadata on spaces:
   for (const token of metadata.split(' ')) {
     // 1. Set empty to false.
@@ -43267,7 +43307,11 @@ function parseMetadata (metadata) {
     const parsedToken = parseHashWithOptions.exec(token)
 
     // 3. If token does not parse, continue to the next token.
-    if (parsedToken === null || parsedToken.groups === undefined) {
+    if (
+      parsedToken === null ||
+      parsedToken.groups === undefined ||
+      parsedToken.groups.algo === undefined
+    ) {
       // Note: Chromium blocks the request at this point, but Firefox
       // gives a warning that an invalid integrity was given. The
       // correct behavior is to ignore these, and subsequently not
@@ -43276,11 +43320,11 @@ function parseMetadata (metadata) {
     }
 
     // 4. Let algorithm be the hash-algo component of token.
-    const algorithm = parsedToken.groups.algo
+    const algorithm = parsedToken.groups.algo.toLowerCase()
 
     // 5. If algorithm is a hash function recognized by the user
     //    agent, add the parsed token to result.
-    if (supportedHashes.includes(algorithm.toLowerCase())) {
+    if (supportedHashes.includes(algorithm)) {
       result.push(parsedToken.groups)
     }
   }
@@ -43291,6 +43335,82 @@ function parseMetadata (metadata) {
   }
 
   return result
+}
+
+/**
+ * @param {{ algo: 'sha256' | 'sha384' | 'sha512' }[]} metadataList
+ */
+function getStrongestMetadata (metadataList) {
+  // Let algorithm be the algo component of the first item in metadataList.
+  // Can be sha256
+  let algorithm = metadataList[0].algo
+  // If the algorithm is sha512, then it is the strongest
+  // and we can return immediately
+  if (algorithm[3] === '5') {
+    return algorithm
+  }
+
+  for (let i = 1; i < metadataList.length; ++i) {
+    const metadata = metadataList[i]
+    // If the algorithm is sha512, then it is the strongest
+    // and we can break the loop immediately
+    if (metadata.algo[3] === '5') {
+      algorithm = 'sha512'
+      break
+    // If the algorithm is sha384, then a potential sha256 or sha384 is ignored
+    } else if (algorithm[3] === '3') {
+      continue
+    // algorithm is sha256, check if algorithm is sha384 and if so, set it as
+    // the strongest
+    } else if (metadata.algo[3] === '3') {
+      algorithm = 'sha384'
+    }
+  }
+  return algorithm
+}
+
+function filterMetadataListByAlgorithm (metadataList, algorithm) {
+  if (metadataList.length === 1) {
+    return metadataList
+  }
+
+  let pos = 0
+  for (let i = 0; i < metadataList.length; ++i) {
+    if (metadataList[i].algo === algorithm) {
+      metadataList[pos++] = metadataList[i]
+    }
+  }
+
+  metadataList.length = pos
+
+  return metadataList
+}
+
+/**
+ * Compares two base64 strings, allowing for base64url
+ * in the second string.
+ *
+* @param {string} actualValue always base64
+ * @param {string} expectedValue base64 or base64url
+ * @returns {boolean}
+ */
+function compareBase64Mixed (actualValue, expectedValue) {
+  if (actualValue.length !== expectedValue.length) {
+    return false
+  }
+  for (let i = 0; i < actualValue.length; ++i) {
+    if (actualValue[i] !== expectedValue[i]) {
+      if (
+        (actualValue[i] === '+' && expectedValue[i] === '-') ||
+        (actualValue[i] === '/' && expectedValue[i] === '_')
+      ) {
+        continue
+      }
+      return false
+    }
+  }
+
+  return true
 }
 
 // https://w3c.github.io/webappsec-upgrade-insecure-requests/#upgrade-request
@@ -46778,8 +46898,6 @@ const { WebsocketFrameSend } = __nccwpck_require__(20138)
 // Copyright (c) 2013 Arnout Kazemier and contributors
 // Copyright (c) 2016 Luigi Pinca and contributors
 
-const textDecoder = new TextDecoder('utf-8', { fatal: true })
-
 class ByteParser extends Writable {
   #buffers = []
   #byteOffset = 0
@@ -47082,7 +47200,8 @@ class ByteParser extends Writable {
     }
 
     try {
-      reason = textDecoder.decode(reason)
+      // TODO: optimize this
+      reason = new TextDecoder('utf-8', { fatal: true }).decode(reason)
     } catch {
       return null
     }
@@ -47194,8 +47313,6 @@ function fireEvent (e, target, eventConstructor = Event, eventInitDict = {}) {
   target.dispatchEvent(event)
 }
 
-const textDecoder = new TextDecoder('utf-8', { fatal: true })
-
 /**
  * @see https://websockets.spec.whatwg.org/#feedback-from-the-protocol
  * @param {import('./websocket').WebSocket} ws
@@ -47215,7 +47332,7 @@ function websocketMessageReceived (ws, type, data) {
     // -> type indicates that the data is Text
     //      a new DOMString containing data
     try {
-      dataForEvent = textDecoder.decode(data)
+      dataForEvent = new TextDecoder('utf-8', { fatal: true }).decode(data)
     } catch {
       failWebsocketConnection(ws, 'Received invalid UTF-8 in text frame.')
       return
@@ -54678,6 +54795,131 @@ module.exports = buildConnector
 
 /***/ }),
 
+/***/ 14462:
+/***/ ((module) => {
+
+
+
+/** @type {Record<string, string | undefined>} */
+const headerNameLowerCasedRecord = {}
+
+// https://developer.mozilla.org/docs/Web/HTTP/Headers
+const wellknownHeaderNames = [
+  'Accept',
+  'Accept-Encoding',
+  'Accept-Language',
+  'Accept-Ranges',
+  'Access-Control-Allow-Credentials',
+  'Access-Control-Allow-Headers',
+  'Access-Control-Allow-Methods',
+  'Access-Control-Allow-Origin',
+  'Access-Control-Expose-Headers',
+  'Access-Control-Max-Age',
+  'Access-Control-Request-Headers',
+  'Access-Control-Request-Method',
+  'Age',
+  'Allow',
+  'Alt-Svc',
+  'Alt-Used',
+  'Authorization',
+  'Cache-Control',
+  'Clear-Site-Data',
+  'Connection',
+  'Content-Disposition',
+  'Content-Encoding',
+  'Content-Language',
+  'Content-Length',
+  'Content-Location',
+  'Content-Range',
+  'Content-Security-Policy',
+  'Content-Security-Policy-Report-Only',
+  'Content-Type',
+  'Cookie',
+  'Cross-Origin-Embedder-Policy',
+  'Cross-Origin-Opener-Policy',
+  'Cross-Origin-Resource-Policy',
+  'Date',
+  'Device-Memory',
+  'Downlink',
+  'ECT',
+  'ETag',
+  'Expect',
+  'Expect-CT',
+  'Expires',
+  'Forwarded',
+  'From',
+  'Host',
+  'If-Match',
+  'If-Modified-Since',
+  'If-None-Match',
+  'If-Range',
+  'If-Unmodified-Since',
+  'Keep-Alive',
+  'Last-Modified',
+  'Link',
+  'Location',
+  'Max-Forwards',
+  'Origin',
+  'Permissions-Policy',
+  'Pragma',
+  'Proxy-Authenticate',
+  'Proxy-Authorization',
+  'RTT',
+  'Range',
+  'Referer',
+  'Referrer-Policy',
+  'Refresh',
+  'Retry-After',
+  'Sec-WebSocket-Accept',
+  'Sec-WebSocket-Extensions',
+  'Sec-WebSocket-Key',
+  'Sec-WebSocket-Protocol',
+  'Sec-WebSocket-Version',
+  'Server',
+  'Server-Timing',
+  'Service-Worker-Allowed',
+  'Service-Worker-Navigation-Preload',
+  'Set-Cookie',
+  'SourceMap',
+  'Strict-Transport-Security',
+  'Supports-Loading-Mode',
+  'TE',
+  'Timing-Allow-Origin',
+  'Trailer',
+  'Transfer-Encoding',
+  'Upgrade',
+  'Upgrade-Insecure-Requests',
+  'User-Agent',
+  'Vary',
+  'Via',
+  'WWW-Authenticate',
+  'X-Content-Type-Options',
+  'X-DNS-Prefetch-Control',
+  'X-Frame-Options',
+  'X-Permitted-Cross-Domain-Policies',
+  'X-Powered-By',
+  'X-Requested-With',
+  'X-XSS-Protection'
+]
+
+for (let i = 0; i < wellknownHeaderNames.length; ++i) {
+  const key = wellknownHeaderNames[i]
+  const lowerCasedKey = key.toLowerCase()
+  headerNameLowerCasedRecord[key] = headerNameLowerCasedRecord[lowerCasedKey] =
+    lowerCasedKey
+}
+
+// Note: object prototypes should not be able to be referenced. e.g. `Object#hasOwnProperty`.
+Object.setPrototypeOf(headerNameLowerCasedRecord, null)
+
+module.exports = {
+  wellknownHeaderNames,
+  headerNameLowerCasedRecord
+}
+
+
+/***/ }),
+
 /***/ 48045:
 /***/ ((module) => {
 
@@ -55505,6 +55747,7 @@ const { InvalidArgumentError } = __nccwpck_require__(48045)
 const { Blob } = __nccwpck_require__(14300)
 const nodeUtil = __nccwpck_require__(73837)
 const { stringify } = __nccwpck_require__(63477)
+const { headerNameLowerCasedRecord } = __nccwpck_require__(14462)
 
 const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(v => Number(v))
 
@@ -55712,6 +55955,15 @@ const KEEPALIVE_TIMEOUT_EXPR = /timeout=(\d+)/
 function parseKeepAliveTimeout (val) {
   const m = val.toString().match(KEEPALIVE_TIMEOUT_EXPR)
   return m ? parseInt(m[1], 10) * 1000 : null
+}
+
+/**
+ * Retrieves a header name and returns its lowercase value.
+ * @param {string | Buffer} value Header name
+ * @returns {string}
+ */
+function headerNameToString (value) {
+  return headerNameLowerCasedRecord[value] || value.toLowerCase()
 }
 
 function parseHeaders (headers, obj = {}) {
@@ -55985,6 +56237,7 @@ module.exports = {
   isIterable,
   isAsyncIterable,
   isDestroyed,
+  headerNameToString,
   parseRawHeaders,
   parseHeaders,
   parseKeepAliveTimeout,
@@ -62619,14 +62872,18 @@ const { isBlobLike, toUSVString, ReadableStreamFrom } = __nccwpck_require__(8398
 const assert = __nccwpck_require__(39491)
 const { isUint8Array } = __nccwpck_require__(29830)
 
+let supportedHashes = []
+
 // https://nodejs.org/api/crypto.html#determining-if-crypto-support-is-unavailable
 /** @type {import('crypto')|undefined} */
 let crypto
 
 try {
   crypto = __nccwpck_require__(6113)
+  const possibleRelevantHashes = ['sha256', 'sha384', 'sha512']
+  supportedHashes = crypto.getHashes().filter((hash) => possibleRelevantHashes.includes(hash))
+/* c8 ignore next 3 */
 } catch {
-
 }
 
 function responseURL (response) {
@@ -63154,66 +63411,56 @@ function bytesMatch (bytes, metadataList) {
     return true
   }
 
-  // 3. If parsedMetadata is the empty set, return true.
+  // 3. If response is not eligible for integrity validation, return false.
+  // TODO
+
+  // 4. If parsedMetadata is the empty set, return true.
   if (parsedMetadata.length === 0) {
     return true
   }
 
-  // 4. Let metadata be the result of getting the strongest
+  // 5. Let metadata be the result of getting the strongest
   //    metadata from parsedMetadata.
-  const list = parsedMetadata.sort((c, d) => d.algo.localeCompare(c.algo))
-  // get the strongest algorithm
-  const strongest = list[0].algo
-  // get all entries that use the strongest algorithm; ignore weaker
-  const metadata = list.filter((item) => item.algo === strongest)
+  const strongest = getStrongestMetadata(parsedMetadata)
+  const metadata = filterMetadataListByAlgorithm(parsedMetadata, strongest)
 
-  // 5. For each item in metadata:
+  // 6. For each item in metadata:
   for (const item of metadata) {
     // 1. Let algorithm be the alg component of item.
     const algorithm = item.algo
 
     // 2. Let expectedValue be the val component of item.
-    let expectedValue = item.hash
+    const expectedValue = item.hash
 
     // See https://github.com/web-platform-tests/wpt/commit/e4c5cc7a5e48093220528dfdd1c4012dc3837a0e
     // "be liberal with padding". This is annoying, and it's not even in the spec.
 
-    if (expectedValue.endsWith('==')) {
-      expectedValue = expectedValue.slice(0, -2)
-    }
-
     // 3. Let actualValue be the result of applying algorithm to bytes.
     let actualValue = crypto.createHash(algorithm).update(bytes).digest('base64')
 
-    if (actualValue.endsWith('==')) {
-      actualValue = actualValue.slice(0, -2)
+    if (actualValue[actualValue.length - 1] === '=') {
+      if (actualValue[actualValue.length - 2] === '=') {
+        actualValue = actualValue.slice(0, -2)
+      } else {
+        actualValue = actualValue.slice(0, -1)
+      }
     }
 
     // 4. If actualValue is a case-sensitive match for expectedValue,
     //    return true.
-    if (actualValue === expectedValue) {
-      return true
-    }
-
-    let actualBase64URL = crypto.createHash(algorithm).update(bytes).digest('base64url')
-
-    if (actualBase64URL.endsWith('==')) {
-      actualBase64URL = actualBase64URL.slice(0, -2)
-    }
-
-    if (actualBase64URL === expectedValue) {
+    if (compareBase64Mixed(actualValue, expectedValue)) {
       return true
     }
   }
 
-  // 6. Return false.
+  // 7. Return false.
   return false
 }
 
 // https://w3c.github.io/webappsec-subresource-integrity/#grammardef-hash-with-options
 // https://www.w3.org/TR/CSP2/#source-list-syntax
 // https://www.rfc-editor.org/rfc/rfc5234#appendix-B.1
-const parseHashWithOptions = /((?<algo>sha256|sha384|sha512)-(?<hash>[A-z0-9+/]{1}.*={0,2}))( +[\x21-\x7e]?)?/i
+const parseHashWithOptions = /(?<algo>sha256|sha384|sha512)-((?<hash>[A-Za-z0-9+/]+|[A-Za-z0-9_-]+)={0,2}(?:\s|$)( +[!-~]*)?)?/i
 
 /**
  * @see https://w3c.github.io/webappsec-subresource-integrity/#parse-metadata
@@ -63227,8 +63474,6 @@ function parseMetadata (metadata) {
   // 2. Let empty be equal to true.
   let empty = true
 
-  const supportedHashes = crypto.getHashes()
-
   // 3. For each token returned by splitting metadata on spaces:
   for (const token of metadata.split(' ')) {
     // 1. Set empty to false.
@@ -63238,7 +63483,11 @@ function parseMetadata (metadata) {
     const parsedToken = parseHashWithOptions.exec(token)
 
     // 3. If token does not parse, continue to the next token.
-    if (parsedToken === null || parsedToken.groups === undefined) {
+    if (
+      parsedToken === null ||
+      parsedToken.groups === undefined ||
+      parsedToken.groups.algo === undefined
+    ) {
       // Note: Chromium blocks the request at this point, but Firefox
       // gives a warning that an invalid integrity was given. The
       // correct behavior is to ignore these, and subsequently not
@@ -63247,11 +63496,11 @@ function parseMetadata (metadata) {
     }
 
     // 4. Let algorithm be the hash-algo component of token.
-    const algorithm = parsedToken.groups.algo
+    const algorithm = parsedToken.groups.algo.toLowerCase()
 
     // 5. If algorithm is a hash function recognized by the user
     //    agent, add the parsed token to result.
-    if (supportedHashes.includes(algorithm.toLowerCase())) {
+    if (supportedHashes.includes(algorithm)) {
       result.push(parsedToken.groups)
     }
   }
@@ -63262,6 +63511,82 @@ function parseMetadata (metadata) {
   }
 
   return result
+}
+
+/**
+ * @param {{ algo: 'sha256' | 'sha384' | 'sha512' }[]} metadataList
+ */
+function getStrongestMetadata (metadataList) {
+  // Let algorithm be the algo component of the first item in metadataList.
+  // Can be sha256
+  let algorithm = metadataList[0].algo
+  // If the algorithm is sha512, then it is the strongest
+  // and we can return immediately
+  if (algorithm[3] === '5') {
+    return algorithm
+  }
+
+  for (let i = 1; i < metadataList.length; ++i) {
+    const metadata = metadataList[i]
+    // If the algorithm is sha512, then it is the strongest
+    // and we can break the loop immediately
+    if (metadata.algo[3] === '5') {
+      algorithm = 'sha512'
+      break
+    // If the algorithm is sha384, then a potential sha256 or sha384 is ignored
+    } else if (algorithm[3] === '3') {
+      continue
+    // algorithm is sha256, check if algorithm is sha384 and if so, set it as
+    // the strongest
+    } else if (metadata.algo[3] === '3') {
+      algorithm = 'sha384'
+    }
+  }
+  return algorithm
+}
+
+function filterMetadataListByAlgorithm (metadataList, algorithm) {
+  if (metadataList.length === 1) {
+    return metadataList
+  }
+
+  let pos = 0
+  for (let i = 0; i < metadataList.length; ++i) {
+    if (metadataList[i].algo === algorithm) {
+      metadataList[pos++] = metadataList[i]
+    }
+  }
+
+  metadataList.length = pos
+
+  return metadataList
+}
+
+/**
+ * Compares two base64 strings, allowing for base64url
+ * in the second string.
+ *
+* @param {string} actualValue always base64
+ * @param {string} expectedValue base64 or base64url
+ * @returns {boolean}
+ */
+function compareBase64Mixed (actualValue, expectedValue) {
+  if (actualValue.length !== expectedValue.length) {
+    return false
+  }
+  for (let i = 0; i < actualValue.length; ++i) {
+    if (actualValue[i] !== expectedValue[i]) {
+      if (
+        (actualValue[i] === '+' && expectedValue[i] === '-') ||
+        (actualValue[i] === '/' && expectedValue[i] === '_')
+      ) {
+        continue
+      }
+      return false
+    }
+  }
+
+  return true
 }
 
 // https://w3c.github.io/webappsec-upgrade-insecure-requests/#upgrade-request
@@ -63679,7 +64004,8 @@ module.exports = {
   urlHasHttpsScheme,
   urlIsHttpHttpsScheme,
   readAllBytes,
-  normalizeMethodRecord
+  normalizeMethodRecord,
+  parseMetadata
 }
 
 
@@ -65757,12 +66083,17 @@ function parseLocation (statusCode, headers) {
 
 // https://tools.ietf.org/html/rfc7231#section-6.4.4
 function shouldRemoveHeader (header, removeContent, unknownOrigin) {
-  return (
-    (header.length === 4 && header.toString().toLowerCase() === 'host') ||
-    (removeContent && header.toString().toLowerCase().indexOf('content-') === 0) ||
-    (unknownOrigin && header.length === 13 && header.toString().toLowerCase() === 'authorization') ||
-    (unknownOrigin && header.length === 6 && header.toString().toLowerCase() === 'cookie')
-  )
+  if (header.length === 4) {
+    return util.headerNameToString(header) === 'host'
+  }
+  if (removeContent && util.headerNameToString(header).startsWith('content-')) {
+    return true
+  }
+  if (unknownOrigin && (header.length === 13 || header.length === 6 || header.length === 19)) {
+    const name = util.headerNameToString(header)
+    return name === 'authorization' || name === 'cookie' || name === 'proxy-authorization'
+  }
+  return false
 }
 
 // https://tools.ietf.org/html/rfc7231#section-6.4
