@@ -94741,12 +94741,23 @@ function addBookmark(filename, bookmark) {
             const currentJson = currentBookmarks
                 ? JSON.parse(currentBookmarks)
                 : [];
-            return [...currentJson, bookmark].sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+            const formatedBookmarks = formatBookmarks(currentJson);
+            return [...formatedBookmarks, bookmark].sort((a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf());
         }
         catch (error) {
             (0,core.setFailed)(error.message);
         }
     });
+}
+function formatBookmarks(bookmarks) {
+    if (!bookmarks.length)
+        return [];
+    for (let i = 0; i < bookmarks.length; i++) {
+        if (!bookmarks[i].timestamp) {
+            bookmarks[i].timestamp = new Date(bookmarks[i].date).toISOString();
+        }
+    }
+    return bookmarks;
 }
 
 // EXTERNAL MODULE: ./node_modules/open-graph-scraper/dist/index.js

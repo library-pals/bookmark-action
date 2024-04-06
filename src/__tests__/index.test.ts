@@ -105,13 +105,15 @@ describe("bookmark", () => {
     "title": "Cornmeal Lime Shortbread Fans Recipe",
     "site": "NYT Cooking",
     "date": "2021-01-03",
-    "url": "https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans"
+    "url": "https://cooking.nytimes.com/recipes/1021663-cornmeal-lime-shortbread-fans",
+    "timestamp": "2021-01-03T00:00:00.000Z"
   },
   {
     "title": "Mini Meatball Soup With Broccoli and Orecchiette Recipe",
     "site": "NYT Cooking",
     "date": "2022-03-27",
-    "url": "https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette"
+    "url": "https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette",
+    "timestamp": "2022-03-27T00:00:00.000Z"
   },
   {
     "title": "PEN15",

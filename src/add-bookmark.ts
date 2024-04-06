@@ -10,13 +10,26 @@ export async function addBookmark(
     const currentJson = currentBookmarks
       ? (JSON.parse(currentBookmarks) as Bookmark[])
       : [];
-    return [...currentJson, bookmark].sort(
+    const formatedBookmarks = formatBookmarks(currentJson);
+    return [...formatedBookmarks, bookmark].sort(
       (a: Bookmark, b: Bookmark) =>
-        new Date(a.date).valueOf() - new Date(b.date).valueOf()
+        new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf()
     );
   } catch (error) {
     setFailed(error.message);
   }
+}
+
+function formatBookmarks(bookmarks: Bookmark[] | []) {
+  if (!bookmarks.length) return [];
+
+  for (let i = 0; i < bookmarks.length; i++) {
+    if (!bookmarks[i].timestamp) {
+      bookmarks[i].timestamp = new Date(bookmarks[i].date).toISOString();
+    }
+  }
+
+  return bookmarks;
 }
 
 export type Bookmark = {
