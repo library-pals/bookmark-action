@@ -23,6 +23,7 @@ export type Bookmark = {
   title: string;
   site: string;
   date: string;
+  timestamp: string;
   description: string;
   url: string;
   author: string;

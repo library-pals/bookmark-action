@@ -5,6 +5,7 @@ import { saveBookmarks } from "./save-bookmarks";
 import { addBookmark, Bookmark } from "./add-bookmark";
 import { getMetadata } from "./get-metadata";
 import { setAdditionalProperties } from "./set-additional-properties";
+import { createDates } from "./create-dates";
 
 type Payload = {
   url: string;
@@ -33,8 +34,8 @@ export async function action() {
         `The \`date\` "${payload.date}" must be in YYYY-MM-DD format`
       );
     }
-    const date = payload.date || new Date().toISOString().slice(0, 10);
-    exportVariable("DateBookmarked", date);
+    const { shortDate, timestamp } = createDates(payload.date);
+    exportVariable("DateBookmarked", shortDate);
 
     const filename = getInput("filename");
     const additionalProperties = setAdditionalProperties(payload);
@@ -42,7 +43,8 @@ export async function action() {
     const page = (await getMetadata({
       url,
       notes,
-      date,
+      date: shortDate,
+      timestamp,
       tags,
       additionalProperties,
     })) as Bookmark;

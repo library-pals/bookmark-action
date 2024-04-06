@@ -96996,7 +96996,7 @@ var get_metadata_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 function getMetadata(_a) {
-    return get_metadata_awaiter(this, arguments, void 0, function* ({ url, notes, date, tags, additionalProperties, }) {
+    return get_metadata_awaiter(this, arguments, void 0, function* ({ url, notes, date, timestamp, tags, additionalProperties, }) {
         var _b, _c;
         try {
             const { result } = yield dist_default()({ url });
@@ -97008,7 +97008,8 @@ function getMetadata(_a) {
             if (!waybackUrl) {
                 (0,core.warning)(`No wayback url found for ${url}`);
             }
-            return Object.assign(Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl || url, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
+            return Object.assign(Object.assign(Object.assign(Object.assign({ title: result.ogTitle || "", site: result.ogSiteName || "", author: result.author || "", date,
+                timestamp, description: result.ogDescription || "", url: result.ogUrl || result.requestUrl || url, image, type: result.ogType || "" }, (notes && { notes })), (tags && { tags: toArray(tags) })), (waybackUrl && {
                 waybackUrl,
             })), additionalProperties);
         }
@@ -97061,6 +97062,18 @@ function setAdditionalProperties(payload) {
     }, {});
 }
 
+;// CONCATENATED MODULE: ./src/create-dates.ts
+function createDates(date) {
+    const shortDate = date || new Date().toISOString().slice(0, 10);
+    const timestamp = new Date()
+        .toISOString()
+        .replace(/\d{4}-\d{2}-\d{2}/, shortDate);
+    return {
+        shortDate,
+        timestamp,
+    };
+}
+
 ;// CONCATENATED MODULE: ./src/index.ts
 var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -97071,6 +97084,7 @@ var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argu
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+
 
 
 
@@ -97095,14 +97109,15 @@ function action() {
             if (payload.date && !isDate(payload.date)) {
                 return (0,core.setFailed)(`The \`date\` "${payload.date}" must be in YYYY-MM-DD format`);
             }
-            const date = payload.date || new Date().toISOString().slice(0, 10);
-            (0,core.exportVariable)("DateBookmarked", date);
+            const { shortDate, timestamp } = createDates(payload.date);
+            (0,core.exportVariable)("DateBookmarked", shortDate);
             const filename = (0,core.getInput)("filename");
             const additionalProperties = setAdditionalProperties(payload);
             const page = (yield getMetadata({
                 url,
                 notes,
-                date,
+                date: shortDate,
+                timestamp,
                 tags,
                 additionalProperties,
             }));

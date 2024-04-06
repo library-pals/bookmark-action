@@ -8,12 +8,14 @@ export async function getMetadata({
   url,
   notes,
   date,
+  timestamp,
   tags,
   additionalProperties,
 }: {
   url: string;
   notes?: string;
   date: string;
+  timestamp: string;
   tags?: string;
   additionalProperties?: Record<string, string>;
 }): Promise<Bookmark | undefined> {
@@ -33,6 +35,7 @@ export async function getMetadata({
       site: result.ogSiteName || "",
       author: result.author || "",
       date,
+      timestamp,
       description: result.ogDescription || "",
       url: result.ogUrl || result.requestUrl || url,
       image,
