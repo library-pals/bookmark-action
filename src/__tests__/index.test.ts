@@ -45,7 +45,9 @@ beforeEach(() => {
 
 describe("bookmark", () => {
   test("works", async () => {
-    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
@@ -116,7 +118,7 @@ describe("bookmark", () => {
     "site": "Hulu",
     "author": "",
     "date": "2022-09-11",
-    "timestamp": "2022-09-11T00:00:00.000Z",
+    "timestamp": "2022-09-11T13:30:00.000Z",
     "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
     "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     "image": "bookmark-pen15.jpg",
@@ -130,7 +132,9 @@ describe("bookmark", () => {
   });
 
   test("works, author", async () => {
-    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
@@ -173,7 +177,7 @@ describe("bookmark", () => {
     "site": "",
     "author": "Jason Morris",
     "date": "2022-09-11",
-    "timestamp": "2022-09-11T00:00:00.000Z",
+    "timestamp": "2022-09-11T13:30:00.000Z",
     "description": "This is the personal website of Jason Morris — an accessibility engineer and a dialer from upstate New York",
     "url": "https://jasonmorris.com/",
     "type": "",
@@ -186,7 +190,9 @@ describe("bookmark", () => {
   });
 
   test("works, additional properties", async () => {
-    jest.useFakeTimers().setSystemTime(new Date("2022-09-11"));
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
     // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
@@ -234,7 +240,7 @@ describe("bookmark", () => {
     "site": "Hulu",
     "author": "",
     "date": "2022-09-11",
-    "timestamp": "2022-09-11T00:00:00.000Z",
+    "timestamp": "2022-09-11T13:30:00.000Z",
     "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
     "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
     "image": "bookmark-pen15.jpg",

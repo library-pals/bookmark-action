@@ -16,7 +16,9 @@ const { Response } = jest.requireActual("node-fetch");
 describe("getMetadata", () => {
   beforeEach(() => {
     jest.spyOn(core, "getInput").mockImplementation(() => "true");
-    jest.useFakeTimers().setSystemTime(new Date("2024-04-06T13:30:00"));
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date("2024-04-06T13:30:00Z").getTime());
   });
 
   afterEach(() => {
@@ -60,7 +62,7 @@ describe("getMetadata", () => {
     "show",
     "new",
   ],
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -86,7 +88,7 @@ describe("getMetadata", () => {
   "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
   "image": "",
   "site": "Hulu",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -136,7 +138,7 @@ describe("getMetadata", () => {
   "image": undefined,
   "notes": "Delicious!",
   "site": "NYT Cooking",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "Slow-Cooker Cauliflower, Potato and White Bean Soup Recipe",
   "type": "article",
   "url": "https://cooking.nytimes.com/recipes/1022831-slow-cooker-cauliflower-potato-and-white-bean-soup",
@@ -164,7 +166,7 @@ describe("getMetadata", () => {
   "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
   "image": undefined,
   "site": "Hulu",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "PEN15",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -192,7 +194,7 @@ describe("getMetadata", () => {
   "description": "PEN15 is middle school as it really happened. Maya Erskine and Anna Konkle star in this adult comedy, playing versions of themselves as thirteen-year-old outcasts in the year 2000, surrounded by actual thirteen-year-olds, where the best day of your life can turn into your worst with the stroke of a gel pen.",
   "image": undefined,
   "site": "Hulu",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "PEN15",
   "type": "",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -222,7 +224,7 @@ describe("getMetadata", () => {
   "description": "",
   "image": undefined,
   "site": "",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "",
   "type": "tv_show",
   "url": "https://www.hulu.com/series/pen15-8c87035d-2b10-4b10-a233-ca5b3597145d",
@@ -247,7 +249,7 @@ describe("getMetadata", () => {
   "description": "How to create great looking websites while having little design skill.",
   "image": undefined,
   "site": "",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "You can create a great looking website while sucking at design",
   "type": "",
   "url": "https://thefullstackdev.net/article/create-beautiful-website-while-sucking-at-design/",
@@ -279,7 +281,7 @@ describe("getMetadata", () => {
   "description": "",
   "image": undefined,
   "site": "",
-  "timestamp": "2024-04-06T17:30:00.000Z",
+  "timestamp": "2024-04-06T13:30:00.000Z",
   "title": "My title",
   "type": "",
   "url": "https://website.gov",
