@@ -32,6 +32,7 @@ describe("addBookmark", () => {
           title: "Mini Meatball Soup With Broccoli and Orecchiette Recipe",
           site: "NYT Cooking",
           date: "2022-03-27",
+          timestamp: "2022-03-27T13:00:00.000Z",
           url: "https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette",
         },
       ])
@@ -60,7 +61,7 @@ describe("addBookmark", () => {
   {
     "date": "2022-03-27",
     "site": "NYT Cooking",
-    "timestamp": "2022-03-27T00:00:00.000Z",
+    "timestamp": "2022-03-27T13:00:00.000Z",
     "title": "Mini Meatball Soup With Broccoli and Orecchiette Recipe",
     "url": "https://cooking.nytimes.com/recipes/1021568-mini-meatball-soup-with-broccoli-and-orecchiette",
   },
