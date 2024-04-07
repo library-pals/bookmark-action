@@ -1,4 +1,5 @@
 name: Build
+run-name: Build ${{ github.ref_name }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
@@ -18,5 +19,10 @@ jobs:
           git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add dist && git commit -m  "Build action"
-          git push
+          git add dist
+          if git diff --staged --quiet; then
+            echo "::notice::No changes to commit"
+          else
+            git commit -m  "Build action"
+            git push
+          fi
