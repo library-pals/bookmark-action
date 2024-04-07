@@ -1,7 +1,11 @@
 name: Build
+run-name: Build ${{ github.ref_name }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
