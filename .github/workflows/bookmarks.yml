@@ -18,9 +18,12 @@ on:
         description: Add tags to categorize the book. Separate each tag with a comma. Optional.
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   add-bookmark:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Add bookmark
     steps:
       - name: Checkout

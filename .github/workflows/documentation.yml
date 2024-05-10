@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   documentation:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Write documentation
     steps:
       - name: Checkout

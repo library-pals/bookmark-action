@@ -34,10 +34,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/katydecorah/bookmark-action.git"
+    "url": "git+https://github.com/library-pals/bookmark-action.git"
   },
   "bugs": {
-    "url": "https://github.com/katydecorah/bookmark-action/issues"
+    "url": "https://github.com/library-pals/bookmark-action/issues"
   },
-  "homepage": "https://github.com/katydecorah/bookmark-action#readme"
+  "homepage": "https://github.com/library-pals/bookmark-action#readme"
 }
