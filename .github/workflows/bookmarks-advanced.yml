@@ -25,6 +25,9 @@ on:
         description: Add a quote from the bookmark. Optional.
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   add-bookmark:
     runs-on: ubuntu-latest

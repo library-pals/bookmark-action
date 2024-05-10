@@ -1,4 +1,5 @@
 name: Document GitHub action
+
 on:
   push:
     paths:
