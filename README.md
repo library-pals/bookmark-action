@@ -31,6 +31,9 @@ on:
         description: Add tags to categorize the book. Separate each tag with a comma. Optional.
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   add-bookmark:
     runs-on: ubuntu-latest
@@ -86,6 +89,9 @@ on:
       quote:
         description: Add a quote from the bookmark. Optional.
         type: string
+
+permissions:
+  contents: write
 
 jobs:
   add-bookmark:
