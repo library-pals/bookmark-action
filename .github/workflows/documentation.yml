@@ -1,5 +1,4 @@
 name: Document GitHub action
-
 on:
   push:
     paths:
@@ -15,7 +14,7 @@ permissions:
 
 jobs:
   documentation:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Write documentation
     steps:
       - name: Checkout

@@ -27,7 +27,7 @@ on:
 
 jobs:
   add-bookmark:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Add bookmark
     steps:
       - name: Checkout
