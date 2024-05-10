@@ -33,13 +33,13 @@ on:
 
 jobs:
   add-bookmark:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Add bookmark
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v7.0.0
+        uses: library-pals/bookmark-action@v7.0.0
         with:
           filename: _data/recipes.json
       - name: Download the thumbnail image
@@ -89,13 +89,13 @@ on:
 
 jobs:
   add-bookmark:
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     name: Add bookmark
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: katydecorah/bookmark-action@v7.0.0
+        uses: library-pals/bookmark-action@v7.0.0
         with:
           filename: _data/recipes.json
           # You can define additional properties you want to pass through
