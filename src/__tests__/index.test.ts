@@ -18,7 +18,6 @@ const { Response } = jest.requireActual("node-fetch");
 // Shallow clone original @actions/github context
 const originalContext = { ...github.context };
 afterEach(() => {
-  // eslint-disable-next-line no-import-assign
   Object.defineProperty(github, "context", {
     value: originalContext,
   });
@@ -49,7 +48,6 @@ describe("bookmark", () => {
       .useFakeTimers()
       .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -138,7 +136,6 @@ describe("bookmark", () => {
       .useFakeTimers()
       .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -196,7 +193,6 @@ describe("bookmark", () => {
       .useFakeTimers()
       .setSystemTime(new Date("2022-09-11T13:30:00Z").getTime());
 
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -258,7 +254,6 @@ describe("bookmark", () => {
   });
 
   test("cannot get bookmarks", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -287,13 +282,11 @@ describe("bookmark", () => {
   });
 
   test("throws, can't get issue", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {});
     await action();
     expect(setFailed).toHaveBeenCalledWith("Missing `inputs`");
   });
   test("throws, missing url", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -307,7 +300,6 @@ describe("bookmark", () => {
     expect(setFailed).toHaveBeenCalledWith("Missing `url` in payload");
   });
   test("throws, invalid url", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -321,7 +313,6 @@ describe("bookmark", () => {
     expect(setFailed).toHaveBeenCalledWith('The `url` "boop" is not valid');
   });
   test("throws, invalid date", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
@@ -338,7 +329,6 @@ describe("bookmark", () => {
     );
   });
   test("throws, can't write file", async () => {
-    // eslint-disable-next-line no-import-assign
     Object.defineProperty(github, "context", {
       value: {
         payload: {
