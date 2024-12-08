@@ -9,7 +9,10 @@ jest.mock("fs", () => ({
     access: jest.fn(),
   },
 }));
-jest.mock("@actions/core");
+jest.mock("@actions/core", () => ({
+  warning: jest.fn().mockResolvedValue(undefined),
+  exportVariable: jest.fn().mockResolvedValue(undefined),
+}));
 
 describe("setImage", () => {
   test("set image without type", async () => {
