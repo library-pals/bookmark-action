@@ -42,7 +42,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: library-pals/bookmark-action@v7.0.1
+        uses: library-pals/bookmark-action@v7.0.2
         with:
           filename: _data/recipes.json
       - name: Download the thumbnail image
@@ -101,7 +101,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Bookmark action
-        uses: library-pals/bookmark-action@v7.0.1
+        uses: library-pals/bookmark-action@v7.0.2
         with:
           filename: _data/recipes.json
           # You can define additional properties you want to pass through
