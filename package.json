@@ -2,7 +2,7 @@
   "name": "bookmark-action",
   "version": "7.0.2",
   "description": "Save website metadata to a JSON file.",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "type": "module",
   "scripts": {
     "pretest": "eslint .",

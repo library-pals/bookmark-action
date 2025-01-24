@@ -1,11 +1,11 @@
 import { exportVariable, getInput, setFailed } from "@actions/core";
 import * as github from "@actions/github";
 import { isUrl, isDate } from "./utils.js";
-import { saveBookmarks } from "./save-bookmarks";
-import { addBookmark, Bookmark } from "./add-bookmark";
-import { getMetadata } from "./get-metadata";
-import { setAdditionalProperties } from "./set-additional-properties";
-import { createDates } from "./create-dates";
+import { saveBookmarks } from "./save-bookmarks.js";
+import { addBookmark, Bookmark } from "./add-bookmark.js";
+import { getMetadata } from "./get-metadata.js";
+import { setAdditionalProperties } from "./set-additional-properties.js";
+import { createDates } from "./create-dates.js";
 
 type Payload = {
   url: string;

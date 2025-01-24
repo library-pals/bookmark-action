@@ -1,6 +1,6 @@
 import { getInput, warning } from "@actions/core";
-import { toArray } from "./get-metadata";
-import { Bookmark } from "./add-bookmark";
+import { toArray } from "./get-metadata.js";
+import { Bookmark } from "./add-bookmark.js";
 
 type BookmarkKeys = keyof Bookmark;
 type Payload = { [key: string]: string };
