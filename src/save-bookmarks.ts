@@ -1,6 +1,6 @@
 import { setFailed } from "@actions/core";
 import { writeFile } from "fs/promises";
-import { Bookmark } from "./add-bookmark";
+import { Bookmark } from "./add-bookmark.js";
 
 export async function saveBookmarks({
   filename,

@@ -1,8 +1,8 @@
 import { exportVariable, getInput, warning } from "@actions/core";
 import ogs from "open-graph-scraper";
-import { Bookmark } from "./add-bookmark";
-import { setImage } from "./set-image";
-import { checkWaybackStatus } from "./wayback";
+import { Bookmark } from "./add-bookmark.js";
+import { setImage } from "./set-image.js";
+import { checkWaybackStatus } from "./wayback.js";
 
 export async function getMetadata({
   url,

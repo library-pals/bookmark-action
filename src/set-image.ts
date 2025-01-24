@@ -1,5 +1,5 @@
 import { exportVariable, warning } from "@actions/core";
-import { slugify } from "./utils";
+import { slugify } from "./utils.js";
 import fetch from "node-fetch";
 
 function handleMimeType(type: string) {

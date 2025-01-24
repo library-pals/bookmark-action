@@ -2,7 +2,7 @@
   "name": "bookmark-action",
   "version": "7.0.2",
   "description": "Save website metadata to a JSON file.",
-  "main": "dist/index.js",
+  "exports": "./dist/index.js",
   "type": "module",
   "scripts": {
     "pretest": "eslint .",
@@ -15,22 +15,22 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
     "node-fetch": "3.3.2",
-    "open-graph-scraper": "^6.8.3"
+    "open-graph-scraper": "^6.9.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
-    "@eslint/js": "^9.16.0",
+    "@eslint/js": "^9.18.0",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.1",
+    "@types/node": "^22.10.10",
     "@types/node-fetch": "^2.6.12",
     "@vercel/ncc": "^0.38.3",
-    "eslint": "^9.16.0",
-    "eslint-plugin-jest": "^28.9.0",
+    "eslint": "^9.18.0",
+    "eslint-plugin-jest": "^28.11.0",
     "jest": "^29.7.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.17.0"
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.21.0"
   },
   "repository": {
     "type": "git",
