@@ -40,7 +40,7 @@ jobs:
     name: Add bookmark
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Bookmark action
         uses: library-pals/bookmark-action@v7.1.0
         with:
@@ -99,7 +99,7 @@ jobs:
     name: Add bookmark
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Bookmark action
         uses: library-pals/bookmark-action@v7.1.0
         with:
